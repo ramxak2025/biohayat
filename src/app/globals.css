@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* ════════════════════════════════════════════════════════════════
+   ХАЯТ — Дизайн-система
+   Вдохновлено подходом ВкусВилл: чисто, воздушно, натурально.
+   Свежий природный зелёный, мягкие тени, щедрые скругления,
+   дружелюбный геометрический гротеск (Manrope).
+   Все токены доступны как утилиты Tailwind (bg-brand-500, text-ink, …).
+   ════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Бренд: свежий природный зелёный ── */
+  --color-brand-50: #f0f9f1;
+  --color-brand-100: #dbf0de;
+  --color-brand-200: #b9e1bf;
+  --color-brand-300: #8ecb97;
+  --color-brand-400: #5cae69;
+  --color-brand-500: #3a9447; /* основной акцент */
+  --color-brand-600: #2c7838;
+  --color-brand-700: #245f2f;
+  --color-brand-800: #214c29;
+  --color-brand-900: #1c3f24;
+
+  /* ── Акцент: мёд / тёплый янтарь (акции, бейджи) ── */
+  --color-accent-50: #fdf6e9;
+  --color-accent-100: #f9e7c2;
+  --color-accent-200: #f3cf85;
+  --color-accent-300: #edb54a;
+  --color-accent-400: #e7a124;
+  --color-accent-500: #d98a12;
+  --color-accent-600: #b86e0e;
+
+  /* ── Нейтральные (тёплый серо-зелёный) ── */
+  --color-ink: #1a1d1a; /* основной текст */
+  --color-ink-muted: #5b635b; /* вторичный текст */
+  --color-ink-faint: #8b918a; /* подписи, плейсхолдеры */
+  --color-line: #e7ebe4; /* границы */
+  --color-line-strong: #d6dbd2;
+  --color-surface: #ffffff; /* карточки */
+  --color-surface-soft: #f5f7f3; /* фон секций */
+  --color-surface-sunken: #eef1ea;
+
+  /* ── Семантические ── */
+  --color-success: #2c7838;
+  --color-warning: #d98a12;
+  --color-danger: #d64545;
+  --color-info: #2f6fb0;
+  --color-sale: #d64545; /* цена со скидкой */
+
+  /* ── Шрифты ── */
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  /* ── Радиусы (щедрые скругления) ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
+
+  /* ── Тени (мягкие, природные) ── */
+  --shadow-xs: 0 1px 2px rgba(26, 29, 26, 0.05);
+  --shadow-sm: 0 2px 8px rgba(26, 29, 26, 0.06);
+  --shadow-md: 0 6px 20px rgba(26, 29, 26, 0.08);
+  --shadow-lg: 0 14px 40px rgba(26, 29, 26, 0.1);
+  --shadow-brand: 0 8px 24px rgba(58, 148, 71, 0.28);
+
+  /* ── Контейнер / тайминги ── */
+  --spacing-header: 72px;
+  --spacing-mobnav: 64px;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Базовая типографика ── */
+:root {
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv01";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* iOS safe-area helpers (нижнее меню) */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+  .h-mobnav-safe {
+    height: calc(var(--spacing-mobnav) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Скрытый скроллбар для горизонтальных лент */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Плавное появление */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s var(--ease-out-soft) both;
+}
+
+/* Заглушка изображения (паттерн до загрузки реальных фото) */
+.img-placeholder {
+  background:
+    linear-gradient(135deg, var(--color-brand-50), var(--color-surface-soft)),
+    var(--color-surface-soft);
+}
+
+/* Фокус для доступности */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
