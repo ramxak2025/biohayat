@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedCategories } from "./seed-data/categories";
 import { seedProducts } from "./seed-data/products";
+import { tagProduct } from "../src/lib/taxonomy";
+import { seedCompatibility } from "./seed-data/compatibility";
 
 const prisma = new PrismaClient();
 
@@ -94,6 +96,7 @@ async function main() {
     const oldPriceKopecks = p.oldPrice ? p.oldPrice * 100 : null;
     const badges: string[] = [];
     if (oldPriceKopecks) badges.push("акция");
+    const tags = tagProduct(p.name, p.cat);
 
     await prisma.product.upsert({
       where: { slug: p.slug },
@@ -104,6 +107,9 @@ async function main() {
         categoryId,
         badges,
         volume: p.volume ?? null,
+        audiences: tags.audiences,
+        goals: tags.goals,
+        nutrients: tags.nutrients,
       },
       create: {
         slug: p.slug,
@@ -119,6 +125,9 @@ async function main() {
         oldPriceKopecks,
         categoryId,
         badges,
+        audiences: tags.audiences,
+        goals: tags.goals,
+        nutrients: tags.nutrients,
         inStock: true,
         isActive: true,
         isFeatured: order % 9 === 0,
@@ -208,6 +217,28 @@ async function main() {
     });
   }
   console.log(`📝 Материалов: ${materials.length}`);
+
+  // 8. Правила совместимости БАД
+  for (const r of seedCompatibility) {
+    const exists = await prisma.compatibilityRule.findFirst({
+      where: { componentA: r.componentA, componentB: r.componentB, type: r.type },
+    });
+    if (!exists) await prisma.compatibilityRule.create({ data: r });
+  }
+  console.log(`🔬 Правил совместимости: ${seedCompatibility.length}`);
+
+  // 9. Демо-покупатель (для теста личного кабинета)
+  await prisma.customer.upsert({
+    where: { phone: "+79280000001" },
+    update: {},
+    create: {
+      phone: "+79280000001",
+      name: "Демо Клиент",
+      passwordHash: await bcrypt.hash("demo1234", 12),
+      email: "demo@biohayat.ru",
+    },
+  });
+  console.log("🙋 Демо-клиент: +7 928 000-00-01 / demo1234");
 
   console.log("✅ Готово.");
 }

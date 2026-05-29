@@ -11,8 +11,11 @@ import type { OrderStatus } from "@prisma/client";
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   NEW: "Новая",
   CONFIRMED: "Подтверждена",
-  SHIPPED: "Отправлена",
-  DONE: "Выполнена",
+  PAID: "Оплачена",
+  ASSEMBLING: "На сборке",
+  SHIPPED: "Передана в доставку",
+  IN_TRANSIT: "В пути",
+  DELIVERED: "Доставлена",
   CANCELLED: "Отменена",
 };
 

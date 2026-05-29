@@ -84,6 +84,11 @@ model Product {
   images ProductImage[]
   badges String[] // напр. ["хит", "новинка", "акция"]
 
+  // Навигация по трём осям каталога:
+  audiences String[] // кому: "men" | "women" | "kids"
+  goals     String[] // зачем: "weight-loss" | "mass-gain" | "immunity" | ...
+  nutrients String[] // ключевые компоненты для проверки совместимости БАД
+
   inStock    Boolean @default(true)
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)
@@ -94,7 +99,9 @@ model Product {
   metaDescription String? @db.Text
   ogImage         String?
 
-  orderItems OrderItem[]
+  orderItems  OrderItem[]
+  favorites   Favorite[]
+  intakePlans IntakePlan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -174,11 +181,14 @@ model Material {
 //  Заявки / заказы (уходят лидами в Битрикс24)
 // ─────────────────────────────────────────────
 enum OrderStatus {
-  NEW
-  CONFIRMED
-  SHIPPED
-  DONE
-  CANCELLED
+  NEW // новая заявка
+  CONFIRMED // подтверждена менеджером
+  PAID // оплачена
+  ASSEMBLING // на сборке/отгрузке
+  SHIPPED // передана в доставку
+  IN_TRANSIT // в пути
+  DELIVERED // доставлена/выполнена
+  CANCELLED // отменена
 }
 
 enum BitrixSyncStatus {
@@ -203,10 +213,19 @@ model Order {
   consentGiven Boolean  @default(false)
   consentAt    DateTime?
 
+  // Связь с зарегистрированным покупателем (если оформлял из ЛК)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
   // Интеграция с Битрикс24
   bitrixLeadId     String?
+  bitrixDealId     String?
   bitrixSyncStatus BitrixSyncStatus @default(PENDING)
   bitrixError      String?          @db.Text
+
+  // Доставка / трекинг (СДЭК и др.)
+  trackingNumber  String?
+  trackingCarrier String? @default("cdek")
 
   // источник / utm
   source String?
@@ -218,6 +237,7 @@ model Order {
 
   @@index([status, createdAt])
   @@index([bitrixSyncStatus])
+  @@index([customerId])
 }
 
 model OrderItem {
@@ -291,6 +311,9 @@ model SiteSettings {
   bitrixEnabled    Boolean @default(false)
   bitrixChatCode   String? @db.Text // HTML/JS код виджета онлайн-чата (Открытые линии)
   bitrixResponsibleId String? // ID ответственного за лиды
+  // Приёмник статусов из Битрикс24 (исходящий вебхук на стороне Битрикс24)
+  bitrixWebhookToken String? // секрет в URL приёмника /api/bitrix/webhook?token=...
+  bitrixStageMap     Json?   // { "STAGE_ID": "DELIVERED", ... } стадия сделки → статус заказа
 
   // SEO по умолчанию
   defaultMetaTitle       String  @default("ХАЯТ — натуральные витамины и БАД для всей семьи")
@@ -307,4 +330,126 @@ model SiteSettings {
   badDisclaimer String @db.Text @default("БАД. НЕ ЯВЛЯЕТСЯ ЛЕКАРСТВЕННЫМ СРЕДСТВОМ. Имеются противопоказания, необходима консультация специалиста.")
 
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+//  Покупатели (личный кабинет, вход по телефону)
+// ─────────────────────────────────────────────
+model Customer {
+  id           String    @id @default(cuid())
+  phone        String    @unique // нормализованный +7XXXXXXXXXX
+  passwordHash String
+  name         String
+  email        String?
+  city         String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orders        Order[]
+  favorites     Favorite[]
+  intakePlans   IntakePlan[]
+  consultations ConsultationRequest[]
+
+  @@index([createdAt])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+}
+
+// ─────────────────────────────────────────────
+//  Трекер приёма БАД
+// ─────────────────────────────────────────────
+model IntakePlan {
+  id           String   @id @default(cuid())
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  title        String // название курса/добавки
+  times        String[] // времена приёма, напр. ["09:00","21:00"]
+  startDate    DateTime @default(now())
+  durationDays Int? // длительность курса (null = бессрочно)
+  note         String?  @db.Text
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  logs IntakeLog[]
+
+  @@index([customerId, isActive])
+}
+
+model IntakeLog {
+  id      String     @id @default(cuid())
+  planId  String
+  plan    IntakePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  day     String // дата приёма YYYY-MM-DD
+  slot    String // время-слот, напр. "09:00"
+  takenAt DateTime   @default(now())
+
+  @@unique([planId, day, slot])
+  @@index([planId, day])
+}
+
+// ─────────────────────────────────────────────
+//  Заявки на консультацию нутрициолога
+// ─────────────────────────────────────────────
+enum ConsultationStatus {
+  NEW
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+model ConsultationRequest {
+  id         String             @id @default(cuid())
+  customerId String?
+  customer   Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  name       String
+  phone      String
+  topic      String? // тема консультации
+  message    String?            @db.Text
+  status     ConsultationStatus @default(NEW)
+
+  bitrixLeadId     String?
+  bitrixSyncStatus BitrixSyncStatus @default(PENDING)
+  bitrixError      String?          @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// ─────────────────────────────────────────────
+//  Совместимость БАД (синергия / антагонизм / осторожно)
+// ─────────────────────────────────────────────
+enum CompatibilityType {
+  SYNERGY // усиливают друг друга
+  ANTAGONIST // нельзя вместе / мешают усвоению
+  CAUTION // с осторожностью
+}
+
+model CompatibilityRule {
+  id         String            @id @default(cuid())
+  componentA String // напр. "Кальций"
+  componentB String // напр. "Железо"
+  type       CompatibilityType
+  note       String?           @db.Text
+  isActive   Boolean           @default(true)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([isActive])
 }
