@@ -16,7 +16,7 @@ export function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div className="pb-safe fixed inset-x-0 bottom-[calc(var(--spacing-mobnav)+0.5rem)] z-30 px-3 lg:bottom-4">
+    <div className="fixed inset-x-0 bottom-28 z-30 px-3 lg:bottom-4">
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-2xl bg-ink/95 p-4 text-sm text-white shadow-lg backdrop-blur sm:flex-row">
         <p className="flex-1 text-white/90">
           Мы используем файлы cookie для корректной работы сайта и аналитики. Продолжая

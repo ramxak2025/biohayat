@@ -36,7 +36,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <div className="flex flex-1 flex-col p-3.5">
         <Link
           href={`/category/${product.category.slug}`}
-          className="text-xs font-semibold text-brand-600 hover:underline"
+          className="block truncate text-xs font-semibold text-brand-600 hover:underline"
         >
           {product.category.name}
         </Link>

@@ -12,7 +12,7 @@ export function Footer({
   categories: Pick<Category, "slug" | "name">[];
 }) {
   return (
-    <footer className="mt-auto border-t border-line bg-surface-soft pb-[calc(var(--spacing-mobnav)+1rem)] pt-12 lg:pb-12">
+    <footer className="mt-auto border-t border-line bg-surface-soft pb-28 pt-12 lg:pb-12">
       <Container>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>

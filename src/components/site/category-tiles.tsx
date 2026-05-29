@@ -25,7 +25,7 @@ export function CategoryTiles({ categories }: { categories: Category[] }) {
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white">
               <Icon className="h-6 w-6" strokeWidth={1.8} />
             </span>
-            <span className="text-[15px] font-bold leading-tight text-ink">{c.name}</span>
+            <span className="min-w-0 break-words text-[15px] font-bold leading-tight text-ink">{c.name}</span>
           </Link>
         );
       })}
