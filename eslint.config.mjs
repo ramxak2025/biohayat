@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Чтение localStorage при монтировании (корзина, cookie-баннер) — намеренный
+      // приём для безопасной гидрации. Понижаем до предупреждения.
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;
