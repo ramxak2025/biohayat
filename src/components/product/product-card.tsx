@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SmartImage } from "@/components/ui/smart-image";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { formatMoney, discountPercent } from "@/lib/utils";
 import type { ProductCardData } from "@/lib/queries";
 
@@ -26,6 +27,9 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           {discount ? <Badge tone="sale">−{discount}%</Badge> : null}
           {product.isFeatured ? <Badge tone="accent">хит</Badge> : null}
           {!product.inStock ? <Badge tone="neutral">нет в наличии</Badge> : null}
+        </div>
+        <div className="absolute right-2.5 top-2.5">
+          <FavoriteButton productId={product.id} />
         </div>
       </Link>
 

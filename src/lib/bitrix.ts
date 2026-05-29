@@ -124,6 +124,67 @@ export async function syncOrderToBitrix(orderId: string): Promise<void> {
   }
 }
 
+/**
+ * Отправляет заявку на консультацию нутрициолога в Битрикс24 как лид.
+ * По аналогии с syncOrderToBitrix: при выключенной интеграции — DISABLED, при ошибке — FAILED.
+ */
+export async function syncConsultationToBitrix(consultationId: string): Promise<void> {
+  const settings = await getSettings();
+  const consultation = await prisma.consultationRequest.findUnique({
+    where: { id: consultationId },
+  });
+  if (!consultation) return;
+
+  if (!settings.bitrixEnabled || !settings.bitrixWebhookUrl) {
+    await prisma.consultationRequest.update({
+      where: { id: consultationId },
+      data: { bitrixSyncStatus: "DISABLED" },
+    });
+    return;
+  }
+
+  // Формируем читаемый комментарий из темы и сообщения.
+  const commentLines: string[] = ["Заявка на консультацию нутрициолога с сайта biohayat.ru", ""];
+  if (consultation.topic) commentLines.push(`Тема: ${consultation.topic}`);
+  if (consultation.message) commentLines.push(`\nСообщение:\n${consultation.message}`);
+
+  const fields: Record<string, unknown> = {
+    TITLE: `Консультация нутрициолога — ${consultation.name}`,
+    NAME: consultation.name,
+    SOURCE_ID: "WEB",
+    OPENED: "Y",
+    STATUS_ID: "NEW",
+    COMMENTS: commentLines.join("\n"),
+    PHONE: [{ VALUE: normalizePhone(consultation.phone), VALUE_TYPE: "WORK" }],
+  };
+  if (settings.bitrixResponsibleId) {
+    fields.ASSIGNED_BY_ID = settings.bitrixResponsibleId;
+  }
+
+  try {
+    const data = await callBitrix<number>(settings.bitrixWebhookUrl, "crm.lead.add", {
+      fields,
+      params: { REGISTER_SONET_EVENT: "Y" },
+    });
+    await prisma.consultationRequest.update({
+      where: { id: consultationId },
+      data: {
+        bitrixLeadId: data.result ? String(data.result) : null,
+        bitrixSyncStatus: "SYNCED",
+        bitrixError: null,
+      },
+    });
+  } catch (err) {
+    await prisma.consultationRequest.update({
+      where: { id: consultationId },
+      data: {
+        bitrixSyncStatus: "FAILED",
+        bitrixError: err instanceof Error ? err.message : "Неизвестная ошибка",
+      },
+    });
+  }
+}
+
 /** Проверка вебхука из админки (метод profile). */
 export async function testBitrixConnection(
   webhookUrl: string,

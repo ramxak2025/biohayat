@@ -104,6 +104,33 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
           ) : null}
         </div>
         <Field label="ID ответственного за лиды (опц.)" name="bitrixResponsibleId" def={settings.bitrixResponsibleId} />
+
+        <div className="rounded-xl bg-surface-soft p-4">
+          <div className="mb-2 text-sm font-bold">Синхронизация статусов (Битрикс24 → сайт)</div>
+          <p className="mb-3 text-xs text-ink-muted">
+            В Битрикс24: Разработчикам → Исходящий вебхук → события ONCRMDEALUPDATE / ONCRMLEADUPDATE.
+            URL приёмника: <code className="rounded bg-surface px-1">{`{ваш-домен}/api/bitrix/webhook?token=ТОКЕН`}</code>
+          </p>
+          <Field label="Токен приёмника" name="bitrixWebhookToken" def={settings.bitrixWebhookToken} placeholder="любая длинная случайная строка" />
+          <div className="mt-3">
+            <Label htmlFor="bitrixStageMap">Соответствие «стадия → статус» (JSON)</Label>
+            <Textarea
+              id="bitrixStageMap"
+              name="bitrixStageMap"
+              rows={5}
+              className="font-mono text-xs"
+              defaultValue={
+                settings.bitrixStageMap ? JSON.stringify(settings.bitrixStageMap, null, 2) : ""
+              }
+              placeholder={'{\n  "C1:PREPAYMENT_INVOICE": "PAID",\n  "C1:EXECUTING": "ASSEMBLING",\n  "C1:FINAL_INVOICE": "IN_TRANSIT",\n  "C1:WON": "DELIVERED"\n}'}
+            />
+            <p className="mt-1 text-xs text-ink-faint">
+              Ключ — ID стадии сделки (STAGE_ID) или статуса лида (STATUS_ID). Значение — статус
+              заказа: NEW, CONFIRMED, PAID, ASSEMBLING, SHIPPED, IN_TRANSIT, DELIVERED, CANCELLED.
+            </p>
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="bitrixChatCode">Код виджета онлайн-чата (Открытые линии)</Label>
           <Textarea

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { CatalogView } from "@/components/product/catalog-view";
+import { CollectionTiles } from "@/components/site/collection-tiles";
+import { Container } from "@/components/ui/container";
 import { getNavCategories, getProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
@@ -33,12 +35,26 @@ export default async function CatalogPage({
   ]);
 
   return (
-    <CatalogView
-      title={q ? `Поиск: «${q}»` : "Каталог товаров"}
-      description={q ? null : "Натуральные витамины, БАД, масла, мёд и бальзамы ХАЯТ."}
-      products={items}
-      total={total}
-      categories={categories}
-    />
+    <>
+      {!q ? (
+        <Container className="space-y-6 pt-6">
+          <div>
+            <h2 className="mb-3 text-lg font-extrabold">Кому</h2>
+            <CollectionTiles variant="audience" />
+          </div>
+          <div>
+            <h2 className="mb-3 text-lg font-extrabold">Зачем (по цели)</h2>
+            <CollectionTiles variant="goal" />
+          </div>
+        </Container>
+      ) : null}
+      <CatalogView
+        title={q ? `Поиск: «${q}»` : "Каталог товаров"}
+        description={q ? null : "Натуральные витамины, БАД, масла, мёд и бальзамы ХАЯТ."}
+        products={items}
+        total={total}
+        categories={categories}
+      />
+    </>
   );
 }

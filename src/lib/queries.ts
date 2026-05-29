@@ -13,6 +13,8 @@ export function getCategoryBySlug(slug: string) {
 
 export async function getProducts(opts: {
   categorySlug?: string;
+  audience?: string;
+  goal?: string;
   featured?: boolean;
   onSale?: boolean;
   take?: number;
@@ -22,6 +24,8 @@ export async function getProducts(opts: {
   const where = {
     isActive: true,
     ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
+    ...(opts.audience ? { audiences: { has: opts.audience } } : {}),
+    ...(opts.goal ? { goals: { has: opts.goal } } : {}),
     ...(opts.featured ? { isFeatured: true } : {}),
     ...(opts.onSale ? { oldPriceKopecks: { not: null } } : {}),
     ...(opts.search

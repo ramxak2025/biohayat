@@ -13,6 +13,17 @@ function str(fd: FormData, key: string): string | null {
   return v || null;
 }
 
+/** Парсит JSON соответствия «стадия Битрикс24 → статус заказа». При ошибке — null. */
+function parseStageMap(raw: string | null): object | undefined {
+  if (!raw) return undefined;
+  try {
+    const obj = JSON.parse(raw);
+    return obj && typeof obj === "object" ? obj : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function updateSettings(_prev: SettingsState, fd: FormData): Promise<SettingsState> {
   await requireSession();
 
@@ -41,6 +52,8 @@ export async function updateSettings(_prev: SettingsState, fd: FormData): Promis
         bitrixEnabled: fd.get("bitrixEnabled") === "on",
         bitrixChatCode: str(fd, "bitrixChatCode"),
         bitrixResponsibleId: str(fd, "bitrixResponsibleId"),
+        bitrixWebhookToken: str(fd, "bitrixWebhookToken"),
+        bitrixStageMap: parseStageMap(str(fd, "bitrixStageMap")),
         defaultMetaTitle: str(fd, "defaultMetaTitle") || "ХАЯТ",
         defaultMetaDescription: str(fd, "defaultMetaDescription") || "",
         titleTemplate: str(fd, "titleTemplate") || "%s — ХАЯТ",

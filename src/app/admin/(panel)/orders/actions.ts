@@ -22,6 +22,16 @@ export async function resyncOrder(id: string): Promise<void> {
   revalidatePath(`/admin/orders/${id}`);
 }
 
+/** Сохраняет трек-номер доставки (СДЭК и др.). */
+export async function setOrderTracking(id: string, trackingNumber: string, carrier: string): Promise<void> {
+  await requireSession();
+  await prisma.order.update({
+    where: { id },
+    data: { trackingNumber: trackingNumber.trim() || null, trackingCarrier: carrier || "cdek" },
+  });
+  revalidatePath(`/admin/orders/${id}`);
+}
+
 export async function deleteOrder(id: string): Promise<void> {
   await requireSession();
   await prisma.order.delete({ where: { id } });

@@ -3,6 +3,7 @@ import { ArrowRight, Truck, ShieldCheck, Leaf, BadgePercent } from "lucide-react
 import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { CategoryTiles } from "@/components/site/category-tiles";
+import { CollectionTiles } from "@/components/site/collection-tiles";
 import { ProductGrid } from "@/components/product/product-card";
 import { getNavCategories, getProducts, getBanners, getPublishedMaterials } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
@@ -104,6 +105,20 @@ export default async function HomePage() {
         <Container>
           <SectionHeader title="Категории" subtitle="Подберите продукцию под свою задачу" />
           <CategoryTiles categories={categories} />
+        </Container>
+      </Section>
+
+      {/* ── Подбор: кому / зачем ── */}
+      <Section className="py-6">
+        <Container className="space-y-6">
+          <div>
+            <SectionHeader title="Кому" subtitle="Подборки для всей семьи" />
+            <CollectionTiles variant="audience" />
+          </div>
+          <div>
+            <SectionHeader title="Зачем" subtitle="Подберите по вашей цели" />
+            <CollectionTiles variant="goal" />
+          </div>
         </Container>
       </Section>
 

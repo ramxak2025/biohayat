@@ -5,7 +5,7 @@ import { AdminHeader, Card, Pill } from "@/components/admin/ui";
 import { DeleteButton } from "@/components/admin/form-controls";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/utils";
-import { OrderStatusSelect, ResyncButton } from "../order-controls";
+import { OrderStatusSelect, ResyncButton, TrackingControl } from "../order-controls";
 import { deleteOrder } from "../actions";
 import { redirect } from "next/navigation";
 
@@ -74,6 +74,20 @@ export default async function OrderDetailPage({
             <h2 className="mb-3 font-bold">Статус</h2>
             <OrderStatusSelect id={order.id} status={order.status} />
           </Card>
+
+          <Card>
+            <h2 className="mb-3 font-bold">Доставка (СДЭК)</h2>
+            <TrackingControl id={order.id} trackingNumber={order.trackingNumber} carrier={order.trackingCarrier} />
+          </Card>
+
+          {order.customerId ? (
+            <Card>
+              <h2 className="mb-2 font-bold">Клиент</h2>
+              <Link href={`/admin/customers/${order.customerId}`} className="text-sm font-semibold text-brand-700 hover:underline">
+                Зарегистрированный покупатель →
+              </Link>
+            </Card>
+          ) : null}
 
           <Card>
             <h2 className="mb-3 font-bold">Битрикс24</h2>

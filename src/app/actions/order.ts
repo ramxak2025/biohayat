@@ -4,6 +4,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { syncOrderToBitrix } from "@/lib/bitrix";
+import { getCustomerSession } from "@/lib/customer-auth";
 
 const itemSchema = z.object({
   id: z.string(),
@@ -76,6 +77,7 @@ export async function submitOrder(
   const totalKopecks = items.reduce((s, i) => s + i.priceKopecks * i.qty, 0);
 
   const referer = (await headers()).get("referer") || undefined;
+  const session = await getCustomerSession();
 
   const order = await prisma.order.create({
     data: {
@@ -88,6 +90,7 @@ export async function submitOrder(
       consentGiven: true,
       consentAt: new Date(),
       source: referer ? "Сайт biohayat.ru" : "Сайт",
+      customerId: session?.sub ?? null,
       items: { create: items },
     },
   });

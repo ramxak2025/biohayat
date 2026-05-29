@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
+import { AUDIENCES, GOALS } from "@/lib/taxonomy";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
@@ -24,6 +25,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...AUDIENCES.map((a) => ({
+      url: `${base}/for/${a.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+    ...GOALS.map((g) => ({
+      url: `${base}/goal/${g.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
     ...categories.map((c) => ({
       url: `${base}/category/${c.slug}`,
       lastModified: c.updatedAt,
