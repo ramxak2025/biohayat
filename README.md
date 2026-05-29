@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ХАЯТ — интернет-магазин БАД (biohayat)
 
-## Getting Started
+Современный, быстрый интернет-магазин биологически активных добавок и фитопродукции
+с кастомной админкой, интеграцией с Битрикс24, автоматическим SEO и соответствием
+законодательству РФ (152-ФЗ, требования к рекламе БАД).
 
-First, run the development server:
+## Технологии
+- **Next.js 16** (App Router, React 19, серверный рендеринг, серверные экшены)
+- **TypeScript**, **Tailwind CSS v4** (дизайн-система на токенах)
+- **PostgreSQL + Prisma** (данные на серверах в РФ — 152-ФЗ)
+- **Manrope** (самохостинг шрифта через `next/font`)
+- Авторизация админки — JWT-сессии (`jose`) + `bcryptjs`
 
+## Возможности
+- Каталог: категории, товары, фильтры, поиск, акции, похожие товары
+- Карточка товара: галерея, состав, способ применения, противопоказания, дисклеймер БАД
+- Корзина и оформление заказа → **заявка/лид в Битрикс24** (оплата при получении)
+- Онлайн-чат Битрикс24 (Открытые линии) — код виджета в настройках
+- **Личный кабинет (админка):** товары, категории, баннеры (рекламные блоки),
+  материалы (статьи), заявки, настройки и интеграции
+- **Авто-SEO:** мета-теги, canonical, OpenGraph, JSON-LD (Organization, Product,
+  BreadcrumbList), `sitemap.xml`, `robots.txt`. При добавлении товара SEO заполняется само.
+- Загрузка изображений с конвертацией в WebP
+- Мобильное нижнее меню в стиле iOS 26, адаптив, быстрый отклик
+- Юр. страницы: политика конфиденциальности (152-ФЗ), публичная оферта, доставка/оплата
+- Cookie-уведомление, согласие на обработку перс. данных при заказе
+
+## Документация
+- `docs/design-system.md` — цвета, шрифты, размеры, отступы, компоненты
+- `docs/image-spec.md` — размеры и соотношения сторон всех изображений
+- `docs/architecture.md` — структура проекта
+- `docs/bitrix24.md` — настройка интеграции с Битрикс24
+- `docs/source-content.md` — данные, перенесённые со старого сайта
+
+## Быстрый старт (разработка)
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env          # заполните DATABASE_URL и AUTH_SECRET
+pnpm db:push                  # создать таблицы
+pnpm db:seed                  # наполнить демо-данными (119 товаров)
+pnpm dev                      # http://localhost:3000
 ```
+Админка: `/admin/login` — логин/пароль из `.env` (`ADMIN_EMAIL` / `ADMIN_PASSWORD`).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Переменные окружения
+См. `.env.example`. Ключевые: `DATABASE_URL`, `AUTH_SECRET` (≥32 символов),
+`NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Деплой (Docker, российский хостинг)
+```bash
+docker compose up -d --build       # поднимет app + postgres
+docker compose exec app pnpm db:push
+docker compose exec app pnpm db:seed
+```
+Загруженные изображения сохраняются в `public/uploads` (в compose смонтирован том).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> Для соответствия 152-ФЗ размещайте приложение и БД на серверах в РФ
+> (Timeweb, Selectel, Beget, Reg.ru и т.п.).
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Скрипты
+| Команда | Действие |
+|---|---|
+| `pnpm dev` | разработка |
+| `pnpm build` / `pnpm start` | прод-сборка / запуск |
+| `pnpm db:push` | синхронизировать схему БД |
+| `pnpm db:seed` | наполнить демо-данными |
+| `pnpm db:studio` | Prisma Studio |
+| `pnpm lint` | проверка ESLint |
