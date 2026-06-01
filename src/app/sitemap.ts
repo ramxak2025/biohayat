@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { AUDIENCES, GOALS } from "@/lib/taxonomy";
 
+// Карта сайта строится на лету из БД — не требуется на этапе сборки.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
   const [products, categories, materials] = await Promise.all([

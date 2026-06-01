@@ -10,6 +10,10 @@ import { getSettings } from "@/lib/settings";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
 
+// Публичные страницы рендерятся на лету (контент управляется из админки),
+// поэтому сборка не требует доступа к базе данных.
+export const dynamic = "force-dynamic";
+
 export default async function SiteLayout({
   children,
 }: {

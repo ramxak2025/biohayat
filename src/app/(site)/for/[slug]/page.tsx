@@ -4,11 +4,9 @@ import { CatalogView } from "@/components/product/catalog-view";
 import { getNavCategories, getProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
-import { AUDIENCES, audienceName } from "@/lib/taxonomy";
+import { audienceName } from "@/lib/taxonomy";
 
-export function generateStaticParams() {
-  return AUDIENCES.map((a) => ({ slug: a.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

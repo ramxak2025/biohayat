@@ -4,11 +4,9 @@ import { CatalogView } from "@/components/product/catalog-view";
 import { getNavCategories, getProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
-import { GOALS, goalName } from "@/lib/taxonomy";
+import { goalName } from "@/lib/taxonomy";
 
-export function generateStaticParams() {
-  return GOALS.map((g) => ({ slug: g.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
