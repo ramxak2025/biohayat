@@ -24,6 +24,12 @@ function shortDescriptionFor(name: string): string {
 async function main() {
   console.log("🌱 Сидирование БД ХАЯТ…");
 
+  // 0. Расширение для нечёткого поиска (опечатки) + индекс
+  await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS product_name_trgm ON "Product" USING gin (name gin_trgm_ops);`,
+  );
+
   // 1. Настройки сайта
   await prisma.siteSettings.upsert({
     where: { id: "default" },

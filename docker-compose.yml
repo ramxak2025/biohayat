@@ -28,11 +28,32 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123!}
       ADMIN_NAME: ${ADMIN_NAME:-Администратор}
     ports:
+      # Прямой доступ по http://IP:3000 (без домена). С Caddy можно убрать.
       - "3000:3000"
     volumes:
       # сохраняем загруженные изображения между перезапусками
       - uploads:/app/public/uploads
 
+  # HTTPS-прокси с автоматическим SSL (Let's Encrypt).
+  # Запускается только с доменом: docker compose --profile proxy up -d
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: ["proxy"]
+    depends_on:
+      - app
+    environment:
+      DOMAIN: ${DOMAIN:?Задайте DOMAIN в .env для HTTPS}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
 volumes:
   db-data:
   uploads:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,6 @@
+# Автоматический HTTPS (Let's Encrypt) для домена из переменной DOMAIN.
+# Caddy сам получит и продлит сертификат.
+{$DOMAIN} {
+	encode gzip zstd
+	reverse_proxy app:3000
+}

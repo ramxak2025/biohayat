@@ -27,5 +27,8 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/next.config.ts ./next.config.ts
+COPY --from=build /app/tsconfig.json ./tsconfig.json
+# src нужен для сид-скрипта (импортирует src/lib/taxonomy)
+COPY --from=build /app/src ./src
 EXPOSE 3000
 CMD ["pnpm", "start"]
