@@ -17,6 +17,8 @@ RUN pnpm install --frozen-lockfile
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# гарантируем наличие папки public (git не хранит пустые директории)
+RUN mkdir -p public/uploads
 RUN pnpm exec prisma generate
 RUN pnpm build
 
