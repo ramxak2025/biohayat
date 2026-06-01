@@ -37,7 +37,7 @@ export default async function SiteLayout({
         <div className="hidden lg:block">
           <Header categories={navCats} phone={settings.phone} loggedIn={!!session} />
         </div>
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pt-[env(safe-area-inset-top)] lg:pt-0">{children}</main>
         <Footer settings={settings} categories={navCats} />
         <MobileNav />
         <CookieConsent />

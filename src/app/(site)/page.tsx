@@ -92,7 +92,7 @@ export default async function HomePage() {
           </div>
 
           {/* trust strip */}
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <TrustItem icon={Truck} title="Бесплатная доставка" text={`от ${formatMoney(settings.freeDeliveryThresholdKopecks)} по России`} />
             <TrustItem icon={ShieldCheck} title="Сертифицировано" text="Соответствует требованиям ЕАЭС" />
             <TrustItem icon={Leaf} title="Натуральный состав" text="Производство ООО «Восток», Россия" />
@@ -228,7 +228,7 @@ function TrustItem({
       </span>
       <div className="min-w-0">
         <div className="text-sm font-bold leading-tight">{title}</div>
-        <div className="truncate text-xs text-ink-muted">{text}</div>
+        <div className="text-xs leading-tight text-ink-muted">{text}</div>
       </div>
     </div>
   );

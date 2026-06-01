@@ -8,9 +8,9 @@ import { useCart } from "@/components/cart/cart-provider";
 import { cn } from "@/lib/utils";
 
 /**
- * Нижнее меню-«островок» в стиле iOS: компактная плавающая капсула с явными
- * боковыми отступами, размытием и тенью. По центру — приподнятая выделенная
- * кнопка «Каталог». Порядок: Главная · Избранное · Каталог · Корзина · Профиль.
+ * Нижнее меню-«островок» в стиле iOS: широкая, но тонкая полупрозрачная панель
+ * с тонкой обводкой, мягким размытием и приподнятой акцентной кнопкой «Каталог»
+ * по центру. Порядок: Главная · Избранное · Каталог · Корзина · Профиль.
  */
 export function MobileNav() {
   const pathname = usePathname();
@@ -21,22 +21,22 @@ export function MobileNav() {
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-5 pb-[max(14px,env(safe-area-inset-bottom))] lg:hidden">
-      <div className="pointer-events-auto flex items-end gap-1 rounded-[30px] border border-white/50 bg-surface/85 px-2.5 py-2 shadow-[0_10px_34px_rgba(26,29,26,0.20)] backdrop-blur-2xl">
+    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around rounded-[24px] border border-black/[0.04] bg-surface/80 px-1.5 py-1.5 shadow-[0_6px_22px_rgba(26,29,26,0.13)] backdrop-blur-2xl">
         <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} />
         <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} />
 
-        {/* центральная выделенная кнопка */}
-        <Link href="/catalog" aria-label="Каталог" className="flex flex-col items-center -mt-7 px-1">
+        {/* центральная приподнятая кнопка */}
+        <Link href="/catalog" aria-label="Каталог" className="flex flex-1 flex-col items-center">
           <span
             className={cn(
-              "flex h-14 w-14 items-center justify-center rounded-full text-white shadow-brand ring-4 ring-surface transition-transform active:scale-95",
+              "-mt-6 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-brand ring-[3px] ring-surface transition-transform active:scale-95",
               isActive("/catalog") ? "bg-brand-600" : "bg-brand-500",
             )}
           >
-            <LayoutGrid className="h-7 w-7" strokeWidth={2.3} />
+            <LayoutGrid className="h-6 w-6" strokeWidth={2.2} />
           </span>
-          <span className="mt-0.5 text-[10px] font-bold text-brand-700">Каталог</span>
+          <span className="mt-1 text-[10px] font-semibold leading-none text-brand-700">Каталог</span>
         </Link>
 
         <Tab href="/cart" label="Корзина" icon={ShoppingBag} active={isActive("/cart")} badge={cartCount} badgeTone="accent" />
@@ -61,16 +61,16 @@ function Tab({
       href={href}
       aria-label={label}
       className={cn(
-        "flex w-[58px] flex-col items-center gap-0.5 rounded-2xl py-1.5 transition-colors",
-        active ? "text-brand-700" : "text-ink-muted",
+        "flex flex-1 flex-col items-center gap-1 py-1 transition-colors",
+        active ? "text-brand-600" : "text-ink-faint",
       )}
     >
       <span className="relative">
-        <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.6 : 2} />
+        <Icon className="h-[21px] w-[21px]" strokeWidth={active ? 2.4 : 1.9} />
         {badge > 0 ? (
           <span
             className={cn(
-              "absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white ring-2 ring-surface",
+              "absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white ring-2 ring-surface",
               badgeTone === "accent" ? "bg-accent-400" : "bg-sale",
             )}
           >
