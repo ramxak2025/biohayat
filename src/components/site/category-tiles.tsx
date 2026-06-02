@@ -20,7 +20,7 @@ export function CategoryTiles({ categories }: { categories: Category[] }) {
           <Link
             key={c.id}
             href={`/category/${c.slug}`}
-            className="group flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md sm:gap-3.5 sm:p-4"
+            className="group flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md sm:gap-3.5 sm:p-4"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white sm:h-12 sm:w-12">
               <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />

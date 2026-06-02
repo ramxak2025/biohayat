@@ -37,13 +37,15 @@ export default async function CatalogPage({
   return (
     <>
       {!q ? (
-        <Container className="space-y-6 pt-6">
+        <Container className="space-y-7 pt-6">
           <div>
-            <h2 className="mb-3 text-lg font-extrabold">Кому</h2>
+            <h2 className="mb-1 text-lg font-extrabold tracking-tight">Кому</h2>
+            <p className="mb-3 text-sm text-ink-muted">Подборки для всей семьи</p>
             <CollectionTiles variant="audience" />
           </div>
           <div>
-            <h2 className="mb-3 text-lg font-extrabold">Зачем (по цели)</h2>
+            <h2 className="mb-1 text-lg font-extrabold tracking-tight">Зачем</h2>
+            <p className="mb-3 text-sm text-ink-muted">Подберите по вашей цели</p>
             <CollectionTiles variant="goal" />
           </div>
         </Container>

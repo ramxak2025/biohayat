@@ -11,7 +11,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   const image = product.images[0]?.url;
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line transition hover:shadow-md">
+    <div className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/product/${product.slug}`} className="relative block">
         <SmartImage
           src={image}

@@ -30,8 +30,8 @@ export default async function HomePage() {
         <Container>
           <div className="grid gap-4 lg:grid-cols-3">
             <div
-              className="relative flex min-h-[300px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white sm:min-h-[380px] lg:col-span-2 lg:p-10"
-              style={{ backgroundColor: hero?.bgColor || "#3a9447" }}
+              className="relative flex min-h-[340px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white sm:min-h-[420px] lg:col-span-2 lg:min-h-[460px] lg:p-12"
+              style={{ backgroundColor: hero?.bgColor || "#2f8f4e" }}
             >
               {hero?.image ? (
                 <SmartImage
@@ -43,6 +43,9 @@ export default async function HomePage() {
                   priority
                 />
               ) : null}
+              {/* мягкий объём/градиент для глубины и читаемости текста */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/15 via-transparent to-white/10" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
               <div className="relative max-w-lg">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
                   <Leaf className="h-3.5 w-3.5" /> Натурально · Проверено временем
@@ -62,7 +65,7 @@ export default async function HomePage() {
             </div>
 
             <div
-              className="relative flex min-h-[180px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white lg:min-h-0"
+              className="relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white lg:min-h-0"
               style={{ backgroundColor: heroSecondary?.bgColor || "#d98a12" }}
             >
               {heroSecondary?.image ? (
@@ -74,6 +77,7 @@ export default async function HomePage() {
                   className="absolute inset-0 h-full w-full"
                 />
               ) : null}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10" />
               <div className="relative">
                 <BadgePercent className="mb-2 h-8 w-8" />
                 <h2 className="text-2xl font-extrabold leading-tight">
