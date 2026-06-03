@@ -3,6 +3,7 @@ import { FavoritesProvider } from "@/components/favorites/favorites-provider";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { MobileNav } from "@/components/site/mobile-nav";
+import { MobileSearch } from "@/components/site/mobile-search";
 import { ChatWidget } from "@/components/site/chat-widget";
 import { CookieConsent } from "@/components/site/cookie-consent";
 import { getNavCategories } from "@/lib/queries";
@@ -37,7 +38,8 @@ export default async function SiteLayout({
         <div className="hidden lg:block">
           <Header categories={navCats} phone={settings.phone} loggedIn={!!session} />
         </div>
-        <main className="flex-1 pt-[env(safe-area-inset-top)] lg:pt-0">{children}</main>
+        <MobileSearch />
+        <main className="flex-1">{children}</main>
         <Footer settings={settings} categories={navCats} />
         <MobileNav />
         <CookieConsent />
