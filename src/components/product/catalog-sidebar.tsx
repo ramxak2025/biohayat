@@ -23,7 +23,7 @@ export function CatalogSidebar({
             Все товары
           </Item>
           <Item href="/sale" active={activeHref === "/sale"} icon={<Tag className="h-4 w-4" />} tone="sale">
-            Акции
+            Распродажа
           </Item>
         </Group>
 

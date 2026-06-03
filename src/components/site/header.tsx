@@ -1,26 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Phone, Search, ShoppingCart, User, Heart } from "lucide-react";
+import { Phone, Search, ShoppingCart, User, Heart, LayoutGrid, Flame } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
 import { Logo } from "./logo";
 
-export interface HeaderCategory {
-  slug: string;
-  name: string;
-}
-
-export function Header({
-  categories,
-  phone,
-  loggedIn,
-}: {
-  categories: HeaderCategory[];
-  phone: string;
-  loggedIn: boolean;
-}) {
+export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }) {
   const { count } = useCart();
   const { count: favCount } = useFavorites();
 
@@ -79,14 +66,28 @@ export function Header({
         </Link>
       </Container>
 
+      {/* Навигация по логике покупателя (категории — в боковом меню каталога) */}
       <div className="border-t border-line">
         <Container>
-          <nav className="no-scrollbar flex items-center gap-1 overflow-x-auto py-2">
-            <Link href="/catalog" className="whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold text-ink hover:bg-surface-soft">Все товары</Link>
-            {categories.map((c) => (
-              <Link key={c.slug} href={`/category/${c.slug}`} className="whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">{c.name}</Link>
-            ))}
-            <Link href="/sale" className="whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-bold text-sale hover:bg-surface-soft">Акции</Link>
+          <nav className="flex items-center gap-1 py-2 text-sm">
+            <Link href="/catalog" className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-bold text-ink hover:bg-surface-soft">
+              <LayoutGrid className="h-4 w-4 text-brand-600" /> Каталог
+            </Link>
+            <span className="mx-1.5 h-4 w-px bg-line" />
+            <span className="px-1.5 text-xs font-bold uppercase tracking-wide text-ink-faint">Для кого</span>
+            <Link href="/for/men" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Мужчинам</Link>
+            <Link href="/for/women" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Женщинам</Link>
+            <Link href="/for/kids" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Детям</Link>
+            <Link href="/account/consultation" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Консультация</Link>
+
+            <span className="flex-1" />
+
+            <Link
+              href="/sale"
+              className="sale-pulse flex items-center gap-1.5 rounded-full bg-sale/10 px-4 py-1.5 font-bold text-sale transition hover:bg-sale/15"
+            >
+              <Flame className="h-4 w-4" /> Распродажа
+            </Link>
           </nav>
         </Container>
       </div>

@@ -4,6 +4,8 @@ import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { CategoryTiles } from "@/components/site/category-tiles";
 import { CollectionTiles } from "@/components/site/collection-tiles";
+import { AudienceCards } from "@/components/site/audience-cards";
+import { SaleBanner } from "@/components/site/sale-banner";
 import { ProductGrid } from "@/components/product/product-card";
 import { getNavCategories, getProducts, getBanners, getPublishedMaterials } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
@@ -104,25 +106,32 @@ export default async function HomePage() {
         </Container>
       </Section>
 
-      {/* ── Категории ── */}
-      <Section className="py-6">
+      {/* ── Распродажа (яркий анимированный блок) ── */}
+      <Section className="py-5">
         <Container>
-          <SectionHeader title="Категории" subtitle="Подберите продукцию под свою задачу" />
-          <CategoryTiles categories={categories} />
+          <SaleBanner />
         </Container>
       </Section>
 
-      {/* ── Подбор: кому / зачем ── */}
+      {/* ── Навигация по покупателю: Для кого / Зачем ── */}
       <Section className="py-6">
-        <Container className="space-y-6">
+        <Container className="space-y-8">
           <div>
-            <SectionHeader title="Кому" subtitle="Подборки для всей семьи" />
-            <CollectionTiles variant="audience" />
+            <SectionHeader title="Для кого" subtitle="Подберём под вас и вашу семью" />
+            <AudienceCards />
           </div>
           <div>
-            <SectionHeader title="Зачем" subtitle="Подберите по вашей цели" />
+            <SectionHeader title="Зачем" subtitle="Выберите по своей цели — мы подскажем" />
             <CollectionTiles variant="goal" />
           </div>
+        </Container>
+      </Section>
+
+      {/* ── Категории ── */}
+      <Section className="py-6">
+        <Container>
+          <SectionHeader title="Категории" subtitle="Весь каталог по типам продукции" />
+          <CategoryTiles categories={categories} />
         </Container>
       </Section>
 
@@ -147,11 +156,11 @@ export default async function HomePage() {
         <Section>
           <Container>
             <SectionHeader
-              title="Акции и скидки"
-              subtitle="Выгодные предложения"
+              title="Товары по акции"
+              subtitle="Успейте купить выгодно"
               action={
                 <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-                  <Link href="/sale">Все акции <ArrowRight className="h-4 w-4" /></Link>
+                  <Link href="/sale">Вся распродажа <ArrowRight className="h-4 w-4" /></Link>
                 </Button>
               }
             />

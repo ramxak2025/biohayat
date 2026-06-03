@@ -36,7 +36,7 @@ export default async function SiteLayout({
       <FavoritesProvider loggedIn={!!session} initialIds={initialFavorites}>
         {/* Шапка только на десктопе — на мобильном навигация снизу */}
         <div className="hidden lg:block">
-          <Header categories={navCats} phone={settings.phone} loggedIn={!!session} />
+          <Header phone={settings.phone} loggedIn={!!session} />
         </div>
         <MobileSearch />
         <main className="flex-1">{children}</main>

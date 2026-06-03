@@ -41,8 +41,8 @@ export function CatalogView({
             <Chip href="/catalog" active={basePath === "/catalog" && !activeSlug}>
               Все
             </Chip>
-            <Chip href="/sale" active={basePath === "/sale"}>
-              Акции
+            <Chip href="/sale" active={basePath === "/sale"} tone="sale">
+              Распродажа
             </Chip>
             {categories.map((c) => (
               <Chip key={c.slug} href={`/category/${c.slug}`} active={activeSlug === c.slug}>
@@ -67,10 +67,12 @@ export function CatalogView({
 function Chip({
   href,
   active,
+  tone,
   children,
 }: {
   href: string;
   active?: boolean;
+  tone?: "sale";
   children: React.ReactNode;
 }) {
   return (
@@ -79,8 +81,12 @@ function Chip({
       className={cn(
         "whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ring-1 transition",
         active
-          ? "bg-brand-500 text-white ring-brand-500"
-          : "bg-surface text-ink-muted ring-line hover:text-ink",
+          ? tone === "sale"
+            ? "bg-sale text-white ring-sale"
+            : "bg-brand-500 text-white ring-brand-500"
+          : tone === "sale"
+            ? "bg-sale/10 text-sale ring-sale/20 hover:bg-sale/15"
+            : "bg-surface text-ink-muted ring-line hover:text-ink",
       )}
     >
       {children}

@@ -24,7 +24,7 @@ export default async function SalePage() {
 
   return (
     <CatalogView
-      title="Акции и скидки"
+      title="Распродажа"
       description="Товары по специальной цене. Используйте промокод FREE25Hayat — −25% на первый заказ."
       products={items}
       total={total}
