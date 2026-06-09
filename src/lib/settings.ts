@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { SiteSettings } from "@prisma/client";
 
@@ -40,12 +41,11 @@ const DEFAULTS: SiteSettings = {
 };
 
 /**
- * Возвращает настройки сайта (singleton). Кешируется в рамках запроса.
- * Создаёт строку с дефолтами при первом обращении.
+ * Чтение настроек из БД (без кэша). Создаёт строку с дефолтами при первом обращении.
  * Если БД недоступна (например, во время `next build` без базы) — возвращает дефолты,
  * чтобы сборка не падала.
  */
-export const getSettings = cache(async (): Promise<SiteSettings> => {
+async function loadSettings(): Promise<SiteSettings> {
   try {
     let settings = await prisma.siteSettings.findUnique({ where: { id: "default" } });
     if (!settings) {
@@ -55,6 +55,26 @@ export const getSettings = cache(async (): Promise<SiteSettings> => {
   } catch {
     return DEFAULTS;
   }
+}
+
+/**
+ * Data Cache между запросами: тег "settings" сбрасывается из админки
+ * (см. src/app/admin/(panel)/settings/actions.ts), TTL 300 c.
+ * Внутри нет cookies()/headers() — только запрос к БД.
+ */
+const getCachedSettings = unstable_cache(loadSettings, ["site-settings"], {
+  tags: ["settings"],
+  revalidate: 300,
+});
+
+/**
+ * Возвращает настройки сайта (singleton). Кешируется в рамках запроса (react cache)
+ * и между запросами (unstable_cache). После попадания в Data Cache даты приходят
+ * строками (JSON-сериализация) — восстанавливаем updatedAt.
+ */
+export const getSettings = cache(async (): Promise<SiteSettings> => {
+  const settings = await getCachedSettings();
+  return { ...settings, updatedAt: new Date(settings.updatedAt) };
 });
 
 export { DEFAULTS as settingsDefaults };

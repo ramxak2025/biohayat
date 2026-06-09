@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
@@ -46,6 +46,8 @@ function buildData(
 }
 
 function revalidateMaterial(slug?: string) {
+  // Сбрасывает Data Cache материалов (lib/queries.ts, тег "content"); немедленно.
+  revalidateTag("content", { expire: 0 });
   revalidatePath("/admin/materials");
   revalidatePath("/articles");
   revalidatePath("/");

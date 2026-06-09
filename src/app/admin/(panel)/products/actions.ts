@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
@@ -65,6 +65,9 @@ function buildData(d: z.infer<typeof schema>, flags: { inStock: boolean; isActiv
 }
 
 function revalidateProduct(slug?: string) {
+  // Сбрасывает Data Cache каталога (lib/queries.ts); { expire: 0 } — немедленно,
+  // чтобы админ сразу видел изменения на публичных страницах.
+  revalidateTag("catalog", { expire: 0 });
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
   revalidatePath("/");

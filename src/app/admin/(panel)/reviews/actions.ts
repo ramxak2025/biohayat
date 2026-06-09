@@ -1,11 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 
 /** Обновляет список в админке и страницу товара, на котором висит отзыв. */
 async function revalidateReview(productId: string) {
+  // Сбрасывает Data Cache отзывов и рейтингов (lib/queries.ts, тег "reviews"); немедленно.
+  revalidateTag("reviews", { expire: 0 });
   revalidatePath("/admin/reviews");
   const product = await prisma.product.findUnique({
     where: { id: productId },

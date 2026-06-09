@@ -17,6 +17,22 @@ export async function getFavoriteProducts(ids: string[]): Promise<ProductCardDat
 }
 
 /**
+ * Id избранных товаров текущего покупателя (для гостей — пустой список).
+ * Вызывается FavoritesProvider после монтирования, чтобы layout не ходил
+ * в БД за избранным на каждом запросе. Персональные данные — не кэшируются.
+ */
+export async function getFavoriteIds(): Promise<string[]> {
+  const session = await getCustomerSession();
+  if (!session) return [];
+  const rows = await prisma.favorite.findMany({
+    where: { customerId: session.sub },
+    select: { productId: true },
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((f) => f.productId);
+}
+
+/**
  * Синхронизирует избранное авторизованного покупателя с БД.
  * Принимает полный набор productId; заменяет записи в БД на этот набор.
  * Возвращает подтверждённый сервером набор id (существующие товары) —

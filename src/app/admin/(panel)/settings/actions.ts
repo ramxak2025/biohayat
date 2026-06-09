@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { testBitrixConnection } from "@/lib/bitrix";
@@ -68,6 +68,8 @@ export async function updateSettings(_prev: SettingsState, fd: FormData): Promis
     return { error: "Не удалось сохранить настройки" };
   }
 
+  // Сбрасывает Data Cache настроек (lib/settings.ts); { expire: 0 } — немедленно.
+  revalidateTag("settings", { expire: 0 });
   revalidatePath("/", "layout");
   return { ok: true };
 }

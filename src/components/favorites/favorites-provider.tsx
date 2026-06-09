@@ -3,7 +3,7 @@
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from "react";
-import { syncFavorites } from "@/app/actions/favorites";
+import { getFavoriteIds, syncFavorites } from "@/app/actions/favorites";
 
 const STORAGE_KEY = "hayat_favorites_v1";
 
@@ -20,14 +20,17 @@ const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 export function FavoritesProvider({
   children,
   loggedIn,
-  initialIds,
 }: {
   children: React.ReactNode;
   loggedIn: boolean;
-  initialIds?: string[];
 }) {
-  const [ids, setIds] = useState<string[]>(initialIds ?? []);
+  const [ids, setIds] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
+  // Серверный снимок избранного загружен (через getFavoriteIds). До этого
+  // sync не выполняем: syncFavorites заменяет набор в БД целиком, и отправка
+  // одного только localStorage стёрла бы серверное избранное. Ref, а не state:
+  // мердж серверных id меняет ids, и sync-эффект перечитает флаг сам.
+  const serverLoaded = useRef(false);
   // Цепочка промисов сериализует запросы синхронизации: без неё два быстрых
   // toggle могли прийти на сервер в обратном порядке, и БД получала бы
   // устаревший снимок (гонка «последний пишет — побеждает не тот»).
@@ -35,7 +38,7 @@ export function FavoritesProvider({
   // Последний успешно подтверждённый сервером снимок — чтобы не слать дубли.
   const lastSynced = useRef<string | null>(null);
 
-  // гидрация из localStorage; для авторизованных — объединяем с серверными
+  // гидрация из localStorage (один раз при монтировании)
   useEffect(() => {
     let local: string[] = [];
     try {
@@ -44,22 +47,40 @@ export function FavoritesProvider({
     } catch {
       /* ignore */
     }
-    if (loggedIn) {
-      // мердж: серверное избранное + локальное гостевое (порядок: сервер, затем новое локальное)
-      const merged = Array.from(new Set([...(initialIds ?? []), ...local]));
-      setIds(merged);
-    } else {
-      setIds(local);
-    }
+    setIds((prev) => Array.from(new Set([...prev, ...local])));
     setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // для авторизованных — подтягиваем серверное избранное и мерджим с локальным
+  // (порядок: сервер, затем новое локальное — как раньше при SSR-передаче)
+  useEffect(() => {
+    if (!loggedIn) {
+      serverLoaded.current = false;
+      lastSynced.current = null;
+      return;
+    }
+    let cancelled = false;
+    getFavoriteIds()
+      .then((server) => {
+        if (cancelled) return;
+        serverLoaded.current = true;
+        // новый массив → ids меняются по ссылке → sync-эффект сработает
+        setIds((prev) => Array.from(new Set([...server, ...prev])));
+      })
+      .catch(() => {
+        // сервер недоступен — работаем на localStorage; sync остаётся выключенным,
+        // чтобы не затереть серверное избранное неполным локальным набором
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loggedIn]);
 
   // персист в localStorage + синхронизация в БД (для авторизованных)
   useEffect(() => {
     if (!ready) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    if (!loggedIn) return;
+    if (!loggedIn || !serverLoaded.current) return;
 
     const snapshot = [...ids];
     const key = JSON.stringify([...snapshot].sort());

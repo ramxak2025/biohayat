@@ -10,7 +10,6 @@ import { CookieConsent } from "@/components/site/cookie-consent";
 import { getNavCategories } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { getCustomerSession } from "@/lib/customer-auth";
-import { prisma } from "@/lib/prisma";
 
 // Публичные страницы рендерятся на лету (контент управляется из админки),
 // поэтому сборка не требует доступа к базе данных.
@@ -28,13 +27,12 @@ export default async function SiteLayout({
   ]);
   const navCats = categories.map((c) => ({ slug: c.slug, name: c.name }));
 
-  const initialFavorites = session
-    ? (await prisma.favorite.findMany({ where: { customerId: session.sub }, select: { productId: true } })).map((f) => f.productId)
-    : [];
-
+  // Избранное не запрашиваем в layout (это БД-запрос на каждый просмотр любой
+  // страницы): FavoritesProvider сам подтянет id через server action после
+  // монтирования. getCustomerSession — только проверка JWT из cookie, без БД.
   return (
     <CartProvider>
-      <FavoritesProvider loggedIn={!!session} initialIds={initialFavorites}>
+      <FavoritesProvider loggedIn={!!session}>
         {/* Шапка только на десктопе — на мобильном навигация снизу */}
         <div className="hidden lg:block">
           <Header phone={settings.phone} loggedIn={!!session} />

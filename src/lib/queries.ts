@@ -1,15 +1,63 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
-export function getNavCategories() {
-  return prisma.category.findMany({
-    where: { isActive: true, parentId: null },
-    orderBy: { sortOrder: "asc" },
-  });
+/* ─────────── Data Cache ───────────
+ * Горячие публичные чтения кэшируются между запросами через unstable_cache
+ * и сбрасываются по тегам из админских actions:
+ *   - "catalog"  — категории и товары;
+ *   - "reviews"  — одобренные отзывы и агрегаты рейтингов;
+ *   - "content"  — баннеры и материалы.
+ * Ключ кэша автоматически включает аргументы функции. Внутри кэшируемых
+ * функций нет cookies()/headers()/сессий — только запросы к БД.
+ * Поиск (см. src/lib/search.ts и getProducts с opts.search) не кэшируется.
+ */
+
+/**
+ * unstable_cache сериализует результат в JSON, поэтому на попадании в кэш
+ * поля Date приходят строками. Восстанавливаем их in-place: объект — свежий
+ * результат JSON.parse (новый на каждое чтение), мутация безопасна; на промахе
+ * значения уже Date и проверка typeof не срабатывает.
+ */
+const DATE_KEYS = new Set(["createdAt", "updatedAt", "publishedAt", "startsAt", "endsAt"]);
+
+function reviveDates<T>(value: T): T {
+  if (Array.isArray(value)) {
+    for (const item of value) reviveDates(item);
+  } else if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      const v = obj[key];
+      if (typeof v === "string" && DATE_KEYS.has(key)) obj[key] = new Date(v);
+      else reviveDates(v);
+    }
+  }
+  return value;
 }
 
-export function getCategoryBySlug(slug: string) {
-  return prisma.category.findUnique({ where: { slug } });
-}
+/* ─────────── Категории ─────────── */
+
+const getCachedNavCategories = unstable_cache(
+  () =>
+    prisma.category.findMany({
+      where: { isActive: true, parentId: null },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ["nav-categories"],
+  { tags: ["catalog"], revalidate: 300 },
+);
+
+export const getNavCategories = cache(async () => reviveDates(await getCachedNavCategories()));
+
+const getCachedCategoryBySlug = unstable_cache(
+  (slug: string) => prisma.category.findUnique({ where: { slug } }),
+  ["category-by-slug"],
+  { tags: ["catalog"], revalidate: 120 },
+);
+
+export const getCategoryBySlug = cache(async (slug: string) =>
+  reviveDates(await getCachedCategoryBySlug(slug)),
+);
 
 /* ─────────── Рейтинги товаров (одобренные отзывы) ─────────── */
 
@@ -21,6 +69,8 @@ export interface ReviewStats {
 /**
  * Агрегация отзывов по списку товаров одним запросом (groupBy, без N+1).
  * Возвращает Map productId → { avg, count } только для товаров с отзывами.
+ * Не кэшируется напрямую (Map не переживает JSON-сериализацию Data Cache);
+ * вызывается внутри уже кэшированных getProducts/getRelatedProducts.
  */
 export async function getReviewStatsMap(productIds: string[]): Promise<Map<string, ReviewStats>> {
   if (productIds.length === 0) return new Map();
@@ -46,7 +96,9 @@ async function withReviewStats<T extends { id: string }>(
   return items.map((item) => ({ ...item, reviewStats: stats.get(item.id) ?? null }));
 }
 
-export async function getProducts(opts: {
+/* ─────────── Товары ─────────── */
+
+interface ProductsOpts {
   categorySlug?: string;
   audience?: string;
   goal?: string;
@@ -55,7 +107,9 @@ export async function getProducts(opts: {
   take?: number;
   skip?: number;
   search?: string;
-}) {
+}
+
+async function loadProducts(opts: ProductsOpts) {
   const where = {
     isActive: true,
     ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
@@ -80,59 +134,123 @@ export async function getProducts(opts: {
   return { items: await withReviewStats(items), total };
 }
 
-export function getProductBySlug(slug: string) {
-  return prisma.product.findUnique({
-    where: { slug },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      category: true,
-    },
-  });
+// Результат включает reviewStats → инвалидируется и по "catalog", и по "reviews".
+const getCachedProducts = unstable_cache(loadProducts, ["products-list"], {
+  tags: ["catalog", "reviews"],
+  revalidate: 120,
+});
+
+export async function getProducts(opts: ProductsOpts) {
+  // Произвольные поисковые строки не кэшируем: каждый пользовательский запрос
+  // создавал бы отдельную запись в Data Cache (см. также search.ts).
+  if (opts.search) return loadProducts(opts);
+  return reviveDates(await getCachedProducts(opts));
 }
+
+const getCachedProductBySlug = unstable_cache(
+  (slug: string) =>
+    prisma.product.findUnique({
+      where: { slug },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        category: true,
+      },
+    }),
+  ["product-by-slug"],
+  { tags: ["catalog"], revalidate: 120 },
+);
+
+export const getProductBySlug = cache(async (slug: string) =>
+  reviveDates(await getCachedProductBySlug(slug)),
+);
+
+const getCachedRelatedProducts = unstable_cache(
+  async (categoryId: string, excludeId: string, take: number) => {
+    const items = await prisma.product.findMany({
+      where: { categoryId, isActive: true, id: { not: excludeId } },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+      take,
+    });
+    return withReviewStats(items);
+  },
+  ["related-products"],
+  { tags: ["catalog", "reviews"], revalidate: 120 },
+);
 
 export async function getRelatedProducts(categoryId: string, excludeId: string, take = 8) {
-  const items = await prisma.product.findMany({
-    where: { categoryId, isActive: true, id: { not: excludeId } },
-    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
-    take,
-  });
-  return withReviewStats(items);
+  return reviveDates(await getCachedRelatedProducts(categoryId, excludeId, take));
 }
+
+/* ─────────── Отзывы ─────────── */
+
+const getCachedApprovedReviews = unstable_cache(
+  (productId: string) =>
+    prisma.productReview.findMany({
+      where: { productId, isApproved: true },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, authorName: true, rating: true, content: true, createdAt: true },
+    }),
+  ["approved-reviews"],
+  { tags: ["reviews"], revalidate: 300 },
+);
 
 /** Одобренные отзывы товара (новые сверху). */
-export function getApprovedReviews(productId: string) {
-  return prisma.productReview.findMany({
-    where: { productId, isApproved: true },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, authorName: true, rating: true, content: true, createdAt: true },
-  });
+export const getApprovedReviews = cache(async (productId: string) =>
+  reviveDates(await getCachedApprovedReviews(productId)),
+);
+
+/* ─────────── Баннеры и материалы ─────────── */
+
+const getCachedBanners = unstable_cache(
+  (placement: "HERO" | "HOME_STRIP" | "CATEGORY" | "SIDEBAR" | "POPUP") => {
+    // Date.now — не request-API, внутри unstable_cache допустим; окно показа
+    // проверяется на момент заполнения кэша (погрешность ≤ TTL).
+    const now = new Date();
+    return prisma.banner.findMany({
+      where: {
+        placement,
+        isActive: true,
+        AND: [
+          { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
+          { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
+        ],
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+  },
+  ["banners"],
+  { tags: ["content"], revalidate: 120 },
+);
+
+export async function getBanners(
+  placement: "HERO" | "HOME_STRIP" | "CATEGORY" | "SIDEBAR" | "POPUP",
+) {
+  return reviveDates(await getCachedBanners(placement));
 }
 
-export function getBanners(placement: "HERO" | "HOME_STRIP" | "CATEGORY" | "SIDEBAR" | "POPUP") {
-  const now = new Date();
-  return prisma.banner.findMany({
-    where: {
-      placement,
-      isActive: true,
-      AND: [
-        { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
-        { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
-      ],
-    },
-    orderBy: { sortOrder: "asc" },
-  });
+const getCachedPublishedMaterials = unstable_cache(
+  (take?: number) =>
+    prisma.material.findMany({
+      where: { isPublished: true },
+      orderBy: { publishedAt: "desc" },
+      take,
+    }),
+  ["published-materials"],
+  { tags: ["content"], revalidate: 300 },
+);
+
+export async function getPublishedMaterials(take?: number) {
+  return reviveDates(await getCachedPublishedMaterials(take));
 }
 
-export function getPublishedMaterials(take?: number) {
-  return prisma.material.findMany({
-    where: { isPublished: true },
-    orderBy: { publishedAt: "desc" },
-    take,
-  });
-}
+const getCachedMaterialBySlug = unstable_cache(
+  (slug: string) => prisma.material.findUnique({ where: { slug } }),
+  ["material-by-slug"],
+  { tags: ["content"], revalidate: 300 },
+);
 
-export function getMaterialBySlug(slug: string) {
-  return prisma.material.findUnique({ where: { slug } });
-}
+export const getMaterialBySlug = cache(async (slug: string) =>
+  reviveDates(await getCachedMaterialBySlug(slug)),
+);
 
 export type ProductCardData = Awaited<ReturnType<typeof getProducts>>["items"][number];

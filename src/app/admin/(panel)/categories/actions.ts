@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
@@ -44,6 +44,8 @@ function buildData(d: z.infer<typeof schema>, image: string | null, flags: { isA
 }
 
 function revalidateCategory(slug?: string) {
+  // Сбрасывает Data Cache каталога (lib/queries.ts); { expire: 0 } — немедленно.
+  revalidateTag("catalog", { expire: 0 });
   revalidatePath("/admin/categories");
   revalidatePath("/catalog");
   revalidatePath("/");
