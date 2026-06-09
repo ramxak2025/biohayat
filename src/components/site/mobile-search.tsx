@@ -12,15 +12,22 @@ const POPULAR = ["Витамин D3", "Коллаген", "Омега-3", "Ма�
 
 /**
  * Капсула-триггер поиска. Используется в мобильной шапке (mobile-header.tsx).
+ * compact — короткий плейсхолдер для размещения в одну строку с логотипом.
  */
-export function SearchTrigger({ onOpen }: { onOpen: () => void }) {
+export function SearchTrigger({
+  onOpen,
+  compact = false,
+}: {
+  onOpen: () => void;
+  compact?: boolean;
+}) {
   return (
     <button
       onClick={onOpen}
-      className="flex h-11 w-full items-center gap-2.5 rounded-2xl bg-surface px-4 text-left text-[15px] text-ink-faint shadow-xs ring-1 ring-line transition active:scale-[0.99]"
+      className="flex h-10 w-full items-center gap-2 rounded-2xl bg-surface px-3.5 text-left text-[15px] text-ink-faint shadow-xs ring-1 ring-line transition active:scale-[0.99]"
     >
-      <Search className="h-5 w-5 text-brand-500" />
-      Поиск: витамин D3, коллаген, мёд…
+      <Search className="h-5 w-5 shrink-0 text-brand-500" />
+      <span className="truncate">{compact ? "Поиск товаров" : "Поиск: витамин D3, коллаген, мёд…"}</span>
     </button>
   );
 }

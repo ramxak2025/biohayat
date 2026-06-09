@@ -1,49 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Logo } from "@/components/site/logo";
 import { SearchTrigger, SearchOverlay } from "@/components/site/mobile-search";
 import { cn } from "@/lib/utils";
 
 /**
- * Мобильная шапка в стиле приложения: логотип + капсула поиска.
+ * Мобильная шапка в стиле приложения: логотип и поиск в ОДНОЙ строке.
  *
- * Поведение при скролле:
- *  - вниз — строка логотипа плавно прячется, остаётся только поиск;
- *  - слегка вверх — логотип возвращается (паттерн нативных приложений);
- *  - с прокруткой появляется тень/граница.
+ * Высота шапки постоянная — ничего не сворачивается и не меняет размер
+ * при скролле (прежняя схема со скрытием строки логотипа меняла высоту
+ * во время прокрутки, сдвигала контент и шапка «дёргалась»). Единственный
+ * эффект — лёгкая тень при прокрутке, она высоту не трогает.
  *
- * Safe-area: отдельный спейсер высотой env(safe-area-inset-top) ВНУТРИ
- * закрашенного контейнера. В Safari высота инсета скачет при сворачивании
- * панели браузера — спейсер растягивается вместе с ней, и капсула поиска
- * никогда не ныряет под статус-бар (раньше при лёгком скролле вверх её
- * обрезало именно из-за этого).
+ * Safe-area: отдельный спейсер высотой env(safe-area-inset-top) внутри
+ * закрашенного контейнера — капсула никогда не ныряет под статус-бар,
+ * даже когда Safari сворачивает/разворачивает свою панель.
  */
 export function MobileHeader() {
   const [open, setOpen] = useState(false);
-  const [compact, setCompact] = useState(false); // логотип спрятан
   const [scrolled, setScrolled] = useState(false);
-  const lastY = useRef(0);
 
   useEffect(() => {
-    lastY.current = window.scrollY;
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const y = window.scrollY;
-        setScrolled(y > 4);
-        const dy = y - lastY.current;
-        // Вверху страницы логотип показан всегда; дальше — по направлению.
-        if (y < 56) setCompact(false);
-        else if (dy > 6) setCompact(true);
-        else if (dy < -6) setCompact(false);
-        lastY.current = y;
+        setScrolled(window.scrollY > 6);
         ticking = false;
       });
     };
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -67,32 +55,25 @@ export function MobileHeader() {
         {/* Спейсер safe-area: тянется/сжимается вместе с инсетом Safari */}
         <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
 
-        {/* Строка логотипа — прячется при скролле вниз */}
-        <div
-          className={cn(
-            "grid overflow-hidden px-4 transition-all duration-300 ease-out",
-            compact
-              ? "pointer-events-none max-h-0 -translate-y-1 opacity-0"
-              : "max-h-14 translate-y-0 pt-2 opacity-100",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <Link href="/" aria-label="ХАЯТ — на главную" className="-ml-1 p-1">
-              <Logo className="scale-[0.92] origin-left" />
-            </Link>
-            <Link
-              href="/sale"
-              className="flex items-center gap-1.5 rounded-full bg-sale-soft px-3 py-1.5 text-xs font-bold text-sale active:scale-95"
-            >
-              <span className="sale-pulse h-1.5 w-1.5 rounded-full bg-sale" />
-              Распродажа
-            </Link>
-          </div>
-        </div>
+        <div className="flex items-center gap-2.5 px-3 py-2">
+          {/* Компактный логотип: знак + ХАЯТ */}
+          <Link
+            href="/"
+            aria-label="ХАЯТ — на главную"
+            className="flex shrink-0 items-center gap-1.5 active:scale-95"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-brand">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+                <path d="M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z" />
+              </svg>
+            </span>
+            <span className="text-lg font-extrabold tracking-tight text-ink">ХАЯТ</span>
+          </Link>
 
-        {/* Поиск */}
-        <div className="px-3 pb-2.5 pt-2">
-          <SearchTrigger onOpen={() => setOpen(true)} />
+          {/* Поиск занимает остаток строки */}
+          <div className="min-w-0 flex-1">
+            <SearchTrigger onOpen={() => setOpen(true)} compact />
+          </div>
         </div>
       </header>
 
