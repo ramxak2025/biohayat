@@ -18,7 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(siteUrl()),
     ...buildMetadata({ path: "/" }, settings),
-    icons: { icon: "/favicon.ico" },
+    icons: {
+      icon: "/favicon.ico",
+      apple: "/apple-touch-icon.png",
+    },
+    appleWebApp: {
+      capable: true,
+      title: "ХАЯТ",
+      statusBarStyle: "default",
+    },
     verification: {
       yandex: settings.yandexVerification || undefined,
       google: settings.googleVerification || undefined,
