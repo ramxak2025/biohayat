@@ -137,7 +137,9 @@ h2 {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* none, а не translateY(0): иначе элемент с fill-mode both навсегда
+       остаётся containing block для своих fixed-потомков */
+    transform: none;
   }
 }
 .animate-fade-up {
@@ -152,7 +154,9 @@ h2 {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* none обязателен: fixed-элементы страницы (sticky-панель покупки)
+       должны позиционироваться от viewport, а не от обёртки шаблона */
+    transform: none;
   }
 }
 .page-in {
