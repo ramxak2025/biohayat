@@ -45,7 +45,7 @@ export function MobileNav() {
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around rounded-[26px] bg-surface/90 px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05] backdrop-blur-xl">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around glass rounded-[26px] px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05]">
         <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} onPress={setPendingHref} />
         <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
 

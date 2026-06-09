@@ -131,6 +131,19 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Матовое «жидкое стекло» (стиль iOS): сильное размытие + насыщение цвета
+   под стеклом. Используется мобильной шапкой и нижним баром навигации. */
+.glass {
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  backdrop-filter: blur(20px) saturate(1.7);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background: var(--color-surface);
+  }
+}
+
 /* Скрытый скроллбар для горизонтальных лент */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

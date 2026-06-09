@@ -48,14 +48,16 @@ export function MobileHeader() {
     <>
       <header
         className={cn(
-          "sticky top-0 z-40 bg-bg/95 backdrop-blur-xl transition-shadow duration-300 lg:hidden",
-          scrolled && "shadow-[0_1px_0_var(--color-line),0_8px_24px_rgba(26,29,26,0.06)]",
+          "glass sticky top-0 z-40 transition-shadow duration-300 lg:hidden",
+          scrolled
+            ? "shadow-[0_1px_0_rgba(26,29,26,0.07),0_10px_30px_rgba(26,29,26,0.07)]"
+            : "shadow-[0_1px_0_rgba(26,29,26,0.04)]",
         )}
       >
         {/* Спейсер safe-area: тянется/сжимается вместе с инсетом Safari */}
         <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
 
-        <div className="flex items-center gap-2.5 px-3 py-2">
+        <div className="flex items-center gap-2.5 px-3 pb-2.5 pt-2.5">
           {/* Компактный логотип: знак + ХАЯТ */}
           <Link
             href="/"
