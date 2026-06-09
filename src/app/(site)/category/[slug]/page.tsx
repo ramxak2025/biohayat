@@ -11,12 +11,9 @@ import {
 import { getSettings } from "@/lib/settings";
 import { categoryMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
-export const revalidate = 300;
-// Регистрирует маршрут как ISR: страницы генерируются при первом запросе
-// и кэшируются (на сборке БД не нужна, поэтому список пуст).
-export function generateStaticParams() {
-  return [];
-}
+// Страница читает searchParams (?sort=) — ISR с ними несовместим
+// (DYNAMIC_SERVER_USAGE → 500). Рендер на запрос; данные из Data Cache.
+export const dynamic = "force-dynamic";
 
 
 export async function generateMetadata({
