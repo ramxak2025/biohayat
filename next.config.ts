@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Месяц кэша оптимизированных изображений: не пережимать одни и те же
+    // картинки повторно (на VPS это заметная нагрузка на CPU).
+    minimumCacheTTL: 2678400,
     remotePatterns: [
       // Изображения, мигрированные со старого сайта (заменяются по мере готовности).
       { protocol: "https", hostname: "biohayat.ru" },

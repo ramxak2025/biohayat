@@ -49,6 +49,21 @@ docker compose up -d --build
 docker compose exec app pnpm db:push   # если менялась схема
 ```
 
+## Автоматическое обновление (рекомендуется)
+Сервер сам проверяет ветку каждые 5 минут и при новых коммитах
+подтягивает их, пересобирает контейнеры и применяет схему БД.
+
+Включается один раз (путь подставьте свой, например `/root/biohayat`):
+```bash
+chmod +x /root/biohayat/scripts/auto-deploy.sh
+( crontab -l 2>/dev/null; echo '*/5 * * * * flock -n /tmp/biohayat-deploy.lock /root/biohayat/scripts/auto-deploy.sh >> /var/log/biohayat-deploy.log 2>&1' ) | crontab -
+```
+
+- Лог обновлений: `tail -f /var/log/biohayat-deploy.log`
+- Скрипт обновляет только текущую ветку и только fast-forward —
+  при локальных правках на сервере остановится и ничего не сломает.
+- Отключить: `crontab -e` и удалить строку с `auto-deploy.sh`.
+
 ## Полезное
 - Логи: `docker compose logs -f app`
 - Перезапуск: `docker compose restart app`
