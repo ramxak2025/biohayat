@@ -31,7 +31,9 @@ export function AccountShell({
     // Нижний отступ на мобильных — под фиксированное мобильное меню
     <Container className="py-6 pb-[calc(var(--spacing-mobnav)+2.5rem)] sm:py-8 lg:pb-12">
       <div className="grid gap-5 lg:grid-cols-[272px_1fr] lg:gap-8">
-        <aside className="h-fit lg:sticky lg:top-24">
+        {/* min-w-0 обязателен: иначе лента чипсов растягивает грид-колонку
+            шире вьюпорта и мобильный браузер «зумит» текст всей страницы */}
+        <aside className="h-fit min-w-0 lg:sticky lg:top-24">
           {/* Шапка пользователя — только на десктопе (на мобильном экономим высоту) */}
           <div className="mb-3 hidden items-center gap-3 rounded-2xl bg-surface p-4 shadow-xs ring-1 ring-line lg:flex">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-lg font-extrabold text-white">

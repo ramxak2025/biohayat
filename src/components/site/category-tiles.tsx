@@ -49,7 +49,7 @@ export function CategoryTiles({ categories }: { categories: CategoryTileData[] }
           {/* затемнение снизу — читаемый белый текст и на фото, и на заглушке */}
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink/65 via-ink/20 to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink/75 via-ink/30 to-transparent"
           />
           <span className="absolute inset-x-0 bottom-0 p-3 sm:p-3.5">
             <span className="line-clamp-2 block text-sm font-bold leading-snug text-white sm:text-[15px]">

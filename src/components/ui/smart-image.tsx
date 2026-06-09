@@ -70,7 +70,14 @@ export function SmartImage({
 }: SmartImageProps) {
   const seed = (label || alt || "").trim();
   const [from, to] = PLACEHOLDER_DUOS[hashString(seed) % PLACEHOLDER_DUOS.length];
-  const letter = seed.charAt(0).toUpperCase();
+  // Буква — от первого значимого слова: «Для похудения» → «П», а не «Д» у
+  // половины плиток подряд.
+  const STOP_WORDS = new Set(["для", "и", "на", "по", "от", "из", "с", "в"]);
+  const meaningful =
+    seed
+      .split(/\s+/)
+      .find((w) => !STOP_WORDS.has(w.toLowerCase().replace(/[^а-яёa-z]/gi, ""))) || seed;
+  const letter = meaningful.charAt(0).toUpperCase();
 
   return (
     <div
