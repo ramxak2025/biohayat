@@ -7,6 +7,7 @@ import { CollectionTiles } from "@/components/site/collection-tiles";
 import { AudienceCards } from "@/components/site/audience-cards";
 import { SaleBanner } from "@/components/site/sale-banner";
 import { ProductGrid } from "@/components/product/product-card";
+import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { getNavCategories, getProducts, getBanners, getPublishedMaterials } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
@@ -169,6 +170,11 @@ export default async function HomePage() {
         </Section>
       ) : null}
 
+      {/* ── Недавно смотрели (если есть история просмотров) ── */}
+      <Container>
+        <RecentlyViewed className="py-10 sm:py-14" />
+      </Container>
+
       {/* ── Статьи ── */}
       {materials.length > 0 ? (
         <Section className="bg-surface-soft">
@@ -199,7 +205,7 @@ export default async function HomePage() {
           <div className="overflow-hidden rounded-3xl bg-brand-500 text-white">
             <div className="grid items-center gap-6 p-8 lg:grid-cols-2 lg:p-12">
               <div>
-                <h2 className="text-2xl font-extrabold sm:text-3xl">Компания «ХАЯТ»</h2>
+                <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Компания «ХАЯТ»</h2>
                 <p className="mt-3 text-white/90">
                   Мы производим и продаём натуральную фитопродукцию и биологически активные
                   добавки, основанные на знаниях, рецептах и принципах, проверенных временем.

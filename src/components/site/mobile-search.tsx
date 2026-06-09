@@ -85,6 +85,8 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
       {/* строка ввода */}
       <div className="flex items-center gap-2 border-b border-line px-3 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
         <form
+          role="search"
+          aria-label="Поиск по каталогу"
           className="relative flex-1"
           onSubmit={(e) => {
             e.preventDefault();
@@ -98,6 +100,7 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
             onChange={(e) => setQ(e.target.value)}
             inputMode="search"
             enterKeyHint="search"
+            aria-label="Поиск товаров"
             placeholder="Что ищете?"
             className="h-11 w-full rounded-full border border-line bg-surface-soft pl-11 pr-10 text-[15px] focus:border-brand-300 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-100"
           />

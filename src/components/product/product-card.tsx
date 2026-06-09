@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { SmartImage } from "@/components/ui/smart-image";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
@@ -12,7 +13,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/product/${product.slug}`} className="relative block">
+      <Link
+        href={`/product/${product.slug}`}
+        aria-label={`${product.name}, ${formatMoney(product.priceKopecks)}`}
+        className="relative block"
+      >
         <SmartImage
           src={image}
           alt={product.name}
@@ -46,6 +51,17 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         >
           {product.name}
         </Link>
+
+        {product.reviewStats && product.reviewStats.count > 0 ? (
+          <span
+            className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-ink-muted"
+            aria-label={`Рейтинг ${product.reviewStats.avg} из 5, отзывов: ${product.reviewStats.count}`}
+          >
+            <Star className="h-3.5 w-3.5 fill-accent-400 text-accent-400" aria-hidden />
+            {product.reviewStats.avg.toLocaleString("ru-RU")}
+            <span className="font-normal text-ink-faint">({product.reviewStats.count})</span>
+          </span>
+        ) : null}
 
         <div className="mt-auto pt-3">
           <div className="mb-2.5 flex items-baseline gap-2">

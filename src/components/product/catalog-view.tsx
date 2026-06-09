@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { PackageSearch } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product/product-card";
 import { CatalogSidebar } from "@/components/product/catalog-sidebar";
 import { cn } from "@/lib/utils";
@@ -54,8 +56,16 @@ export function CatalogView({
           {products.length > 0 ? (
             <ProductGrid products={products} />
           ) : (
-            <div className="rounded-2xl bg-surface-soft py-16 text-center text-ink-muted">
-              Ничего не найдено. Попробуйте изменить запрос или категорию.
+            <div className="flex flex-col items-center rounded-2xl bg-surface-soft px-6 py-16 text-center">
+              <PackageSearch className="h-12 w-12 text-brand-300" aria-hidden />
+              <p className="mt-4 text-lg font-bold">Ничего не найдено</p>
+              <p className="mt-1 max-w-sm text-ink-muted">
+                Попробуйте изменить запрос или категорию — а в каталоге точно найдётся
+                что-то полезное.
+              </p>
+              <Button asChild className="mt-5">
+                <Link href="/catalog">В каталог</Link>
+              </Button>
             </div>
           )}
         </div>

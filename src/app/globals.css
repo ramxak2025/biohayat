@@ -29,6 +29,7 @@
   --color-accent-400: #e7a124;
   --color-accent-500: #d98a12;
   --color-accent-600: #b86e0e;
+  --color-accent-700: #8a520b; /* тёмный текст на светлом янтарном фоне (контраст) */
 
   /* ── Нейтральные (тёплый серо-зелёный) ── */
   --color-ink: #1a1d1a; /* основной текст */
@@ -91,8 +92,22 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv01";
+  line-height: 1.6;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Заголовки: плотный интерлиньяж и лёгкий минусовый трекинг */
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+}
+h1,
+h2 {
+  text-wrap: balance;
 }
 
 /* iOS safe-area helpers (нижнее меню) */
@@ -264,6 +279,16 @@ body {
   background:
     linear-gradient(135deg, var(--color-brand-50), var(--color-surface-soft)),
     var(--color-surface-soft);
+}
+
+/* Кнопка «Наверх» не перекрывает мобильную панель покупки товара:
+   когда панель видна, поднимаем кнопку выше неё (только на мобильных). */
+@media (max-width: 47.99rem) {
+  body:has(.sticky-buy-bar[data-visible="true"]) .back-to-top {
+    bottom: calc(
+      var(--spacing-mobnav) + max(10px, env(safe-area-inset-bottom)) + 92px
+    );
+  }
 }
 
 /* Фокус для доступности */

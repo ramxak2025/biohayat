@@ -7,8 +7,14 @@ import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductGrid } from "@/components/product/product-card";
+import { ProductReviews, RatingStars } from "@/components/product/product-reviews";
+import { StickyBuyBar } from "@/components/product/sticky-buy-bar";
+import {
+  RecentlyViewed,
+  RecentlyViewedTracker,
+} from "@/components/product/recently-viewed";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
-import { getProductBySlug, getRelatedProducts } from "@/lib/queries";
+import { getProductBySlug, getRelatedProducts, getApprovedReviews } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { productMetadata, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { formatMoney, discountPercent } from "@/lib/utils";
@@ -34,12 +40,30 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product || !product.isActive) notFound();
 
-  const [related, settings] = await Promise.all([
+  const [related, settings, reviews] = await Promise.all([
     getRelatedProducts(product.categoryId, product.id),
     getSettings(),
+    getApprovedReviews(product.id),
   ]);
   const discount = discountPercent(product.priceKopecks, product.oldPriceKopecks);
   const freeDelivery = product.priceKopecks >= settings.freeDeliveryThresholdKopecks;
+  const reviewStats =
+    reviews.length > 0
+      ? {
+          avg:
+            Math.round(
+              (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10,
+            ) / 10,
+          count: reviews.length,
+        }
+      : null;
+  const cartItem = {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    priceKopecks: product.priceKopecks,
+    image: product.images[0]?.url,
+  };
 
   const tabs = [
     { title: "Описание", content: product.description },
@@ -51,8 +75,9 @@ export default async function ProductPage({
   return (
     <Container className="py-5 sm:py-8">
       <Script id="ld-product" type="application/ld+json">
-        {JSON.stringify(productJsonLd(product, settings))}
+        {JSON.stringify(productJsonLd(product, settings, reviewStats))}
       </Script>
+      <RecentlyViewedTracker item={cartItem} />
       <Script id="ld-breadcrumb" type="application/ld+json">
         {JSON.stringify(
           breadcrumbJsonLd([
@@ -88,9 +113,21 @@ export default async function ProductPage({
             </Badge>
           </div>
 
-          <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
             {product.name}
           </h1>
+          {reviewStats ? (
+            <a
+              href="#reviews"
+              className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-brand-700"
+            >
+              <RatingStars rating={reviewStats.avg} />
+              <span>
+                {reviewStats.avg.toLocaleString("ru-RU")} · {reviewStats.count}{" "}
+                {pluralReviews(reviewStats.count)}
+              </span>
+            </a>
+          ) : null}
           {product.volume ? (
             <p className="mt-1 text-ink-muted">{product.volume}</p>
           ) : null}
@@ -107,18 +144,8 @@ export default async function ProductPage({
             ) : null}
           </div>
 
-          <div className="mt-5 max-w-sm">
-            <AddToCartButton
-              full
-              size="lg"
-              item={{
-                id: product.id,
-                slug: product.slug,
-                name: product.name,
-                priceKopecks: product.priceKopecks,
-                image: product.images[0]?.url,
-              }}
-            />
+          <div id="buy-area" className="mt-5 max-w-sm">
+            <AddToCartButton full size="lg" item={cartItem} />
           </div>
 
           <div className="mt-5 space-y-2.5 rounded-2xl bg-surface-soft p-4 text-sm">
@@ -158,12 +185,38 @@ export default async function ProductPage({
         </div>
       ) : null}
 
+      {/* отзывы */}
+      <Section id="reviews" className="scroll-mt-24">
+        <SectionHeader
+          title="Отзывы"
+          subtitle="Публикуются после модерации — только честные впечатления"
+        />
+        <ProductReviews productId={product.id} reviews={reviews} />
+      </Section>
+
       {related.length > 0 ? (
-        <Section>
+        <Section className="pt-0">
           <SectionHeader title="Похожие товары" />
           <ProductGrid products={related} />
         </Section>
       ) : null}
+
+      <RecentlyViewed excludeId={product.id} className="py-10 sm:py-14" />
+
+      {/* мобильная панель покупки */}
+      <StickyBuyBar
+        item={cartItem}
+        oldPriceKopecks={product.oldPriceKopecks}
+        inStock={product.inStock}
+      />
     </Container>
   );
+}
+
+function pluralReviews(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "отзыв";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "отзыва";
+  return "отзывов";
 }

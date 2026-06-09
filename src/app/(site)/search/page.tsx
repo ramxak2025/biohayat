@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Search as SearchIcon } from "lucide-react";
+import Link from "next/link";
+import { Search as SearchIcon, PackageSearch } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product/product-card";
 import { smartSearchProducts } from "@/lib/search";
 import { getSettings } from "@/lib/settings";
@@ -31,11 +33,13 @@ export default async function SearchPage({
 
   return (
     <Container className="py-6 sm:py-8">
-      <h1 className="mb-4 text-2xl font-extrabold sm:text-3xl">Поиск</h1>
-      <form action="/search" className="relative mb-6">
+      <h1 className="mb-4 text-2xl font-extrabold tracking-tight sm:text-3xl">Поиск</h1>
+      <form action="/search" role="search" aria-label="Поиск по каталогу" className="relative mb-6">
         <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
         <input
           name="q"
+          type="search"
+          aria-label="Поиск товаров"
           defaultValue={query}
           autoFocus
           placeholder="Что ищете? Например: витамин д3, калаген, омега…"
@@ -46,8 +50,15 @@ export default async function SearchPage({
       {query.length < 2 ? (
         <p className="text-ink-muted">Введите запрос — поиск понимает опечатки и неполные слова.</p>
       ) : total === 0 ? (
-        <div className="rounded-2xl bg-surface-soft py-14 text-center text-ink-muted">
-          По запросу «{query}» ничего не найдено. Попробуйте иначе.
+        <div className="flex flex-col items-center rounded-2xl bg-surface-soft px-6 py-14 text-center">
+          <PackageSearch className="h-12 w-12 text-brand-300" aria-hidden />
+          <p className="mt-4 text-lg font-bold">По запросу «{query}» ничего не найдено</p>
+          <p className="mt-1 max-w-sm text-ink-muted">
+            Попробуйте сформулировать иначе или загляните в каталог.
+          </p>
+          <Button asChild className="mt-5">
+            <Link href="/catalog">В каталог</Link>
+          </Button>
         </div>
       ) : (
         <>

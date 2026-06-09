@@ -144,6 +144,8 @@ export function organizationJsonLd(settings: SiteSettings) {
 export function productJsonLd(
   product: Product & { images: ProductImage[]; category: Category },
   settings: SiteSettings,
+  /** Агрегация одобренных отзывов; передаётся, если отзывы есть. */
+  reviewStats?: { avg: number; count: number } | null,
 ) {
   return {
     "@context": "https://schema.org",
@@ -154,6 +156,17 @@ export function productJsonLd(
     category: product.category.name,
     image: product.images.map((i) => absoluteUrl(i.url)),
     brand: { "@type": "Brand", name: settings.siteName },
+    ...(reviewStats && reviewStats.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: reviewStats.avg.toFixed(1),
+            reviewCount: reviewStats.count,
+            bestRating: "5",
+            worstRating: "1",
+          },
+        }
+      : {}),
     offers: {
       "@type": "Offer",
       url: absoluteUrl(`/product/${product.slug}`),

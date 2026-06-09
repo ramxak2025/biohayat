@@ -39,13 +39,13 @@ export function Footer({
             <ul className="space-y-2 text-sm text-ink-muted">
               {categories.slice(0, 7).map((c) => (
                 <li key={c.slug}>
-                  <Link href={`/category/${c.slug}`} className="hover:text-brand-700">
+                  <Link href={`/category/${c.slug}`} className="hover:text-brand-700 hover:underline underline-offset-2">
                     {c.name}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link href="/catalog" className="font-semibold hover:text-brand-700">
+                <Link href="/catalog" className="font-semibold hover:text-brand-700 hover:underline underline-offset-2">
                   Все товары →
                 </Link>
               </li>
@@ -55,12 +55,12 @@ export function Footer({
           <div>
             <h3 className="mb-3 font-bold">Покупателям</h3>
             <ul className="space-y-2 text-sm text-ink-muted">
-              <li><Link href="/about" className="hover:text-brand-700">О компании</Link></li>
-              <li><Link href="/delivery" className="hover:text-brand-700">Доставка и оплата</Link></li>
-              <li><Link href="/articles" className="hover:text-brand-700">Статьи</Link></li>
-              <li><Link href="/contacts" className="hover:text-brand-700">Контакты</Link></li>
-              <li><Link href="/privacy-policy" className="hover:text-brand-700">Политика конфиденциальности</Link></li>
-              <li><Link href="/oferta" className="hover:text-brand-700">Публичная оферта</Link></li>
+              <li><Link href="/about" className="hover:text-brand-700 hover:underline underline-offset-2">О компании</Link></li>
+              <li><Link href="/delivery" className="hover:text-brand-700 hover:underline underline-offset-2">Доставка и оплата</Link></li>
+              <li><Link href="/articles" className="hover:text-brand-700 hover:underline underline-offset-2">Статьи</Link></li>
+              <li><Link href="/contacts" className="hover:text-brand-700 hover:underline underline-offset-2">Контакты</Link></li>
+              <li><Link href="/privacy-policy" className="hover:text-brand-700 hover:underline underline-offset-2">Политика конфиденциальности</Link></li>
+              <li><Link href="/oferta" className="hover:text-brand-700 hover:underline underline-offset-2">Публичная оферта</Link></li>
             </ul>
           </div>
 

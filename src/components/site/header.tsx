@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Phone, Search, ShoppingCart, User, Heart, LayoutGrid, Flame } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
@@ -10,6 +11,8 @@ import { Logo } from "./logo";
 export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }) {
   const { count } = useCart();
   const { count: favCount } = useFavorites();
+  const pathname = usePathname();
+  const current = (href: string) => (pathname === href ? ("page" as const) : undefined);
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
@@ -29,10 +32,12 @@ export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }
           <Logo />
         </Link>
 
-        <form action="/search" className="relative flex-1">
+        <form action="/search" role="search" aria-label="Поиск по каталогу" className="relative flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
           <input
             name="q"
+            type="search"
+            aria-label="Поиск товаров"
             placeholder="Поиск товаров: витамин D3, коллаген, мёд…"
             className="h-11 w-full rounded-full border border-line bg-surface-soft pl-11 pr-4 text-[15px] placeholder:text-ink-faint focus:border-brand-300 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
@@ -69,21 +74,22 @@ export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }
       {/* Навигация по логике покупателя (категории — в боковом меню каталога) */}
       <div className="border-t border-line">
         <Container>
-          <nav className="flex items-center gap-1 py-2 text-sm">
-            <Link href="/catalog" className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-bold text-ink hover:bg-surface-soft">
+          <nav className="flex items-center gap-1 py-2 text-sm" aria-label="Основная навигация">
+            <Link href="/catalog" aria-current={current("/catalog")} className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-bold text-ink hover:bg-surface-soft aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700">
               <LayoutGrid className="h-4 w-4 text-brand-600" /> Каталог
             </Link>
             <span className="mx-1.5 h-4 w-px bg-line" />
             <span className="px-1.5 text-xs font-bold uppercase tracking-wide text-ink-faint">Для кого</span>
-            <Link href="/for/men" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Мужчинам</Link>
-            <Link href="/for/women" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Женщинам</Link>
-            <Link href="/for/kids" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Детям</Link>
-            <Link href="/account/consultation" className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink">Консультация</Link>
+            <Link href="/for/men" aria-current={current("/for/men")} className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink aria-[current=page]:bg-brand-50 aria-[current=page]:font-bold aria-[current=page]:text-brand-700">Мужчинам</Link>
+            <Link href="/for/women" aria-current={current("/for/women")} className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink aria-[current=page]:bg-brand-50 aria-[current=page]:font-bold aria-[current=page]:text-brand-700">Женщинам</Link>
+            <Link href="/for/kids" aria-current={current("/for/kids")} className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink aria-[current=page]:bg-brand-50 aria-[current=page]:font-bold aria-[current=page]:text-brand-700">Детям</Link>
+            <Link href="/account/consultation" aria-current={current("/account/consultation")} className="rounded-full px-3 py-1.5 font-medium text-ink-muted hover:bg-surface-soft hover:text-ink aria-[current=page]:bg-brand-50 aria-[current=page]:font-bold aria-[current=page]:text-brand-700">Консультация</Link>
 
             <span className="flex-1" />
 
             <Link
               href="/sale"
+              aria-current={current("/sale")}
               className="sale-pulse flex items-center gap-1.5 rounded-full bg-sale/10 px-4 py-1.5 font-bold text-sale transition hover:bg-sale/15"
             >
               <Flame className="h-4 w-4" /> Распродажа
