@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, Truck, ShieldCheck, Leaf, BadgePercent } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, Leaf } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { CategoryTiles } from "@/components/site/category-tiles";
 import { CollectionTiles } from "@/components/site/collection-tiles";
 import { AudienceCards } from "@/components/site/audience-cards";
 import { SaleBanner } from "@/components/site/sale-banner";
-import { ProductGrid } from "@/components/product/product-card";
+import { ProductCard, ProductGrid } from "@/components/product/product-card";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { getNavCategories, getProducts, getBanners, getPublishedMaterials } from "@/lib/queries";
+import type { ProductCardData } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
@@ -17,6 +18,10 @@ import { getSettings } from "@/lib/settings";
 // Без параметров: рендер на каждый запрос (данные берутся из Data Cache,
 // поэтому это дёшево). Статический пререндер потребовал бы БД на сборке.
 export const dynamic = "force-dynamic";
+
+/** Фирменный лист — тот же path, что в логотипе (src/components/site/logo.tsx). */
+const LEAF_PATH =
+  "M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z";
 
 export default async function HomePage() {
   const [categories, featured, sale, heroBanners, materials, settings] = await Promise.all([
@@ -29,99 +34,95 @@ export default async function HomePage() {
   ]);
 
   const hero = heroBanners[0];
-  const heroSecondary = heroBanners[1];
 
   return (
     <>
-      {/* ── Hero ── */}
-      <Section className="pb-6 pt-6 sm:pt-8">
+      {/* ── Hero: компактная премиальная карточка ── */}
+      <Section className="pb-4 pt-4 sm:pb-6 sm:pt-8">
         <Container>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div
-              className="relative flex min-h-[340px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white sm:min-h-[420px] lg:col-span-2 lg:min-h-[460px] lg:p-12"
-              style={{ backgroundColor: hero?.bgColor || "#2f8f4e" }}
-            >
-              {hero?.image ? (
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 to-brand-500 text-white shadow-md">
+            {hero?.image ? (
+              <>
                 <SmartImage
                   src={hero.image}
                   alt={hero.title}
                   ratio="16/9"
                   rounded="rounded-none"
                   className="absolute inset-0 h-full w-full"
+                  sizes="(max-width: 1280px) 100vw, 1216px"
                   priority
                 />
-              ) : null}
-              {/* мягкий объём/градиент для глубины и читаемости текста */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/15 via-transparent to-white/10" />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-              <div className="relative max-w-lg">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
-                  <Leaf className="h-3.5 w-3.5" /> Натурально · Проверено временем
+                {/* затемнение слева — читаемость текста поверх фото */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-900/80 via-brand-900/45 to-brand-900/10" />
+              </>
+            ) : null}
+
+            {/* крупный фирменный лист — декор за текстом */}
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden
+              className="pointer-events-none absolute -right-14 -top-12 h-60 w-60 rotate-[22deg] fill-white/[0.08] sm:-right-6 sm:top-1/2 sm:h-[380px] sm:w-[380px] sm:-translate-y-1/2 sm:rotate-12 lg:right-6 lg:h-[440px] lg:w-[440px]"
+            >
+              <path d={LEAF_PATH} />
+            </svg>
+
+            <div className="relative p-6 sm:flex sm:min-h-[320px] sm:items-center sm:p-10 lg:min-h-[380px] lg:p-14">
+              <div className="max-w-xl">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold backdrop-blur sm:text-xs">
+                  <Leaf className="h-3.5 w-3.5" aria-hidden /> Натурально · Проверено временем
                 </span>
-                <h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
+                <h1 className="mt-3 text-[28px] font-extrabold leading-tight sm:text-4xl lg:text-5xl">
                   {hero?.title || "Натуральные витамины для всей семьи"}
                 </h1>
-                <p className="mt-2 text-base text-white/90 sm:text-lg">
-                  {hero?.subtitle || "Фитопродукция ХАЯТ"}
+                <p className="mt-2 max-w-md text-sm text-white/85 sm:text-base lg:text-lg">
+                  {hero?.subtitle || "Фитопродукция ХАЯТ — из натурального сырья"}
                 </p>
-                <Button asChild variant="secondary" size="lg" className="mt-5 bg-white text-brand-700 hover:bg-white/90">
-                  <Link href={hero?.link || "/catalog"}>
-                    {hero?.ctaLabel || "В каталог"} <ArrowRight className="h-5 w-5" />
+                <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-7 sm:gap-3">
+                  <Button
+                    asChild
+                    variant="secondary"
+                    className="bg-white text-brand-700 shadow-sm hover:bg-white/90"
+                  >
+                    <Link href={hero?.link || "/catalog"}>
+                      {hero?.ctaLabel || "В каталог"} <ArrowRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                  <Link
+                    href="/sale"
+                    className="inline-flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold text-white/90 ring-1 ring-white/30 transition hover:bg-white/10 hover:text-white"
+                  >
+                    Распродажа <ArrowRight className="h-4 w-4" aria-hidden />
                   </Link>
-                </Button>
-              </div>
-            </div>
-
-            <div
-              className="relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white lg:min-h-0"
-              style={{ backgroundColor: heroSecondary?.bgColor || "#d98a12" }}
-            >
-              {heroSecondary?.image ? (
-                <SmartImage
-                  src={heroSecondary.image}
-                  alt={heroSecondary.title}
-                  ratio="4/5"
-                  rounded="rounded-none"
-                  className="absolute inset-0 h-full w-full"
-                />
-              ) : null}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10" />
-              <div className="relative">
-                <BadgePercent className="mb-2 h-8 w-8" />
-                <h2 className="text-2xl font-extrabold leading-tight">
-                  {heroSecondary?.title || "−25% на первый заказ"}
-                </h2>
-                <p className="mt-1 text-white/90">
-                  {heroSecondary?.subtitle || "Промокод FREE25Hayat"}
-                </p>
-                <Button asChild variant="secondary" className="mt-4 bg-white text-accent-600 hover:bg-white/90">
-                  <Link href={heroSecondary?.link || "/sale"}>
-                    {heroSecondary?.ctaLabel || "К акциям"}
-                  </Link>
-                </Button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* trust strip */}
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <TrustItem icon={Truck} title="Бесплатная доставка" text={`от ${formatMoney(settings.freeDeliveryThresholdKopecks)} по России`} />
-            <TrustItem icon={ShieldCheck} title="Сертифицировано" text="Соответствует требованиям ЕАЭС" />
-            <TrustItem icon={Leaf} title="Натуральный состав" text="Производство ООО «Восток», Россия" />
+          {/* ── Полоса преимуществ: 3 компактных пункта в один ряд ── */}
+          <div className="mt-3 overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line sm:mt-4">
+            <div className="grid grid-cols-3 divide-x divide-line">
+              <TrustItem
+                icon={Truck}
+                title="Бесплатная доставка"
+                text={`от ${formatMoney(settings.freeDeliveryThresholdKopecks)}`}
+              />
+              <TrustItem icon={ShieldCheck} title="Сертифицировано" text="стандарты ЕАЭС" />
+              <TrustItem icon={Leaf} title="Натуральный состав" text="производство в России" />
+            </div>
           </div>
         </Container>
       </Section>
 
-      {/* ── Распродажа (яркий анимированный блок) ── */}
-      <Section className="py-5">
+      {/* ── Распродажа ── */}
+      <Section className="py-4 sm:py-5">
         <Container>
           <SaleBanner />
         </Container>
       </Section>
 
       {/* ── Навигация по покупателю: Для кого / Зачем ── */}
-      <Section className="py-6">
-        <Container className="space-y-8">
+      <Section className="py-5 sm:py-6">
+        <Container className="space-y-7 sm:space-y-8">
           <div>
             <SectionHeader title="Для кого" subtitle="Подберём под вас и вашу семью" />
             <AudienceCards />
@@ -134,68 +135,82 @@ export default async function HomePage() {
       </Section>
 
       {/* ── Категории ── */}
-      <Section className="py-6">
+      <Section className="py-5 sm:py-6">
         <Container>
-          <SectionHeader title="Категории" subtitle="Весь каталог по типам продукции" />
+          <SectionHeader
+            title="Категории"
+            subtitle="Весь каталог по типам продукции"
+            action={<AllLink href="/catalog" />}
+          />
           <CategoryTiles categories={categories} />
         </Container>
       </Section>
 
-      {/* ── Хиты продаж ── */}
-      <Section className="bg-surface-soft">
+      {/* ── Хиты продаж: на мобайле — лента, на десктопе — сетка ── */}
+      <Section className="bg-surface-soft py-8 sm:py-14">
         <Container>
           <SectionHeader
             title="Хиты продаж"
             subtitle="Чаще всего выбирают наши покупатели"
-            action={
-              <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-                <Link href="/catalog">Все товары <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-            }
+            action={<AllLink href="/catalog" />}
           />
-          <ProductGrid products={featured.items} />
+          <ProductRail products={featured.items} />
         </Container>
       </Section>
 
       {/* ── Акции ── */}
       {sale.items.length > 0 ? (
-        <Section>
+        <Section className="py-8 sm:py-14">
           <Container>
             <SectionHeader
               title="Товары по акции"
               subtitle="Успейте купить выгодно"
-              action={
-                <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-                  <Link href="/sale">Вся распродажа <ArrowRight className="h-4 w-4" /></Link>
-                </Button>
-              }
+              action={<AllLink href="/sale" />}
             />
-            <ProductGrid products={sale.items} />
+            <ProductRail products={sale.items} />
           </Container>
         </Section>
       ) : null}
 
       {/* ── Недавно смотрели (если есть история просмотров) ── */}
       <Container>
-        <RecentlyViewed className="py-10 sm:py-14" />
+        <RecentlyViewed className="py-8 sm:py-14" />
       </Container>
 
-      {/* ── Статьи ── */}
+      {/* ── Статьи: на мобайле — лента из ~2.2 карточек ── */}
       {materials.length > 0 ? (
-        <Section className="bg-surface-soft">
+        <Section className="bg-surface-soft py-8 sm:py-14">
           <Container>
-            <SectionHeader title="Полезные статьи" subtitle="О здоровье, витаминах и нутрициологии" />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <SectionHeader
+              title="Полезные статьи"
+              subtitle="О здоровье, витаминах и нутрициологии"
+              action={<AllLink href="/articles" />}
+            />
+            <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 py-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3">
               {materials.map((m) => (
                 <Link
                   key={m.id}
                   href={`/articles/${m.slug}`}
-                  className="group overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line transition hover:shadow-md"
+                  className="group w-[42vw] min-w-[168px] shrink-0 snap-start overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md sm:w-auto sm:shrink"
                 >
-                  <SmartImage src={m.coverImage} alt={m.title} ratio="16/9" rounded="rounded-none" label="Обложка статьи" spec="1200×675" />
-                  <div className="p-4">
-                    <h3 className="font-bold leading-tight group-hover:text-brand-700">{m.title}</h3>
-                    {m.excerpt ? <p className="mt-1.5 line-clamp-2 text-sm text-ink-muted">{m.excerpt}</p> : null}
+                  <SmartImage
+                    src={m.coverImage}
+                    alt={m.title}
+                    ratio="16/9"
+                    rounded="rounded-none"
+                    label={m.title}
+                    spec="1200×675"
+                    sizes="(max-width: 640px) 44vw, (max-width: 1024px) 50vw, 400px"
+                  />
+                  <div className="p-3 sm:p-4">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-snug group-hover:text-brand-700 sm:text-base">
+                      {m.title}
+                    </h3>
+                    {m.excerpt ? (
+                      <p className="mt-1 line-clamp-2 text-xs text-ink-muted sm:mt-1.5 sm:text-sm">
+                        {m.excerpt}
+                      </p>
+                    ) : null}
                   </div>
                 </Link>
               ))}
@@ -207,11 +222,20 @@ export default async function HomePage() {
       {/* ── О компании ── */}
       <Section>
         <Container>
-          <div className="overflow-hidden rounded-3xl bg-brand-500 text-white">
-            <div className="grid items-center gap-6 p-8 lg:grid-cols-2 lg:p-12">
+          <div className="relative overflow-hidden rounded-3xl bg-brand-800 text-white">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden
+              className="pointer-events-none absolute -left-10 -bottom-12 h-56 w-56 -rotate-12 fill-white/[0.06]"
+            >
+              <path d={LEAF_PATH} />
+            </svg>
+            <div className="relative grid items-center gap-6 p-7 sm:p-8 lg:grid-cols-2 lg:p-12">
               <div>
-                <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Компания «ХАЯТ»</h2>
-                <p className="mt-3 text-white/90">
+                <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+                  Компания «ХАЯТ»
+                </h2>
+                <p className="mt-3 text-sm text-white/85 sm:text-base">
                   Мы производим и продаём натуральную фитопродукцию и биологически активные
                   добавки, основанные на знаниях, рецептах и принципах, проверенных временем.
                   Продукция изготавливается из натурального сырья.
@@ -236,6 +260,40 @@ export default async function HomePage() {
   );
 }
 
+/** Единый паттерн заголовков секций: ссылка «Все →» справа от h2. */
+function AllLink({ href, label = "Все" }: { href: string; label?: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap pb-0.5 text-sm font-bold text-brand-600 transition hover:text-brand-700"
+    >
+      {label} <ArrowRight className="h-4 w-4" aria-hidden />
+    </Link>
+  );
+}
+
+/**
+ * Секция товаров: на мобайле — горизонтальная snap-лента (вместо «стены»
+ * карточек на несколько экранов), на десктопе — привычная сетка.
+ */
+function ProductRail({ products }: { products: ProductCardData[] }) {
+  return (
+    <>
+      <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 py-1 sm:hidden">
+        {products.map((p) => (
+          <div key={p.id} className="w-40 shrink-0 snap-start">
+            <ProductCard product={p} />
+          </div>
+        ))}
+      </div>
+      <div className="max-sm:hidden">
+        <ProductGrid products={products} />
+      </div>
+    </>
+  );
+}
+
+/** Пункт полосы преимуществ: компактный, иконка 20px в кружке + 2 строки. */
 function TrustItem({
   icon: Icon,
   title,
@@ -246,14 +304,14 @@ function TrustItem({
   text: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3 ring-1 ring-line">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+    <div className="flex flex-col items-center gap-1.5 px-2 py-3 text-center sm:flex-row sm:gap-3 sm:px-5 sm:py-4 sm:text-left">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
         <Icon className="h-5 w-5" />
       </span>
-      <div className="min-w-0">
-        <div className="text-sm font-bold leading-tight">{title}</div>
-        <div className="text-xs leading-tight text-ink-muted">{text}</div>
-      </div>
+      <span className="min-w-0">
+        <span className="block text-xs font-bold leading-tight">{title}</span>
+        <span className="mt-0.5 block text-[11px] leading-tight text-ink-muted">{text}</span>
+      </span>
     </div>
   );
 }

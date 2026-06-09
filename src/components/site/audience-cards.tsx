@@ -1,11 +1,17 @@
 import Link from "next/link";
-import { Mars, Venus, Baby, ArrowRight } from "lucide-react";
+import { Mars, Venus, Baby, type LucideIcon } from "lucide-react";
 
 /**
- * Блок «Для кого» — крупные карточки по аудитории с формулировкой выгоды
- * (приём из психологии продаж: клиент сразу узнаёт «это для меня»).
+ * Блок «Для кого» — три компактные мини-плитки в ряд: клиент сразу узнаёт
+ * «это для меня», не теряя целый экран на навигацию (mobile-first).
+ * Экспортируется и для хаба каталога (единый паттерн).
  */
-const AUDIENCE_CARDS = [
+export const AUDIENCE_CARDS: ReadonlyArray<{
+  slug: string;
+  name: string;
+  benefit: string;
+  icon: LucideIcon;
+}> = [
   { slug: "men", name: "Мужчинам", benefit: "Сила, энергия, тонус", icon: Mars },
   { slug: "women", name: "Женщинам", benefit: "Красота, баланс, лёгкость", icon: Venus },
   { slug: "kids", name: "Детям", benefit: "Рост, иммунитет, развитие", icon: Baby },
@@ -13,24 +19,21 @@ const AUDIENCE_CARDS = [
 
 export function AudienceCards() {
   return (
-    <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+    <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
       {AUDIENCE_CARDS.map((a) => {
         const Icon = a.icon;
         return (
           <Link
             key={a.slug}
             href={`/for/${a.slug}`}
-            className="group relative flex items-center gap-4 overflow-hidden rounded-2xl bg-surface p-4 shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md sm:flex-col sm:items-start sm:p-5"
+            className="group flex flex-col items-center gap-1 rounded-2xl bg-surface px-2 py-3.5 text-center shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md active:bg-brand-50 sm:py-5"
           >
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white">
-              <Icon className="h-7 w-7" strokeWidth={1.9} />
+            <span className="mb-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white sm:h-12 sm:w-12 sm:rounded-2xl">
+              <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.9} aria-hidden />
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1.5 text-lg font-extrabold text-ink">
-                {a.name}
-                <ArrowRight className="h-4 w-4 text-brand-500 transition group-hover:translate-x-0.5" />
-              </span>
-              <span className="mt-0.5 block text-sm text-ink-muted">{a.benefit}</span>
+            <span className="text-sm font-bold leading-tight text-ink">{a.name}</span>
+            <span className="line-clamp-1 max-w-full text-[11px] leading-tight text-ink-muted">
+              {a.benefit}
             </span>
           </Link>
         );
