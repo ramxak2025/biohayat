@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Package, Heart, PillBottle, FlaskConical, MessageCircleHeart, UserCog, LogOut,
+  LayoutDashboard, Package, Heart, PillBottle, FlaskConical, MessageCircleHeart, UserCog, LogOut, MapPin,
 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { href: "/account", label: "Обзор", icon: LayoutDashboard, exact: true },
   { href: "/account/orders", label: "Мои заказы", icon: Package },
+  { href: "/account/addresses", label: "Мои адреса", icon: MapPin },
   { href: "/account/favorites", label: "Избранное", icon: Heart },
   { href: "/account/intake", label: "Приём БАД", icon: PillBottle },
   { href: "/account/compatibility", label: "Совместимость", icon: FlaskConical },

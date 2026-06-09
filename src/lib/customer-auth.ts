@@ -89,7 +89,10 @@ export async function registerCustomer(input: {
 export async function loginCustomer(phoneRaw: string, password: string): Promise<AuthResult> {
   const phone = normalizePhone(phoneRaw);
   const customer = await prisma.customer.findUnique({ where: { phone } });
-  if (!customer || !customer.isActive) return { ok: false, error: "Неверный телефон или пароль" };
+  // deletedAt — аккаунт удалён по запросу покупателя (152-ФЗ), вход запрещён.
+  if (!customer || !customer.isActive || customer.deletedAt) {
+    return { ok: false, error: "Неверный телефон или пароль" };
+  }
   const ok = await bcrypt.compare(password, customer.passwordHash);
   if (!ok) return { ok: false, error: "Неверный телефон или пароль" };
 

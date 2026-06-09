@@ -19,11 +19,13 @@ export async function getFavoriteProducts(ids: string[]): Promise<ProductCardDat
 /**
  * Синхронизирует избранное авторизованного покупателя с БД.
  * Принимает полный набор productId; заменяет записи в БД на этот набор.
+ * Возвращает подтверждённый сервером набор id (существующие товары) —
+ * клиент использует его, чтобы вычистить «мёртвые» id из localStorage.
  * Для гостей — ничего не делает (избранное живёт в localStorage).
  */
-export async function syncFavorites(productIds: string[]): Promise<void> {
+export async function syncFavorites(productIds: string[]): Promise<string[] | null> {
   const session = await getCustomerSession();
-  if (!session) return;
+  if (!session) return null;
 
   // только существующие товары
   const valid = await prisma.product.findMany({
@@ -45,10 +47,19 @@ export async function syncFavorites(productIds: string[]): Promise<void> {
     ...(toRemove.length
       ? [prisma.favorite.deleteMany({ where: { customerId: session.sub, productId: { in: toRemove } } })]
       : []),
-    ...toAdd.map((productId) =>
-      prisma.favorite.create({ data: { customerId: session.sub, productId } }),
-    ),
+    // createMany + skipDuplicates: параллельный запрос не уронит транзакцию
+    // на unique-конфликте [customerId, productId]
+    ...(toAdd.length
+      ? [
+          prisma.favorite.createMany({
+            data: toAdd.map((productId) => ({ customerId: session.sub, productId })),
+            skipDuplicates: true,
+          }),
+        ]
+      : []),
   ]);
 
   revalidatePath("/account/favorites");
+  // Подтверждаем итоговый набор в исходном порядке клиента.
+  return productIds.filter((id) => validIds.has(id));
 }

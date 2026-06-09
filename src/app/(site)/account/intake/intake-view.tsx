@@ -13,6 +13,12 @@ import {
   createIntakePlan, toggleIntake, setPlanActive, deleteIntakePlan, type IntakeState,
 } from "./actions";
 
+export interface IntakeHistoryDay {
+  day: string; // YYYY-MM-DD
+  taken: number;
+  total: number;
+}
+
 interface PlanData {
   id: string;
   title: string;
@@ -140,6 +146,55 @@ function PlanCard({ plan, today }: { plan: PlanData; today: string }) {
             taken={plan.takenSlots.includes(slot)}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+/** Календарь-сетка истории приёма за последние 28 дней (4 недели × 7). */
+function HistoryCalendar({ history }: { history: IntakeHistoryDay[] }) {
+  const takenTotal = history.reduce((s, d) => s + d.taken, 0);
+  const slotsTotal = history.reduce((s, d) => s + d.total, 0);
+  if (slotsTotal === 0) return null;
+
+  return (
+    <div className="mb-6 rounded-2xl bg-surface p-5 ring-1 ring-line">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 font-bold">
+          <CalendarDays className="h-5 w-5 text-brand-500" /> История за 28 дней
+        </h2>
+        <span className="text-sm font-semibold text-ink-muted">
+          {takenTotal} из {slotsTotal} приёмов за месяц
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
+        {history.map((d) => {
+          const date = new Date(d.day + "T00:00:00");
+          const full = d.total > 0 && d.taken >= d.total;
+          const partial = !full && d.taken > 0;
+          const label = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(date);
+          return (
+            <div
+              key={d.day}
+              title={d.total > 0 ? `${label}: ${d.taken} из ${d.total}` : `${label}: курсов не было`}
+              className={cn(
+                "flex aspect-square items-center justify-center rounded-lg text-xs font-bold transition sm:text-sm",
+                full && "bg-brand-500 text-white",
+                partial && "bg-brand-200 text-brand-700", // полутон: отмечена часть слотов
+                !full && !partial && (d.total > 0 ? "bg-surface-sunken text-ink-faint" : "bg-surface-soft text-ink-faint/60"),
+              )}
+            >
+              {date.getDate()}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-faint">
+        <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-brand-500" /> все приёмы</span>
+        <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-brand-200" /> частично</span>
+        <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-surface-sunken" /> пропущено</span>
       </div>
     </div>
   );
@@ -285,11 +340,12 @@ function AddPlanForm({
 }
 
 export function IntakeView({
-  today, plans, products,
+  today, plans, products, history,
 }: {
   today: string;
   plans: PlanData[];
   products: ProductLite[];
+  history: IntakeHistoryDay[];
 }) {
   const [showForm, setShowForm] = useState(false);
 
@@ -333,6 +389,9 @@ export function IntakeView({
           </div>
         </div>
       ) : null}
+
+      {/* История приёма за последние 4 недели */}
+      <HistoryCalendar history={history} />
 
       {showForm ? <AddPlanForm products={products} onCreated={() => setShowForm(false)} /> : null}
 

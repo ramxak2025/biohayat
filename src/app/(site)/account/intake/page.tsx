@@ -1,27 +1,33 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/account-shell";
-import { IntakeView } from "./intake-view";
+import { IntakeView, type IntakeHistoryDay } from "./intake-view";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Приём БАД — ХАЯТ", robots: { index: false, follow: false } };
 
-/** Локальная дата «сегодня» в формате YYYY-MM-DD (зона сервера). */
-function todayStr(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
+/** Дата в формате YYYY-MM-DD (зона сервера). */
+function toDayStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+function addDays(base: Date, delta: number): Date {
+  const d = new Date(base);
+  d.setDate(d.getDate() + delta);
+  return d;
 }
 
 export default async function IntakePage() {
   const session = await getCustomerSession();
   if (!session) redirect("/account");
 
-  const today = todayStr();
+  const now = new Date();
+  const today = toDayStr(now);
 
   // Активные курсы клиента + логи за сегодня.
   const plans = await prisma.intakePlan.findMany({
@@ -30,6 +36,38 @@ export default async function IntakePage() {
     include: {
       logs: { where: { day: today } },
     },
+  });
+
+  // ── История за последние 28 дней (4 недели × 7) ──
+  const days: string[] = [];
+  for (let i = 27; i >= 0; i--) days.push(toDayStr(addDays(now, -i)));
+
+  const planIds = plans.map((p) => p.id);
+  const historyLogs = planIds.length
+    ? await prisma.intakeLog.findMany({
+        where: { planId: { in: planIds }, day: { gte: days[0], lte: today } },
+        select: { day: true },
+      })
+    : [];
+  const takenByDay = new Map<string, number>();
+  for (const log of historyLogs) {
+    takenByDay.set(log.day, (takenByDay.get(log.day) ?? 0) + 1);
+  }
+
+  // Окно активности курса: от startDate до startDate + durationDays − 1 (или бессрочно).
+  const planWindows = plans.map((p) => ({
+    slots: p.times.length,
+    start: toDayStr(p.startDate),
+    end: p.durationDays ? toDayStr(addDays(p.startDate, p.durationDays - 1)) : null,
+  }));
+
+  const history: IntakeHistoryDay[] = days.map((day) => {
+    const total = planWindows.reduce(
+      (s, w) => s + (day >= w.start && (!w.end || day <= w.end) ? w.slots : 0),
+      0,
+    );
+    const taken = Math.min(takenByDay.get(day) ?? 0, total);
+    return { day, taken, total };
   });
 
   // Товары каталога для привязки нового курса.
@@ -53,7 +91,7 @@ export default async function IntakePage() {
 
   return (
     <AccountShell name={session.name}>
-      <IntakeView today={today} plans={plansData} products={products} />
+      <IntakeView today={today} plans={plansData} products={products} history={history} />
     </AccountShell>
   );
 }

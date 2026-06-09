@@ -6,6 +6,7 @@ import { useFormStatus } from "react-dom";
 import { Container } from "@/components/ui/container";
 import { Input, Label, Checkbox } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { PhoneInput } from "@/components/account/phone-input";
 import { cn } from "@/lib/utils";
 import { loginAction, registerAction, type AuthState } from "./actions";
 
@@ -53,7 +54,7 @@ export function AuthForms() {
             {loginState.error ? <Err>{loginState.error}</Err> : null}
             <div>
               <Label htmlFor="lphone" required>Телефон</Label>
-              <Input id="lphone" name="phone" type="tel" placeholder="+7 (___) ___-__-__" autoComplete="tel" />
+              <PhoneInput id="lphone" name="phone" autoComplete="tel" />
             </div>
             <div>
               <Label htmlFor="lpass" required>Пароль</Label>
@@ -70,7 +71,7 @@ export function AuthForms() {
             </div>
             <div>
               <Label htmlFor="rphone" required>Телефон</Label>
-              <Input id="rphone" name="phone" type="tel" placeholder="+7 (___) ___-__-__" autoComplete="tel" />
+              <PhoneInput id="rphone" name="phone" autoComplete="tel" />
             </div>
             <div>
               <Label htmlFor="remail">E-mail (необязательно)</Label>

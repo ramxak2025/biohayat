@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/account-shell";
 import { ProfileForm } from "./profile-form";
+import { SecurityForm } from "./security-form";
+import { DeleteAccountForm } from "./delete-account-form";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
 
@@ -17,7 +19,11 @@ export default async function ProfilePage() {
   return (
     <AccountShell name={session.name}>
       <h1 className="mb-6 text-2xl font-extrabold">Профиль</h1>
-      <ProfileForm customer={customer} />
+      <div className="space-y-6">
+        <ProfileForm customer={customer} />
+        <SecurityForm />
+        <DeleteAccountForm />
+      </div>
     </AccountShell>
   );
 }
