@@ -1,9 +1,24 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  ChevronDown,
+  Send,
+  MessageCircle,
+  Camera,
+} from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Logo } from "./logo";
 import type { SiteSettings, Category } from "@prisma/client";
 
+/**
+ * Футер на фирменном тёмно-зелёном (brand-900) — выразительный контраст
+ * к кремовому фону страницы. На мобильных — компактно: соцсети-кружки,
+ * нативные <details>-аккордеоны со ссылками, контакты и мелкий юр-блок.
+ * На десктопе — привычная сетка из четырёх колонок с чёткой иерархией.
+ */
 export function Footer({
   settings,
   categories,
@@ -11,110 +26,227 @@ export function Footer({
   settings: SiteSettings;
   categories: Pick<Category, "slug" | "name">[];
 }) {
+  const customerLinks = [
+    { href: "/about", label: "О компании" },
+    { href: "/delivery", label: "Доставка и оплата" },
+    { href: "/articles", label: "Статьи" },
+    { href: "/contacts", label: "Контакты" },
+    { href: "/privacy-policy", label: "Политика конфиденциальности" },
+    { href: "/oferta", label: "Публичная оферта" },
+  ];
+
+  const socials = (
+    <div className="flex gap-2.5">
+      {settings.telegram ? (
+        <SocialCircle href={settings.telegram} label="Telegram" icon={Send} />
+      ) : null}
+      {settings.whatsapp ? (
+        <SocialCircle href={settings.whatsapp} label="WhatsApp" icon={MessageCircle} />
+      ) : null}
+      {settings.instagram ? (
+        <SocialCircle href={settings.instagram} label="Instagram" icon={Camera} />
+      ) : null}
+    </div>
+  );
+
+  const catalogList = (
+    <ul className="space-y-2.5 text-sm">
+      {categories.slice(0, 7).map((c) => (
+        <li key={c.slug}>
+          <FooterLink href={`/category/${c.slug}`}>{c.name}</FooterLink>
+        </li>
+      ))}
+      <li>
+        <Link
+          href="/catalog"
+          className="font-semibold text-brand-200 transition hover:text-white"
+        >
+          Все товары →
+        </Link>
+      </li>
+    </ul>
+  );
+
+  const customerList = (
+    <ul className="space-y-2.5 text-sm">
+      {customerLinks.map((l) => (
+        <li key={l.href}>
+          <FooterLink href={l.href}>{l.label}</FooterLink>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
-    <footer className="mt-auto border-t border-line bg-surface-soft pb-28 pt-12 lg:pb-12">
+    <footer className="mt-auto bg-brand-900 pb-28 pt-10 text-white lg:pb-14 lg:pt-14">
       <Container>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        {/* ── Мобильная версия: компактно, аккордеоны ── */}
+        <div className="lg:hidden">
+          <div className="flex flex-col items-start gap-5">
+            <Logo tone="inverted" />
+            {socials}
+          </div>
+
+          <div className="mt-6 border-t border-white/10">
+            <FooterAccordion title="Каталог">{catalogList}</FooterAccordion>
+            <FooterAccordion title="Покупателям">{customerList}</FooterAccordion>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <a
+              href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
+              className="block text-xl font-extrabold tracking-tight text-white"
+            >
+              {settings.phone}
+            </a>
+            <ContactRow icon={Mail}>
+              <a href={`mailto:${settings.email}`} className="transition hover:text-white">
+                {settings.email}
+              </a>
+            </ContactRow>
+            <ContactRow icon={MapPin}>{settings.address}</ContactRow>
+            <ContactRow icon={Clock}>{settings.workingHours}</ContactRow>
+          </div>
+        </div>
+
+        {/* ── Десктоп: сетка с понятной иерархией ── */}
+        <div className="hidden gap-10 lg:grid lg:grid-cols-[1.25fr_1fr_1fr_1.1fr]">
           <div>
-            <Logo />
-            <p className="mt-4 max-w-xs text-sm text-ink-muted">
-              Натуральная фитопродукция и БАД для здоровья всей семьи. Производство ООО
-              «Восток», Россия.
+            <Logo tone="inverted" />
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
+              Натуральная фитопродукция и БАД для здоровья всей семьи. Производство
+              ООО «Восток», Россия.
             </p>
-            <div className="mt-4 flex gap-3">
-              {settings.telegram ? (
-                <SocialLink href={settings.telegram} label="Telegram" />
-              ) : null}
-              {settings.whatsapp ? (
-                <SocialLink href={settings.whatsapp} label="WhatsApp" />
-              ) : null}
-              {settings.instagram ? (
-                <SocialLink href={settings.instagram} label="Instagram" />
-              ) : null}
-            </div>
+            <div className="mt-5">{socials}</div>
           </div>
 
           <div>
-            <h3 className="mb-3 font-bold">Каталог</h3>
-            <ul className="space-y-2 text-sm text-ink-muted">
-              {categories.slice(0, 7).map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/category/${c.slug}`} className="hover:text-brand-700 hover:underline underline-offset-2">
-                    {c.name}
-                  </Link>
-                </li>
-              ))}
+            <ColumnHeading>Каталог</ColumnHeading>
+            {catalogList}
+          </div>
+
+          <div>
+            <ColumnHeading>Покупателям</ColumnHeading>
+            {customerList}
+          </div>
+
+          <div>
+            <ColumnHeading>Контакты</ColumnHeading>
+            <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/catalog" className="font-semibold hover:text-brand-700 hover:underline underline-offset-2">
-                  Все товары →
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-3 font-bold">Покупателям</h3>
-            <ul className="space-y-2 text-sm text-ink-muted">
-              <li><Link href="/about" className="hover:text-brand-700 hover:underline underline-offset-2">О компании</Link></li>
-              <li><Link href="/delivery" className="hover:text-brand-700 hover:underline underline-offset-2">Доставка и оплата</Link></li>
-              <li><Link href="/articles" className="hover:text-brand-700 hover:underline underline-offset-2">Статьи</Link></li>
-              <li><Link href="/contacts" className="hover:text-brand-700 hover:underline underline-offset-2">Контакты</Link></li>
-              <li><Link href="/privacy-policy" className="hover:text-brand-700 hover:underline underline-offset-2">Политика конфиденциальности</Link></li>
-              <li><Link href="/oferta" className="hover:text-brand-700 hover:underline underline-offset-2">Публичная оферта</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-3 font-bold">Контакты</h3>
-            <ul className="space-y-3 text-sm text-ink-muted">
-              <li className="flex items-start gap-2.5">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
-                <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} className="font-semibold text-ink hover:text-brand-700">
+                <a
+                  href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
+                  className="text-lg font-extrabold tracking-tight text-white transition hover:text-brand-200"
+                >
                   {settings.phone}
                 </a>
               </li>
-              <li className="flex items-start gap-2.5">
-                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
-                <a href={`mailto:${settings.email}`} className="hover:text-brand-700">{settings.email}</a>
+              <li>
+                <ContactRow icon={Mail}>
+                  <a href={`mailto:${settings.email}`} className="transition hover:text-white">
+                    {settings.email}
+                  </a>
+                </ContactRow>
               </li>
-              <li className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
-                <span>{settings.address}</span>
+              <li>
+                <ContactRow icon={MapPin}>{settings.address}</ContactRow>
               </li>
-              <li className="flex items-start gap-2.5">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
-                <span>{settings.workingHours}</span>
+              <li>
+                <ContactRow icon={Clock}>{settings.workingHours}</ContactRow>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 rounded-2xl bg-surface-sunken px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-ink-muted">
-          {settings.badDisclaimer}
-        </div>
-
-        <div className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-line pt-6 text-xs text-ink-faint sm:flex-row">
-          <span>
-            © {new Date().getFullYear()} {settings.legalName || "Компания ХАЯТ"}
-            {settings.inn ? ` · ИНН ${settings.inn}` : ""}
-            {settings.ogrn ? ` · ОГРН ${settings.ogrn}` : ""}
-          </span>
-          <span>Все права защищены</span>
+        {/* ── Юр-блок: дисклеймер БАД, реквизиты, копирайт ── */}
+        <div className="mt-8 border-t border-white/10 pt-5 lg:mt-12 lg:pt-6">
+          <p className="text-[10px] font-semibold uppercase leading-relaxed tracking-wide text-white/45 lg:text-center lg:text-xs">
+            {settings.badDisclaimer}
+          </p>
+          <div className="mt-4 flex flex-col gap-1.5 text-[10px] leading-relaxed text-white/40 sm:flex-row sm:items-center sm:justify-between lg:text-xs">
+            <span>
+              © {new Date().getFullYear()} {settings.legalName || "Компания ХАЯТ"}
+              {settings.inn ? ` · ИНН ${settings.inn}` : ""}
+              {settings.ogrn ? ` · ОГРН ${settings.ogrn}` : ""}
+            </span>
+            <span>Все права защищены</span>
+          </div>
         </div>
       </Container>
     </footer>
   );
 }
 
-function SocialLink({ href, label }: { href: string; label: string }) {
+/** Заголовок колонки на десктопе. */
+function ColumnHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/45">
+      {children}
+    </h3>
+  );
+}
+
+/** Нативный аккордеон для мобильного футера. */
+function FooterAccordion({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group border-b border-white/10">
+      <summary className="flex cursor-pointer select-none list-none items-center justify-between py-3.5 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
+        {title}
+        <ChevronDown className="h-4 w-4 text-white/50 transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+      <div className="pb-4">{children}</div>
+    </details>
+  );
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className="text-white/70 transition hover:text-white">
+      {children}
+    </Link>
+  );
+}
+
+function ContactRow({
+  icon: Icon,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
+  return (
+    <span className="flex items-start gap-2.5 text-sm text-white/70">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-300" />
+      <span>{children}</span>
+    </span>
+  );
+}
+
+function SocialCircle({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex h-9 items-center rounded-full bg-surface px-3 text-xs font-semibold text-ink-muted shadow-xs ring-1 ring-line transition hover:text-brand-700"
+      aria-label={label}
+      title={label}
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
     >
-      {label}
+      <Icon className="h-[18px] w-[18px]" />
     </a>
   );
 }

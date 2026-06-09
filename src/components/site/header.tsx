@@ -21,23 +21,41 @@ export function Header({ phone }: { phone: string }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
-      <div className="border-b border-line bg-surface-soft py-1.5 text-sm text-ink-muted">
+      {/* Тонкая utility-полоса: телефон + сервисные ссылки */}
+      <div className="border-b border-line/70 bg-surface-soft/70 py-1.5 text-xs text-ink-muted">
         <Container className="flex items-center justify-between">
-          <span>Натуральные витамины и БАД для всей семьи</span>
           <div className="flex items-center gap-5">
-            <Link href="/delivery" className="hover:text-brand-700">Доставка и оплата</Link>
-            <Link href="/about" className="hover:text-brand-700">О компании</Link>
-            <Link href="/contacts" className="hover:text-brand-700">Контакты</Link>
+            <a
+              href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+              className="flex items-center gap-1.5 font-semibold text-ink transition hover:text-brand-700"
+            >
+              <Phone className="h-3.5 w-3.5 text-brand-500" />
+              {phone}
+            </a>
+            <span className="hidden text-ink-faint xl:inline">
+              Натуральные витамины и БАД для всей семьи
+            </span>
           </div>
+          <nav className="flex items-center gap-4" aria-label="Информация для покупателей">
+            <Link href="/about" className="transition hover:text-brand-700">О компании</Link>
+            <Link href="/delivery" className="transition hover:text-brand-700">Доставка и оплата</Link>
+            <Link href="/contacts" className="transition hover:text-brand-700">Контакты</Link>
+          </nav>
         </Container>
       </div>
 
-      <Container className="flex h-[var(--spacing-header)] items-center gap-4">
-        <Link href="/" className="shrink-0">
+      {/* Основная строка: лого · поиск по центру · действия */}
+      <Container className="flex h-[var(--spacing-header)] items-center gap-5">
+        <Link href="/" className="shrink-0" aria-label="ХАЯТ — на главную">
           <Logo />
         </Link>
 
-        <form action="/search" role="search" aria-label="Поиск по каталогу" className="relative flex-1">
+        <form
+          action="/search"
+          role="search"
+          aria-label="Поиск по каталогу"
+          className="relative mx-auto w-full max-w-[600px] flex-1"
+        >
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
           <input
             name="q"
@@ -48,32 +66,37 @@ export function Header({ phone }: { phone: string }) {
           />
         </form>
 
-        <a
-          href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-          className="hidden items-center gap-2 font-semibold text-ink hover:text-brand-700 xl:flex"
-        >
-          <Phone className="h-4 w-4 text-brand-500" />
-          {phone}
-        </a>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Link
+            href="/account/favorites"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink transition hover:bg-surface-soft hover:text-brand-700"
+            aria-label="Избранное"
+          >
+            <Heart className="h-5 w-5" />
+            {favCount > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-sale px-1 text-xs font-bold text-white ring-2 ring-surface">{favCount}</span>
+            ) : null}
+          </Link>
 
-        <Link href="/account/favorites" className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-surface-soft" aria-label="Избранное">
-          <Heart className="h-5 w-5" />
-          {favCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-sale px-1 text-xs font-bold text-white ring-2 ring-surface">{favCount}</span>
-          ) : null}
-        </Link>
+          <Link
+            href="/account"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition hover:bg-surface-soft hover:text-brand-700"
+            aria-label={loggedIn ? "Личный кабинет" : "Войти"}
+          >
+            <User className="h-5 w-5" />
+          </Link>
 
-        <Link href="/account" className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-surface-soft" aria-label={loggedIn ? "Личный кабинет" : "Войти"}>
-          <User className="h-5 w-5" />
-        </Link>
-
-        <Link href="/cart" className="relative flex h-11 items-center gap-2 rounded-full bg-brand-500 px-4 font-semibold text-white transition hover:bg-brand-600">
-          <ShoppingCart className="h-5 w-5" />
-          <span>Корзина</span>
-          {count > 0 ? (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-white ring-2 ring-surface">{count}</span>
-          ) : null}
-        </Link>
+          <Link
+            href="/cart"
+            className="relative ml-1 flex h-11 items-center gap-2 rounded-full bg-brand-500 px-4 font-semibold text-white transition hover:bg-brand-600"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            <span>Корзина</span>
+            {count > 0 ? (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-white ring-2 ring-surface">{count}</span>
+            ) : null}
+          </Link>
+        </div>
       </Container>
 
       {/* Навигация по логике покупателя (категории — в боковом меню каталога) */}

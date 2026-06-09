@@ -10,9 +10,10 @@ import { useCart } from "@/components/cart/cart-provider";
 import { cn } from "@/lib/utils";
 
 /**
- * Нижнее меню-«островок» в стиле iOS: широкая, но тонкая полупрозрачная панель
- * с тонкой обводкой, мягким размытием и приподнятой акцентной кнопкой «Каталог»
- * по центру. Порядок: Главная · Избранное · Каталог · Корзина · Профиль.
+ * Нижнее меню-«островок»: полупрозрачная панель bg-surface/90 с blur,
+ * активная вкладка подсвечена pill-заливкой brand-50, по центру — приподнятая
+ * акцентная кнопка «Каталог» с фирменной тенью.
+ * Порядок: Главная · Избранное · Каталог · Корзина · Профиль.
  *
  * Страницы рендерятся динамически, поэтому переход занимает время — чтобы
  * нажатие не казалось «мёртвым», вкладка подсвечивается оптимистично сразу
@@ -44,19 +45,19 @@ export function MobileNav() {
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around rounded-[24px] border border-black/[0.04] bg-surface/80 px-1.5 py-1 shadow-[0_6px_22px_rgba(26,29,26,0.13)] backdrop-blur-2xl">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around rounded-[26px] bg-surface/90 px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05] backdrop-blur-xl">
         <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} onPress={setPendingHref} />
         <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
 
-        {/* центральная приподнятая кнопка */}
+        {/* центральная приподнятая кнопка — чуть крупнее остальных */}
         <Link
           href="/catalog"
           aria-label="Каталог"
           onClick={() => setPendingHref("/catalog")}
-          className="flex min-h-[48px] flex-1 flex-col items-center justify-end transition-transform duration-100 active:scale-95"
+          className="flex min-h-[50px] flex-1 flex-col items-center justify-end transition-transform duration-100 active:scale-95"
         >
           <CatalogIcon active={isActive("/catalog")} />
-          <span className="mt-1 pb-1 text-[10px] font-semibold leading-none text-brand-700">Каталог</span>
+          <span className="mt-1 pb-1.5 text-[10px] font-medium leading-none text-brand-700">Каталог</span>
         </Link>
 
         <Tab href="/cart" label="Корзина" icon={ShoppingBag} active={isActive("/cart")} badge={cartCount} badgeTone="accent" onPress={setPendingHref} />
@@ -72,8 +73,8 @@ function CatalogIcon({ active }: { active: boolean }) {
   return (
     <span
       className={cn(
-        "-mt-6 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-brand ring-[3px] ring-surface transition-transform",
-        active ? "bg-brand-600" : "bg-brand-500",
+        "-mt-6 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-brand ring-[3px] ring-surface transition-transform",
+        active ? "bg-brand-600" : "bg-linear-to-br from-brand-500 to-brand-600",
         pending && "animate-pulse",
       )}
     >
@@ -100,13 +101,21 @@ function Tab({
       aria-current={active ? "page" : undefined}
       onClick={() => onPress(href)}
       className={cn(
-        // min-h 48px — комфортный тач-таргет; active:scale — мгновенный отклик на тап
-        "flex min-h-[48px] flex-1 flex-col items-center justify-center gap-1 py-1 transition-[color,transform] duration-100 active:scale-90",
-        active ? "text-brand-600" : "text-ink-faint",
+        // min-h 50px — комфортный тач-таргет; active:scale — мгновенный отклик на тап
+        "flex min-h-[50px] flex-1 flex-col items-center justify-center gap-1 py-1.5 transition-transform duration-100 active:scale-90",
+        active ? "text-brand-700" : "text-ink-faint",
       )}
     >
-      <TabIcon icon={Icon} active={active} badge={badge} badgeTone={badgeTone} />
-      <span className="text-[10px] font-semibold leading-none">{label}</span>
+      {/* pill-подсветка активной вкладки */}
+      <span
+        className={cn(
+          "flex h-[26px] w-[46px] items-center justify-center rounded-full transition-colors duration-150",
+          active && "bg-brand-50",
+        )}
+      >
+        <TabIcon icon={Icon} active={active} badge={badge} badgeTone={badgeTone} />
+      </span>
+      <span className="text-[10px] font-medium leading-none">{label}</span>
     </Link>
   );
 }
