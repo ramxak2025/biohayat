@@ -43,6 +43,27 @@ export function goalName(slug: string): string | undefined {
   return GOALS.find((g) => g.slug === slug)?.name;
 }
 
+// ── Категории-дубли осей каталога ──
+// В БД часть категорий повторяет цели/аудитории («Иммунитет», «Для женщин»…).
+// Чтобы каталог не дублировал навигацию: страницы целей/аудиторий включают
+// товары соответствующей категории-дубля, а сами дубли скрываются из
+// витринных сеток и меню (их страницы остаются доступны по прямым ссылкам).
+export const GOAL_CATEGORY_ALIASES: Record<string, string> = {
+  immunity: "immunitet",
+  "weight-loss": "dlya-pohudeniya",
+  sport: "sportivnoe-pitanie",
+  beauty: "krasota",
+};
+export const AUDIENCE_CATEGORY_ALIASES: Record<string, string> = {
+  men: "dlya-muzhchin",
+  women: "dlya-zhenschin",
+  kids: "dlya-detey",
+};
+export const AXIS_DUPLICATE_CATEGORY_SLUGS: string[] = [
+  ...Object.values(GOAL_CATEGORY_ALIASES),
+  ...Object.values(AUDIENCE_CATEGORY_ALIASES),
+];
+
 // ── Компоненты (нутриенты) для проверки совместимости ──
 export const NUTRIENT_KEYWORDS: Record<string, string[]> = {
   "Витамин D": ["d3", "d 3", "витамин d", "vitamin d"],

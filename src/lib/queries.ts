@@ -1,6 +1,11 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import {
+  GOAL_CATEGORY_ALIASES,
+  AUDIENCE_CATEGORY_ALIASES,
+  AXIS_DUPLICATE_CATEGORY_SLUGS,
+} from "@/lib/taxonomy";
 
 /* ─────────── Data Cache ───────────
  * Горячие публичные чтения кэшируются между запросами через unstable_cache
@@ -40,7 +45,9 @@ function reviveDates<T>(value: T): T {
 const getCachedNavCategories = unstable_cache(
   () =>
     prisma.category.findMany({
-      where: { isActive: true, parentId: null },
+      // Дубли осей («Иммунитет», «Для женщин»…) не показываем в меню и плитках —
+      // их роль выполняют чипсы «Зачем»/«Кому» (страницы категорий остаются).
+      where: { isActive: true, parentId: null, slug: { notIn: AXIS_DUPLICATE_CATEGORY_SLUGS } },
       orderBy: { sortOrder: "asc" },
     }),
   ["nav-categories"],
@@ -117,12 +124,37 @@ interface ProductsOpts {
   search?: string;
 }
 
+
+/** Условия по осям «кому»/«зачем»: тег ИЛИ принадлежность категории-дублю
+ *  (в БД часть категорий повторяет оси — «Иммунитет», «Для женщин» и т.п.). */
+function axisConditions(opts: { audience?: string; goal?: string }) {
+  const and: object[] = [];
+  if (opts.audience) {
+    const alias = AUDIENCE_CATEGORY_ALIASES[opts.audience];
+    and.push({
+      OR: [
+        { audiences: { has: opts.audience } },
+        ...(alias ? [{ category: { slug: alias } }] : []),
+      ],
+    });
+  }
+  if (opts.goal) {
+    const alias = GOAL_CATEGORY_ALIASES[opts.goal];
+    and.push({
+      OR: [
+        { goals: { has: opts.goal } },
+        ...(alias ? [{ category: { slug: alias } }] : []),
+      ],
+    });
+  }
+  return and;
+}
+
 async function loadProducts(opts: ProductsOpts) {
   const where = {
     isActive: true,
     ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
-    ...(opts.audience ? { audiences: { has: opts.audience } } : {}),
-    ...(opts.goal ? { goals: { has: opts.goal } } : {}),
+    AND: axisConditions(opts),
     ...(opts.featured ? { isFeatured: true } : {}),
     ...(opts.onSale ? { oldPriceKopecks: { not: null } } : {}),
     ...(opts.search
@@ -268,7 +300,8 @@ export type ProductCardData = Awaited<ReturnType<typeof getProducts>>["items"][n
 const getCachedCategoriesWithCounts = unstable_cache(
   () =>
     prisma.category.findMany({
-      where: { isActive: true, parentId: null },
+      // Без категорий-дублей осей: они представлены чипсами «Зачем»/«Кому» выше.
+      where: { isActive: true, parentId: null, slug: { notIn: AXIS_DUPLICATE_CATEGORY_SLUGS } },
       orderBy: { sortOrder: "asc" },
       include: { _count: { select: { products: { where: { isActive: true } } } } },
     }),
@@ -299,8 +332,7 @@ const getCachedSortedProducts = unstable_cache(
     const where = {
       isActive: true,
       ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
-      ...(opts.audience ? { audiences: { has: opts.audience } } : {}),
-      ...(opts.goal ? { goals: { has: opts.goal } } : {}),
+      AND: axisConditions(opts),
       ...(opts.featured ? { isFeatured: true } : {}),
       ...(opts.onSale ? { oldPriceKopecks: { not: null } } : {}),
     };
