@@ -13,6 +13,8 @@ export default async function PanelLayout({
   if (!session) redirect("/admin/login");
 
   return (
-    <AdminShell user={{ name: session.name, email: session.email }}>{children}</AdminShell>
+    <AdminShell user={{ name: session.name, email: session.email, role: session.role }}>
+      {children}
+    </AdminShell>
   );
 }

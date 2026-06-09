@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
 export type FormState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
 
@@ -40,7 +40,7 @@ function revalidateRule() {
 }
 
 export async function createRule(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireSession();
+  await requireAdmin();
   const { parsed, flags } = parse(formData);
   if (!parsed.success) {
     return { error: "Проверьте поля формы", fieldErrors: fieldErrors(parsed.error) };
@@ -53,7 +53,7 @@ export async function createRule(_prev: FormState, formData: FormData): Promise<
 }
 
 export async function updateRule(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireSession();
+  await requireAdmin();
   const { parsed, flags } = parse(formData);
   if (!parsed.success) {
     return { error: "Проверьте поля формы", fieldErrors: fieldErrors(parsed.error) };
@@ -66,7 +66,7 @@ export async function updateRule(id: string, _prev: FormState, formData: FormDat
 }
 
 export async function deleteRule(id: string): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   await prisma.compatibilityRule.delete({ where: { id } });
   revalidateRule();
 }

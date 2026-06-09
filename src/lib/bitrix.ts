@@ -21,12 +21,44 @@ function buildEndpoint(webhookUrl: string, method: string): string {
   return `${base}${method}.json`;
 }
 
+// Таймаут одного запроса и паузы между повторами (3 попытки: сразу, +1с, +3с).
+const FETCH_TIMEOUT_MS = 8000;
+const RETRY_DELAYS_MS = [1000, 3000];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * fetch с таймаутом и ретраями на сетевые ошибки и 5xx.
+ * Ошибки 4xx и логические ошибки Битрикс24 не ретраим — повтор не поможет.
+ */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await sleep(RETRY_DELAYS_MS[attempt - 1]);
+    try {
+      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+      // 5xx — временная проблема портала, пробуем ещё раз
+      if (res.status >= 500 && attempt < RETRY_DELAYS_MS.length) {
+        lastError = new Error(`HTTP ${res.status}`);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      // сетевая ошибка или таймаут — ретраим
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Сетевая ошибка Битрикс24");
+}
+
 async function callBitrix<T>(
   webhookUrl: string,
   method: string,
   params: Record<string, unknown>,
 ): Promise<BitrixResponse<T>> {
-  const res = await fetch(buildEndpoint(webhookUrl, method), {
+  const res = await fetchWithRetry(buildEndpoint(webhookUrl, method), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
@@ -38,6 +70,12 @@ async function callBitrix<T>(
     throw new Error(data.error_description || data.error || `HTTP ${res.status}`);
   }
   return data;
+}
+
+/** GET-запрос к REST Битрикс24 с таймаутом/ретраями (для приёмника вебхуков). */
+export async function bitrixGet(url: string): Promise<unknown> {
+  const res = await fetchWithRetry(url, { cache: "no-store" });
+  return res.json();
 }
 
 type OrderWithItems = Order & { items: OrderItem[] };

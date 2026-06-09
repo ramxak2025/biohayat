@@ -6,32 +6,36 @@ import { useState } from "react";
 import {
   LayoutDashboard, Package, FolderTree, Image as ImageIcon,
   FileText, ClipboardList, Settings, LogOut, Menu, X, ExternalLink,
-  Users, FlaskConical,
+  Users, FlaskConical, TicketPercent, Star,
 } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { cn } from "@/lib/utils";
 
+// adminOnly: пункты, скрытые от роли EDITOR (доступ дополнительно проверяется на сервере)
 const nav = [
   { href: "/admin", label: "Дашборд", icon: LayoutDashboard, exact: true },
   { href: "/admin/products", label: "Товары", icon: Package },
   { href: "/admin/categories", label: "Категории", icon: FolderTree },
   { href: "/admin/banners", label: "Баннеры", icon: ImageIcon },
   { href: "/admin/materials", label: "Материалы", icon: FileText },
+  { href: "/admin/reviews", label: "Отзывы", icon: Star },
+  { href: "/admin/promocodes", label: "Промокоды", icon: TicketPercent },
   { href: "/admin/orders", label: "Заявки", icon: ClipboardList },
   { href: "/admin/customers", label: "Клиенты", icon: Users },
-  { href: "/admin/compatibility", label: "Совместимость", icon: FlaskConical },
-  { href: "/admin/settings", label: "Настройки", icon: Settings },
+  { href: "/admin/compatibility", label: "Совместимость", icon: FlaskConical, adminOnly: true },
+  { href: "/admin/settings", label: "Настройки", icon: Settings, adminOnly: true },
 ];
 
 export function AdminShell({
   user,
   children,
 }: {
-  user: { name: string; email: string };
+  user: { name: string; email: string; role?: "ADMIN" | "EDITOR" };
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const visibleNav = nav.filter((item) => !item.adminOnly || user.role !== "EDITOR");
 
   const SidebarContent = (
     <>
@@ -42,7 +46,7 @@ export function AdminShell({
         </button>
       </div>
       <nav className="flex-1 space-y-1 px-3">
-        {nav.map((item) => {
+        {visibleNav.map((item) => {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (

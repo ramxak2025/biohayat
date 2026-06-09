@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { testBitrixConnection } from "@/lib/bitrix";
 import { rubToKopecks } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ function parseStageMap(raw: string | null): object | undefined {
 }
 
 export async function updateSettings(_prev: SettingsState, fd: FormData): Promise<SettingsState> {
-  await requireSession();
+  await requireAdmin();
 
   const freeDeliveryRub = Number(fd.get("freeDeliveryRub") || 0);
 
@@ -73,7 +73,7 @@ export async function updateSettings(_prev: SettingsState, fd: FormData): Promis
 }
 
 export async function testBitrix(webhookUrl: string): Promise<{ ok: boolean; message: string }> {
-  await requireSession();
+  await requireAdmin();
   if (!webhookUrl) return { ok: false, message: "Укажите URL вебхука" };
   return testBitrixConnection(webhookUrl);
 }

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 
 export type FormState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
@@ -83,7 +83,7 @@ export async function updateCategory(id: string, _prev: FormState, formData: For
 }
 
 export async function deleteCategory(id: string): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   const count = await prisma.product.count({ where: { categoryId: id } });
   if (count > 0) {
     throw new Error("Сначала перенесите или удалите товары из категории");

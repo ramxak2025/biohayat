@@ -7,6 +7,7 @@ import { Prose } from "@/components/ui/prose";
 import { SmartImage } from "@/components/ui/smart-image";
 import { getMaterialBySlug } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { materialMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -46,7 +47,8 @@ export default async function ArticlePage({
           <SmartImage src={material.coverImage} alt={material.title} ratio="16/9" label="Обложка статьи" spec="1200×675" rounded="rounded-2xl" />
         </div>
         <Prose>
-          <div dangerouslySetInnerHTML={{ __html: material.content }} />
+          {/* Контент из админки прогоняем через allowlist-санитайзер (защита от XSS) */}
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(material.content) }} />
         </Prose>
       </article>
     </Container>

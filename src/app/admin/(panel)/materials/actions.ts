@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 
 export type FormState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
@@ -96,7 +96,7 @@ export async function updateMaterial(id: string, _prev: FormState, formData: For
 }
 
 export async function deleteMaterial(id: string): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   await prisma.material.delete({ where: { id } });
   revalidateMaterial();
 }

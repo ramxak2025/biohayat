@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireAdmin } from "@/lib/auth";
 import { BannerPlacement } from "@prisma/client";
 
 export type FormState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
@@ -82,7 +82,7 @@ export async function updateBanner(id: string, _prev: FormState, formData: FormD
 }
 
 export async function deleteBanner(id: string): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   await prisma.banner.delete({ where: { id } });
   revalidateBanner();
 }

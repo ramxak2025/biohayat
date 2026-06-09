@@ -99,3 +99,21 @@ export async function requireSession(): Promise<SessionPayload> {
   if (!session) throw new Error("UNAUTHORIZED");
   return session;
 }
+
+/**
+ * Бросает, если нет сессии или роль не совпадает.
+ * ADMIN имеет полный доступ; EDITOR — только контент.
+ */
+export async function requireRole(role: AdminRole): Promise<SessionPayload> {
+  const session = await requireSession();
+  // ADMIN покрывает все роли
+  if (session.role !== role && session.role !== "ADMIN") {
+    throw new Error("FORBIDDEN");
+  }
+  return session;
+}
+
+/** Сокращение для действий, доступных только администратору. */
+export async function requireAdmin(): Promise<SessionPayload> {
+  return requireRole("ADMIN");
+}

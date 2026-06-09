@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
+import { bitrixGet } from "@/lib/bitrix";
+import { rateLimit } from "@/lib/rate-limit";
 import type { OrderStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
@@ -10,20 +12,45 @@ const VALID_STATUSES: OrderStatus[] = [
   "NEW", "CONFIRMED", "PAID", "ASSEMBLING", "SHIPPED", "IN_TRANSIT", "DELIVERED", "CANCELLED",
 ];
 
+/** IP клиента из заголовков прокси (для rate limit). */
+function clientIp(req: NextRequest): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
+/** Токен из Authorization: Bearer или ?token= (обратная совместимость). */
+function extractToken(req: NextRequest): string | null {
+  const auth = req.headers.get("authorization");
+  if (auth?.toLowerCase().startsWith("bearer ")) {
+    return auth.slice(7).trim() || null;
+  }
+  return req.nextUrl.searchParams.get("token");
+}
+
 /**
  * Приёмник исходящих вебхуков Битрикс24 для синхронизации статуса заказа на сайт.
  *
  * Настройка в Битрикс24: Разработчикам → Исходящий вебхук → события
  * ONCRMDEALUPDATE / ONCRMLEADUPDATE → URL:
  *   https://САЙТ/api/bitrix/webhook?token=ВАШ_ТОКЕН
+ * (или заголовок Authorization: Bearer ВАШ_ТОКЕН).
  * Токен и соответствие «стадия → статус» задаются в админке (Настройки → Битрикс24).
  *
  * Также поддерживает прямой JSON для своих сценариев:
  *   POST { "orderNumber": 12, "status": "PAID" }  (или "leadId"/"dealId")
+ *
+ * Идемпотентность: если входящий статус не меняет текущий статус заказа —
+ * отвечаем ok без записи в БД.
  */
 export async function POST(req: NextRequest) {
+  // Rate limit по IP: не более 60 запросов в минуту
+  if (!rateLimit(`bitrix-webhook:${clientIp(req)}`, 60, 60_000)) {
+    return NextResponse.json({ error: "too many requests" }, { status: 429 });
+  }
+
   const settings = await getSettings();
-  const token = req.nextUrl.searchParams.get("token");
+  const token = extractToken(req);
 
   if (!settings.bitrixWebhookToken || token !== settings.bitrixWebhookToken) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -52,7 +79,11 @@ export async function POST(req: NextRequest) {
               ? { bitrixLeadId: String(body.leadId) }
               : null;
         if (!where) return NextResponse.json({ error: "no identifier" }, { status: 400 });
-        const updated = await prisma.order.updateMany({ where, data: { status: status as OrderStatus } });
+        // идемпотентность: не трогаем заказы, у которых статус уже совпадает
+        const updated = await prisma.order.updateMany({
+          where: { ...where, status: { not: status as OrderStatus } },
+          data: { status: status as OrderStatus },
+        });
         return NextResponse.json({ ok: true, updated: updated.count });
       }
       return NextResponse.json({ error: "invalid status" }, { status: 400 });
@@ -70,27 +101,34 @@ export async function POST(req: NextRequest) {
     const base = settings.bitrixWebhookUrl.endsWith("/") ? settings.bitrixWebhookUrl : settings.bitrixWebhookUrl + "/";
 
     if (event.toUpperCase().includes("DEAL")) {
-      const res = await fetch(`${base}crm.deal.get.json?id=${entityId}`, { cache: "no-store" });
-      const data = await res.json();
-      const stage = data?.result?.STAGE_ID as string | undefined;
+      const data = (await bitrixGet(`${base}crm.deal.get.json?id=${encodeURIComponent(entityId)}`)) as {
+        result?: { STAGE_ID?: string; LEAD_ID?: string | number };
+      };
+      const stage = data?.result?.STAGE_ID;
       const leadId = data?.result?.LEAD_ID ? String(data.result.LEAD_ID) : null;
       const status = mapStatus(stage);
       if (!status) return NextResponse.json({ ok: true, skipped: "stage not mapped", stage });
+      // идемпотентность: если статус (и привязка к сделке) не меняются — без записи
       const updated = await prisma.order.updateMany({
-        where: { OR: [{ bitrixDealId: entityId }, ...(leadId ? [{ bitrixLeadId: leadId }] : [])] },
+        where: {
+          OR: [{ bitrixDealId: entityId }, ...(leadId ? [{ bitrixLeadId: leadId }] : [])],
+          NOT: { status, bitrixDealId: entityId },
+        },
         data: { status, bitrixDealId: entityId },
       });
       return NextResponse.json({ ok: true, updated: updated.count, status });
     }
 
     if (event.toUpperCase().includes("LEAD")) {
-      const res = await fetch(`${base}crm.lead.get.json?id=${entityId}`, { cache: "no-store" });
-      const data = await res.json();
-      const stage = data?.result?.STATUS_ID as string | undefined;
+      const data = (await bitrixGet(`${base}crm.lead.get.json?id=${encodeURIComponent(entityId)}`)) as {
+        result?: { STATUS_ID?: string };
+      };
+      const stage = data?.result?.STATUS_ID;
       const status = mapStatus(stage);
       if (!status) return NextResponse.json({ ok: true, skipped: "stage not mapped", stage });
+      // идемпотентность: статус уже такой — отвечаем ok без записи
       const updated = await prisma.order.updateMany({
-        where: { bitrixLeadId: entityId },
+        where: { bitrixLeadId: entityId, status: { not: status } },
         data: { status },
       });
       return NextResponse.json({ ok: true, updated: updated.count, status });

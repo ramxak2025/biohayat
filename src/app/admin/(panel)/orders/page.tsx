@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminHeader, Card, EmptyState, Pill } from "@/components/admin/ui";
 import { prisma } from "@/lib/prisma";
-import { formatMoney } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
+import { ORDER_STATUS_LABELS } from "@/lib/order-status";
 import { STATUS_LABELS } from "./order-controls";
-import type { BitrixSyncStatus } from "@prisma/client";
+import type { BitrixSyncStatus, OrderStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 50;
 
 const BITRIX_LABEL: Record<BitrixSyncStatus, { label: string; tone: "green" | "red" | "amber" | "neutral" }> = {
   SYNCED: { label: "В Битрикс24", tone: "green" },
@@ -14,18 +18,73 @@ const BITRIX_LABEL: Record<BitrixSyncStatus, { label: string; tone: "green" | "r
   DISABLED: { label: "Интеграция выкл.", tone: "neutral" },
 };
 
-export default async function OrdersPage() {
+/** Ссылка на список с сохранением фильтра по статусу. */
+function listHref(page: number, status?: OrderStatus): string {
+  const params = new URLSearchParams();
+  if (page > 1) params.set("page", String(page));
+  if (status) params.set("status", status);
+  const qs = params.toString();
+  return qs ? `/admin/orders?${qs}` : "/admin/orders";
+}
+
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; status?: string }>;
+}) {
+  const { page: rawPage, status: rawStatus } = await searchParams;
+  const status =
+    rawStatus && rawStatus in ORDER_STATUS_LABELS ? (rawStatus as OrderStatus) : undefined;
+  const where = status ? { status } : {};
+
+  const total = await prisma.order.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(totalPages, Math.max(1, Number(rawPage) || 1));
+
   const orders = await prisma.order.findMany({
+    where,
     orderBy: { createdAt: "desc" },
-    take: 300,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     include: { _count: { select: { items: true } } },
   });
 
   return (
     <>
-      <AdminHeader title="Заявки" description={`Всего: ${orders.length}`} />
+      <AdminHeader
+        title="Заявки"
+        description={`Всего: ${total}${totalPages > 1 ? ` · страница ${page} из ${totalPages}` : ""}`}
+      />
+
+      {/* Фильтр по статусу */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        <Link
+          href={listHref(1)}
+          className={cn(
+            "rounded-full px-4 py-1.5 text-sm font-semibold transition",
+            !status ? "bg-brand-500 text-white" : "bg-surface text-ink-muted ring-1 ring-line hover:text-ink",
+          )}
+        >
+          Все
+        </Link>
+        {(Object.entries(ORDER_STATUS_LABELS) as [OrderStatus, string][]).map(([value, label]) => (
+          <Link
+            key={value}
+            href={listHref(1, value)}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-sm font-semibold transition",
+              status === value
+                ? "bg-brand-500 text-white"
+                : "bg-surface text-ink-muted ring-1 ring-line hover:text-ink",
+            )}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+
       {orders.length === 0 ? (
-        <EmptyState>Заявок пока нет.</EmptyState>
+        <EmptyState>{status ? "Заявок с таким статусом нет." : "Заявок пока нет."}</EmptyState>
       ) : (
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[760px] text-sm">
@@ -72,6 +131,35 @@ export default async function OrdersPage() {
           </table>
         </Card>
       )}
+
+      {/* Пагинация */}
+      {totalPages > 1 ? (
+        <div className="mt-5 flex items-center justify-between">
+          {page > 1 ? (
+            <Link
+              href={listHref(page - 1, status)}
+              className="inline-flex items-center gap-1 rounded-xl bg-surface px-4 py-2 text-sm font-semibold ring-1 ring-line hover:bg-surface-soft"
+            >
+              <ChevronLeft className="h-4 w-4" /> Назад
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-sm text-ink-muted">
+            Страница {page} из {totalPages}
+          </span>
+          {page < totalPages ? (
+            <Link
+              href={listHref(page + 1, status)}
+              className="inline-flex items-center gap-1 rounded-xl bg-surface px-4 py-2 text-sm font-semibold ring-1 ring-line hover:bg-surface-soft"
+            >
+              Вперёд <ChevronRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <span />
+          )}
+        </div>
+      ) : null}
     </>
   );
 }

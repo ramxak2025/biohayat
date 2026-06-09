@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireAdmin } from "@/lib/auth";
 import { slugify, rubToKopecks } from "@/lib/utils";
 
 export type FormState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
@@ -118,7 +118,7 @@ export async function updateProduct(id: string, _prev: FormState, formData: Form
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   await prisma.product.delete({ where: { id } });
   revalidateProduct();
 }
