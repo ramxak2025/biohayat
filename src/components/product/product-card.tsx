@@ -12,7 +12,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   const image = product.images[0]?.url;
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group flex flex-col rounded-2xl bg-surface p-2 shadow-xs ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <Link
         href={`/product/${product.slug}`}
         aria-label={`${product.name}, ${formatMoney(product.priceKopecks)}`}
@@ -22,39 +22,38 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           src={image}
           alt={product.name}
           ratio="1/1"
-          rounded="rounded-none"
+          rounded="rounded-xl"
           label={product.name}
           spec="1000×1000"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
-          className="transition-transform duration-500 group-hover:scale-[1.03]"
+          className="transition-transform duration-500 group-hover:scale-[1.02]"
         />
-        <div className="absolute left-2.5 top-2.5 flex flex-col gap-1.5">
-          {discount ? <Badge tone="sale">−{discount}%</Badge> : null}
+        <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
           {product.isFeatured ? <Badge tone="accent">хит</Badge> : null}
           {!product.inStock ? <Badge tone="neutral">нет в наличии</Badge> : null}
         </div>
-        <div className="absolute right-2.5 top-2.5">
+        <div className="absolute right-2 top-2">
           <FavoriteButton productId={product.id} />
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-3.5">
+      <div className="flex flex-1 flex-col gap-1.5 px-1.5 pb-1.5 pt-2.5">
         <Link
           href={`/category/${product.category.slug}`}
-          className="block truncate text-xs font-semibold text-brand-600 hover:underline"
+          className="block truncate text-[11px] font-semibold uppercase tracking-wide text-brand-600 hover:underline"
         >
           {product.category.name}
         </Link>
         <Link
           href={`/product/${product.slug}`}
-          className="mt-1 line-clamp-2 min-h-[2.6em] text-[15px] font-semibold leading-tight text-ink hover:text-brand-700"
+          className="line-clamp-2 min-h-[2.5em] text-[15px] font-semibold leading-snug text-ink hover:text-brand-700"
         >
           {product.name}
         </Link>
 
         {product.reviewStats && product.reviewStats.count > 0 ? (
           <span
-            className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-ink-muted"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-ink-muted"
             aria-label={`Рейтинг ${product.reviewStats.avg} из 5, отзывов: ${product.reviewStats.count}`}
           >
             <Star className="h-3.5 w-3.5 fill-accent-400 text-accent-400" aria-hidden />
@@ -63,29 +62,33 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </span>
         ) : null}
 
-        <div className="mt-auto pt-3">
-          <div className="mb-2.5 flex items-baseline gap-2">
-            <span className="text-lg font-extrabold text-ink">
-              {formatMoney(product.priceKopecks)}
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+          <span className="tnum text-xl font-extrabold leading-none text-ink">
+            {formatMoney(product.priceKopecks)}
+          </span>
+          {product.oldPriceKopecks ? (
+            <span className="tnum text-sm font-medium text-ink-faint line-through">
+              {formatMoney(product.oldPriceKopecks)}
             </span>
-            {product.oldPriceKopecks ? (
-              <span className="text-sm font-medium text-ink-faint line-through">
-                {formatMoney(product.oldPriceKopecks)}
-              </span>
-            ) : null}
-          </div>
-          <AddToCartButton
-            full
-            size="sm"
-            item={{
-              id: product.id,
-              slug: product.slug,
-              name: product.name,
-              priceKopecks: product.priceKopecks,
-              image,
-            }}
-          />
+          ) : null}
+          {discount ? (
+            <Badge tone="sale-soft" className="tnum">
+              −{discount}%
+            </Badge>
+          ) : null}
         </div>
+
+        <AddToCartButton
+          full
+          size="sm"
+          item={{
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            priceKopecks: product.priceKopecks,
+            image,
+          }}
+        />
       </div>
     </div>
   );

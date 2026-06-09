@@ -16,12 +16,14 @@ export function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-28 z-30 px-3 lg:bottom-4">
-      <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-2xl bg-ink/95 p-4 text-sm text-white shadow-lg backdrop-blur sm:flex-row">
-        <p className="flex-1 text-white/90">
-          Мы используем файлы cookie для корректной работы сайта и аналитики. Продолжая
-          пользоваться сайтом, вы соглашаетесь с{" "}
-          <Link href="/privacy-policy" className="underline">политикой конфиденциальности</Link>.
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--spacing-mobnav)+max(12px,env(safe-area-inset-bottom)))] z-30 px-3 lg:bottom-4">
+      <div className="animate-fade-up pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-surface p-3 shadow-lg ring-1 ring-line">
+        <p className="flex-1 text-xs leading-snug text-ink-muted">
+          Пользуясь сайтом, вы соглашаетесь с{" "}
+          <Link href="/privacy-policy" className="font-medium text-brand-700 underline">
+            политикой конфиденциальности
+          </Link>{" "}
+          и использованием cookie.
         </p>
         <Button
           size="sm"
@@ -31,7 +33,7 @@ export function CookieConsent() {
             setShow(false);
           }}
         >
-          Принять
+          Хорошо
         </Button>
       </div>
     </div>

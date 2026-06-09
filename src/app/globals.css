@@ -35,18 +35,20 @@
   --color-ink: #1a1d1a; /* основной текст */
   --color-ink-muted: #5b635b; /* вторичный текст */
   --color-ink-faint: #8b918a; /* подписи, плейсхолдеры */
-  --color-line: #e7ebe4; /* границы */
-  --color-line-strong: #d6dbd2;
+  --color-line: #e8e6dc; /* границы (тёплые) */
+  --color-line-strong: #d9d6c9;
+  --color-bg: #faf9f4; /* тёплый кремовый фон страницы */
   --color-surface: #ffffff; /* карточки */
-  --color-surface-soft: #f5f7f3; /* фон секций */
-  --color-surface-sunken: #eef1ea;
+  --color-surface-soft: #f3f2ea; /* фон секций (кремовая гамма) */
+  --color-surface-sunken: #eceae0;
 
   /* ── Семантические ── */
   --color-success: #2c7838;
   --color-warning: #d98a12;
   --color-danger: #d64545;
   --color-info: #2f6fb0;
-  --color-sale: #d64545; /* цена со скидкой */
+  --color-sale: #d9534f; /* цена со скидкой (смягчённый) */
+  --color-sale-soft: #fcefee; /* фон чипа скидки */
 
   /* ── Шрифты ── */
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
@@ -88,7 +90,7 @@ html {
 }
 
 body {
-  background: var(--color-surface);
+  background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv01";
@@ -118,6 +120,11 @@ h2 {
   .h-mobnav-safe {
     height: calc(var(--spacing-mobnav) + env(safe-area-inset-bottom));
   }
+}
+
+/* Табличные цифры — ровные колонки цен */
+.tnum {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Скрытый скроллбар для горизонтальных лент */
@@ -259,10 +266,10 @@ h2 {
 /* Пульсирующая метка/ссылка «Распродажа» */
 @keyframes sale-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(214, 69, 69, 0.45);
+    box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 7px rgba(214, 69, 69, 0);
+    box-shadow: 0 0 0 7px rgba(217, 83, 79, 0);
   }
 }
 .sale-pulse {

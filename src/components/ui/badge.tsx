@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 
-type Tone = "brand" | "accent" | "sale" | "neutral" | "success";
+type Tone = "brand" | "accent" | "sale" | "sale-soft" | "neutral" | "success";
 
 const tones: Record<Tone, string> = {
   brand: "bg-brand-50 text-brand-700",
   accent: "bg-accent-100 text-accent-700",
   sale: "bg-sale text-white",
+  "sale-soft": "bg-sale-soft text-sale",
   neutral: "bg-surface-sunken text-ink-muted",
   success: "bg-brand-500 text-white",
 };

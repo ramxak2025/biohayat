@@ -10,19 +10,47 @@ interface SmartImageProps {
   imgClassName?: string;
   sizes?: string;
   priority?: boolean;
-  /** Подпись на заглушке (что за изображение). */
+  /** Подпись на заглушке (что за изображение). Показывается при showLabel. */
   label?: string;
-  /** Рекомендуемый размер для генерации, напр. "1000×1000". */
+  /** Рекомендуемый размер для генерации, напр. "1000×1000". Виден только при debug. */
   spec?: string;
+  /** Показать подпись label на заглушке (по умолчанию скрыта на витрине). */
+  showLabel?: boolean;
+  /** Режим админки: выводит spec-подсказку на заглушке. */
+  debug?: boolean;
   rounded?: string;
+}
+
+/** Мягкие природные дуэты фона заглушки (gradient 135deg). */
+const PLACEHOLDER_DUOS: ReadonlyArray<readonly [string, string]> = [
+  ["#E7F0E4", "#D3E5CE"], // шалфей
+  ["#F8EFD9", "#F0E0B8"], // мёд
+  ["#ECEAF6", "#DCD8EE"], // лаванда
+  ["#FBEEE4", "#F4DCC8"], // персик
+  ["#E4F2EF", "#CBE6E0"], // мята
+  ["#F4F1E8", "#E7E1D0"], // песок
+];
+
+/** Фирменный лист — тот же path, что в логотипе (src/components/site/logo.tsx). */
+const LEAF_PATH =
+  "M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z";
+
+/** Детерминированный хеш строки (djb2) — стабильный выбор дуэта по названию. */
+function hashString(value: string): number {
+  let hash = 5381;
+  for (let i = 0; i < value.length; i++) {
+    hash = ((hash << 5) + hash + value.charCodeAt(i)) >>> 0;
+  }
+  return hash;
 }
 
 /**
  * Универсальное изображение с «умной» заглушкой.
  *
- * Пока `src` не задан — рисует фирменную заглушку с подписью и рекомендованным
- * размером. Как только в БД появляется URL картинки (нужного соотношения сторон),
- * она встаёт на место заглушки без изменения вёрстки.
+ * Пока `src` не задан — рисует фирменную «этикетку»: мягкий природный градиент
+ * (детерминированный по названию), крупный полупрозрачный лист из логотипа и
+ * первую букву названия. Как только в БД появляется URL картинки, она встаёт
+ * на место заглушки без изменения вёрстки.
  *
  * Соотношения сторон по типам контента описаны в `docs/image-spec.md`.
  */
@@ -36,8 +64,14 @@ export function SmartImage({
   priority,
   label,
   spec,
+  showLabel = false,
+  debug = false,
   rounded = "rounded-xl",
 }: SmartImageProps) {
+  const seed = (label || alt || "").trim();
+  const [from, to] = PLACEHOLDER_DUOS[hashString(seed) % PLACEHOLDER_DUOS.length];
+  const letter = seed.charAt(0).toUpperCase();
+
   return (
     <div
       className={cn("relative overflow-hidden bg-surface-soft", rounded, className)}
@@ -53,26 +87,32 @@ export function SmartImage({
           className={cn("object-cover", imgClassName)}
         />
       ) : (
-        <div className="img-placeholder absolute inset-0 flex flex-col items-center justify-center gap-1 p-3 text-center">
+        <div
+          aria-hidden
+          className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-3 text-center"
+          style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+        >
           <svg
-            className="h-8 w-8 text-brand-300"
             viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 -rotate-6"
+            fill="var(--color-brand-900)"
+            fillOpacity={0.12}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z"
-            />
+            <path d={LEAF_PATH} />
           </svg>
-          {label ? (
-            <span className="text-xs font-semibold text-brand-700/80 leading-tight">
+          {letter ? (
+            <span className="relative text-3xl font-extrabold leading-none text-ink/40 sm:text-4xl">
+              {letter}
+            </span>
+          ) : null}
+          {showLabel && label ? (
+            <span className="relative max-w-full truncate text-[11px] font-semibold text-ink/45">
               {label}
             </span>
           ) : null}
-          {spec ? <span className="text-[10px] text-ink-faint">{spec}</span> : null}
+          {debug && spec ? (
+            <span className="relative text-[10px] font-medium text-ink/40">{spec}</span>
+          ) : null}
         </div>
       )}
     </div>
