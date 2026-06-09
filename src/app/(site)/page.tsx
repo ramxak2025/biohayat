@@ -13,6 +13,11 @@ import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
 
+// ISR: главная отдаётся статически, перегенерация не чаще раза в 2 минуты.
+// Без параметров: рендер на каждый запрос (данные берутся из Data Cache,
+// поэтому это дёшево). Статический пререндер потребовал бы БД на сборке.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [categories, featured, sale, heroBanners, materials, settings] = await Promise.all([
     getNavCategories(),

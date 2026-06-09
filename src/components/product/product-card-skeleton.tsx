@@ -43,8 +43,9 @@ export function CatalogHeaderSkeleton({ className }: { className?: string }) {
 /**
  * Полный скелетон страницы каталога/подборки: повторяет раскладку CatalogView
  * (боковое меню на десктопе, чипсы на мобильном, заголовок + сетка карточек).
+ * withSort — добавляет ряд под панель сортировки (страница категории).
  */
-export function CatalogPageSkeleton() {
+export function CatalogPageSkeleton({ withSort = false }: { withSort?: boolean } = {}) {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="lg:grid lg:grid-cols-[248px_1fr] lg:gap-8">
@@ -61,14 +62,79 @@ export function CatalogPageSkeleton() {
           <CatalogHeaderSkeleton className="mb-5" />
 
           {/* чипсы-фильтры (мобайл) */}
-          <div className="no-scrollbar -mx-4 mb-6 flex animate-pulse gap-2 overflow-x-auto px-4 py-1 lg:hidden">
+          <div
+            className={cn(
+              "no-scrollbar -mx-4 flex animate-pulse gap-2 overflow-x-auto px-4 py-1 lg:hidden",
+              withSort ? "mb-3" : "mb-6",
+            )}
+          >
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-9 w-24 shrink-0 rounded-full bg-surface-sunken" />
+              <div key={i} className="h-10 w-24 shrink-0 rounded-full bg-surface-sunken" />
             ))}
           </div>
 
+          {/* панель сортировки */}
+          {withSort ? (
+            <div className="no-scrollbar -mx-4 mb-6 flex animate-pulse gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:px-0">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-10 w-28 shrink-0 rounded-full bg-surface-sunken" />
+              ))}
+            </div>
+          ) : null}
+
           <ProductGridSkeleton count={10} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Скелетон мобильного хаба каталога (повторяет раскладку CatalogHub):
+ * чипсы целей → карточки «Кому» → плитки категорий → лента хитов.
+ */
+export function CatalogHubSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-[1280px] animate-pulse space-y-7 px-4 pb-8 pt-5 sm:px-6">
+      <div>
+        <div className="h-7 w-36 rounded-full bg-surface-sunken" />
+        <div className="mt-2 h-4 w-64 max-w-full rounded-full bg-surface-sunken" />
+      </div>
+
+      {/* чипсы «Зачем» */}
+      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-hidden px-4 py-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-10 w-32 shrink-0 rounded-full bg-surface-sunken" />
+        ))}
+      </div>
+
+      {/* «Кому» — 3 карточки */}
+      <div className="grid grid-cols-3 gap-2.5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-[104px] rounded-2xl bg-surface-sunken" />
+        ))}
+      </div>
+
+      {/* плитки категорий 2 колонки */}
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-2xl ring-1 ring-line">
+            <div className="aspect-[16/10] bg-surface-sunken" />
+            <div className="space-y-2 p-3">
+              <div className="h-3.5 w-3/4 rounded-full bg-surface-sunken" />
+              <div className="h-3 w-1/2 rounded-full bg-surface-sunken" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* лента хитов */}
+      <div className="-mx-4 flex gap-3 overflow-x-hidden px-4 py-1">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="w-40 shrink-0 sm:w-44">
+            <ProductCardSkeleton />
+          </div>
+        ))}
       </div>
     </div>
   );

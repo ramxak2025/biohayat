@@ -47,7 +47,15 @@ const getCachedNavCategories = unstable_cache(
   { tags: ["catalog"], revalidate: 300 },
 );
 
-export const getNavCategories = cache(async () => reviveDates(await getCachedNavCategories()));
+export const getNavCategories = cache(async () => {
+  // Устойчивость к недоступной БД (как у getSettings): на этапе сборки
+  // Next пререндерит loading-шеллы вместе с layout — БД там может не быть.
+  try {
+    return reviveDates(await getCachedNavCategories());
+  } catch {
+    return [];
+  }
+});
 
 const getCachedCategoryBySlug = unstable_cache(
   (slug: string) => prisma.category.findUnique({ where: { slug } }),
@@ -254,3 +262,75 @@ export const getMaterialBySlug = cache(async (slug: string) =>
 );
 
 export type ProductCardData = Awaited<ReturnType<typeof getProducts>>["items"][number];
+
+/* ─────────── Каталог: категории со счётчиками (мобильный хаб) ─────────── */
+
+const getCachedCategoriesWithCounts = unstable_cache(
+  () =>
+    prisma.category.findMany({
+      where: { isActive: true, parentId: null },
+      orderBy: { sortOrder: "asc" },
+      include: { _count: { select: { products: { where: { isActive: true } } } } },
+    }),
+  ["categories-with-counts"],
+  { tags: ["catalog"], revalidate: 300 },
+);
+
+/** Активные корневые категории + число активных товаров в каждой (плитки хаба каталога). */
+export const getCategoriesWithCounts = cache(async () =>
+  reviveDates(await getCachedCategoriesWithCounts()),
+);
+
+export type CategoryWithCount = Awaited<ReturnType<typeof getCategoriesWithCounts>>[number];
+
+/* ─────────── Сортировка списков товаров (?sort= на страницах подборок) ─────────── */
+
+export type ProductSort = "popular" | "price-asc" | "price-desc" | "new";
+
+/** Валидация значения ?sort= из URL; всё неизвестное — «по популярности». */
+export function parseProductSort(value: string | string[] | undefined): ProductSort {
+  return value === "price-asc" || value === "price-desc" || value === "new" ? value : "popular";
+}
+
+const getCachedSortedProducts = unstable_cache(
+  async (opts: Omit<ProductsOpts, "search">, sort: Exclude<ProductSort, "popular">) => {
+    // where повторяет loadProducts (кроме search): функция добавлена отдельно,
+    // чтобы не менять сигнатуру и ключи кэша существующего getProducts.
+    const where = {
+      isActive: true,
+      ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
+      ...(opts.audience ? { audiences: { has: opts.audience } } : {}),
+      ...(opts.goal ? { goals: { has: opts.goal } } : {}),
+      ...(opts.featured ? { isFeatured: true } : {}),
+      ...(opts.onSale ? { oldPriceKopecks: { not: null } } : {}),
+    };
+    const orderBy =
+      sort === "price-asc"
+        ? { priceKopecks: "asc" as const }
+        : sort === "price-desc"
+          ? { priceKopecks: "desc" as const }
+          : { createdAt: "desc" as const };
+    const [items, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+        orderBy,
+        take: opts.take,
+        skip: opts.skip,
+      }),
+      prisma.product.count({ where }),
+    ]);
+    return { items: await withReviewStats(items), total };
+  },
+  ["products-list-sorted"],
+  { tags: ["catalog", "reviews"], revalidate: 120 },
+);
+
+/**
+ * getProducts + сортировка. «popular» делегирует в getProducts (исходный
+ * порядок: хиты выше), остальные варианты — отдельная кэшируемая выборка.
+ */
+export async function getSortedProducts(opts: Omit<ProductsOpts, "search">, sort: ProductSort) {
+  if (sort === "popular") return getProducts(opts);
+  return reviveDates(await getCachedSortedProducts(opts, sort));
+}

@@ -9,33 +9,32 @@ import { ChatWidget } from "@/components/site/chat-widget";
 import { CookieConsent } from "@/components/site/cookie-consent";
 import { getNavCategories } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
-import { getCustomerSession } from "@/lib/customer-auth";
 
-// Публичные страницы рендерятся на лету (контент управляется из админки),
-// поэтому сборка не требует доступа к базе данных.
-export const dynamic = "force-dynamic";
-
+// Layout намеренно НЕ использует cookies()/headers() и не задаёт dynamic:
+// данные берутся из unstable_cache (getNavCategories/getSettings), поэтому
+// публичные страницы под этим layout могут отдаваться статически (ISR).
+// Состояние «вошёл/не вошёл» Header и FavoritesProvider читают на клиенте
+// из не-httpOnly cookie-флага hayat_auth (см. src/lib/customer-auth.ts).
 export default async function SiteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [categories, settings, session] = await Promise.all([
+  const [categories, settings] = await Promise.all([
     getNavCategories(),
     getSettings(),
-    getCustomerSession(),
   ]);
   const navCats = categories.map((c) => ({ slug: c.slug, name: c.name }));
 
   // Избранное не запрашиваем в layout (это БД-запрос на каждый просмотр любой
   // страницы): FavoritesProvider сам подтянет id через server action после
-  // монтирования. getCustomerSession — только проверка JWT из cookie, без БД.
+  // монтирования.
   return (
     <CartProvider>
-      <FavoritesProvider loggedIn={!!session}>
+      <FavoritesProvider>
         {/* Шапка только на десктопе — на мобильном навигация снизу */}
         <div className="hidden lg:block">
-          <Header phone={settings.phone} loggedIn={!!session} />
+          <Header phone={settings.phone} />
         </div>
         <MobileSearch />
         <main className="flex-1">{children}</main>

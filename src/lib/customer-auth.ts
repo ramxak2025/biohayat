@@ -6,6 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { normalizePhone } from "@/lib/utils";
 
 const COOKIE_NAME = "hayat_customer";
+// НЕ-httpOnly флаг «сессия есть» без каких-либо секретов: клиент (Header,
+// FavoritesProvider) читает его из document.cookie, поэтому публичные страницы
+// могут рендериться статически (ISR) — серверу не нужно трогать cookies().
+const AUTH_FLAG_COOKIE = "hayat_auth";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
 
 function getSecret(): Uint8Array {
@@ -34,11 +38,20 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
     path: "/",
     maxAge: MAX_AGE,
   });
+  // Клиентский флаг наличия сессии (без секретов — просто «1»).
+  store.set(AUTH_FLAG_COOKIE, "1", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: MAX_AGE,
+  });
 }
 
 export async function destroyCustomerSession(): Promise<void> {
   const store = await cookies();
   store.delete(COOKIE_NAME);
+  store.delete(AUTH_FLAG_COOKIE);
 }
 
 export async function getCustomerSession(): Promise<CustomerSession | null> {

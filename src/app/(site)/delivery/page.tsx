@@ -5,6 +5,9 @@ import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
 import { formatMoney } from "@/lib/utils";
 
+// Рендер на запрос: пререндер на сборке требовал бы доступную БД (layout читает категории).
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return buildMetadata(

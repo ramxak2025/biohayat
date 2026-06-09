@@ -4,6 +4,7 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from "react";
 import { getFavoriteIds, syncFavorites } from "@/app/actions/favorites";
+import { useAuthFlag } from "@/lib/use-auth-flag";
 
 const STORAGE_KEY = "hayat_favorites_v1";
 
@@ -17,13 +18,12 @@ interface FavoritesContextValue {
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
-export function FavoritesProvider({
-  children,
-  loggedIn,
-}: {
-  children: React.ReactNode;
-  loggedIn: boolean;
-}) {
+export function FavoritesProvider({ children }: { children: React.ReactNode }) {
+  // Признак входа — из клиентского cookie-флага hayat_auth (а не из SSR-пропа):
+  // layout больше не читает cookies(), и страницы могут отдаваться статически.
+  // До гидрации значение false, после монтирования флаг перечитывается, и
+  // эффекты ниже отрабатывают флип false→true так же, как раньше смену пропа.
+  const loggedIn = useAuthFlag();
   const [ids, setIds] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   // Серверный снимок избранного загружен (через getFavoriteIds). До этого

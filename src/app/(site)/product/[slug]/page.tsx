@@ -19,6 +19,15 @@ import { getSettings } from "@/lib/settings";
 import { productMetadata, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { formatMoney, discountPercent } from "@/lib/utils";
 
+// ISR: карточка товара отдаётся статически, перегенерация раз в 5 минут.
+export const revalidate = 300;
+// Регистрирует маршрут как ISR: страницы генерируются при первом запросе
+// и кэшируются (на сборке БД не нужна, поэтому список пуст).
+export function generateStaticParams() {
+  return [];
+}
+
+
 export async function generateMetadata({
   params,
 }: {

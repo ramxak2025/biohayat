@@ -1,12 +1,20 @@
 import Link from "next/link";
-import { PackageSearch } from "lucide-react";
+import { ArrowDownUp, PackageSearch } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product/product-card";
 import { CatalogSidebar } from "@/components/product/catalog-sidebar";
+import { ChipsRow } from "@/components/product/chips-row";
 import { cn } from "@/lib/utils";
 import type { Category } from "@prisma/client";
-import type { ProductCardData } from "@/lib/queries";
+import type { ProductCardData, ProductSort } from "@/lib/queries";
+
+const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
+  { value: "popular", label: "Популярные" },
+  { value: "price-asc", label: "Цена ↑" },
+  { value: "price-desc", label: "Цена ↓" },
+  { value: "new", label: "Новинки" },
+];
 
 export function CatalogView({
   title,
@@ -16,6 +24,8 @@ export function CatalogView({
   categories,
   activeSlug,
   basePath = "/catalog",
+  sort,
+  sortBase,
 }: {
   title: string;
   description?: string | null;
@@ -24,6 +34,10 @@ export function CatalogView({
   categories: Pick<Category, "slug" | "name">[];
   activeSlug?: string;
   basePath?: string;
+  /** Текущая сортировка (вместе с sortBase включает панель сортировки). */
+  sort?: ProductSort;
+  /** Базовый путь для ссылок сортировки, напр. "/category/med" → "?sort=…". */
+  sortBase?: string;
 }) {
   return (
     <Container className="py-6 sm:py-8">
@@ -38,8 +52,12 @@ export function CatalogView({
             <p className="mt-1 text-sm text-ink-faint">{total} товаров</p>
           </div>
 
-          {/* Мобайл: фильтр-чипсы (на десктопе их заменяет боковое меню) */}
-          <div className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 py-1 lg:hidden">
+          {/* Мобайл: чипсы соседних категорий, текущая выделена и подскроллена в центр
+              (на десктопе их заменяет боковое меню) */}
+          <ChipsRow
+            activeKey={activeSlug ?? basePath}
+            className={cn("-mx-4 px-4 py-1 lg:hidden", sortBase ? "mb-3" : "mb-6")}
+          >
             <Chip href="/catalog" active={basePath === "/catalog" && !activeSlug}>
               Все
             </Chip>
@@ -51,7 +69,27 @@ export function CatalogView({
                 {c.name}
               </Chip>
             ))}
-          </div>
+          </ChipsRow>
+
+          {/* Компактная панель сортировки (через ?sort=, ссылки кэш-дружелюбны) */}
+          {sortBase ? (
+            <div className="no-scrollbar -mx-4 mb-6 flex snap-x items-center gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:px-0">
+              <span className="inline-flex shrink-0 items-center gap-1 pr-1 text-xs font-semibold text-ink-faint">
+                <ArrowDownUp className="h-3.5 w-3.5" aria-hidden />
+                Сортировка
+              </span>
+              {SORT_OPTIONS.map((o) => (
+                <Chip
+                  key={o.value}
+                  href={o.value === "popular" ? sortBase : `${sortBase}?sort=${o.value}`}
+                  active={(sort ?? "popular") === o.value}
+                  size="sm"
+                >
+                  {o.label}
+                </Chip>
+              ))}
+            </div>
+          ) : null}
 
           {products.length > 0 ? (
             <ProductGrid products={products} />
@@ -78,18 +116,24 @@ function Chip({
   href,
   active,
   tone,
+  size,
   children,
 }: {
   href: string;
   active?: boolean;
   tone?: "sale";
+  size?: "sm";
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
+      data-active={active ? "true" : undefined}
       className={cn(
-        "whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ring-1 transition",
+        // min-h-10 (40px) — комфортная тач-цель; snap-start для скролл-снапа ленты
+        "inline-flex min-h-10 shrink-0 snap-start items-center whitespace-nowrap rounded-full font-semibold ring-1 transition",
+        size === "sm" ? "px-3.5 text-[13px]" : "px-4 text-sm",
         active
           ? tone === "sale"
             ? "bg-sale text-white ring-sale"

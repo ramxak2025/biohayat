@@ -2,9 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 import { CatalogView } from "@/components/product/catalog-view";
-import { getCategoryBySlug, getNavCategories, getProducts } from "@/lib/queries";
+import {
+  getCategoryBySlug,
+  getNavCategories,
+  getSortedProducts,
+  parseProductSort,
+} from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { categoryMetadata, breadcrumbJsonLd } from "@/lib/seo";
+
+export const revalidate = 300;
+// Регистрирует маршрут как ISR: страницы генерируются при первом запросе
+// и кэшируются (на сборке БД не нужна, поэтому список пуст).
+export function generateStaticParams() {
+  return [];
+}
+
 
 export async function generateMetadata({
   params,
@@ -20,15 +33,18 @@ export async function generateMetadata({
 
 export default async function CategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
-  const { slug } = await params;
+  const [{ slug }, { sort: sortParam }] = await Promise.all([params, searchParams]);
   const category = await getCategoryBySlug(slug);
   if (!category || !category.isActive) notFound();
 
+  const sort = parseProductSort(sortParam);
   const [{ items, total }, categories] = await Promise.all([
-    getProducts({ categorySlug: slug, take: 60 }),
+    getSortedProducts({ categorySlug: slug, take: 60 }, sort),
     getNavCategories(),
   ]);
 
@@ -51,6 +67,8 @@ export default async function CategoryPage({
         categories={categories}
         activeSlug={slug}
         basePath={`/category/${slug}`}
+        sort={sort}
+        sortBase={`/category/${slug}`}
       />
     </>
   );

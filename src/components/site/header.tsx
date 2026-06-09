@@ -6,9 +6,14 @@ import { Phone, Search, ShoppingCart, User, Heart, LayoutGrid, Flame } from "luc
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
+import { useAuthFlag } from "@/lib/use-auth-flag";
 import { Logo } from "./logo";
 
-export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }) {
+export function Header({ phone }: { phone: string }) {
+  // Признак входа читаем на клиенте из cookie-флага hayat_auth: серверный HTML
+  // одинаков для всех (нейтральное «Войти»), меняется только подпись —
+  // иконка та же, мигания нет. Это позволяет отдавать страницы статически.
+  const loggedIn = useAuthFlag();
   const { count } = useCart();
   const { count: favCount } = useFavorites();
   const pathname = usePathname();

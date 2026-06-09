@@ -39,4 +39,16 @@ docker compose up -d --build
 # выполнять разрушительные изменения — это намеренная защита данных.
 docker compose exec -T app pnpm db:push
 
+# Прогрев кэша: первый запрос ISR-страницы рендерит её, дальше отдаётся статика.
+# Прогреваем ключевые страницы, чтобы первые посетители получили мгновенный ответ.
+sleep 5
+for p in / /catalog /sale /articles; do
+  curl -s -o /dev/null --max-time 20 "http://localhost:3000$p" || true
+done
+# Все товары и категории (через sitemap, если доступен)
+curl -s --max-time 20 "http://localhost:3000/sitemap.xml" \
+  | grep -o "<loc>[^<]*</loc>" | sed -e 's|</\?loc>||g' \
+  | sed -E 's|https?://[^/]+||' | head -200 \
+  | while read -r p; do curl -s -o /dev/null --max-time 20 "http://localhost:3000$p" || true; done
+
 echo "$(date '+%F %T') Готово: $(git rev-parse --short HEAD)"

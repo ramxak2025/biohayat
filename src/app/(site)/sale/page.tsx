@@ -4,6 +4,11 @@ import { getNavCategories, getProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
 
+// ISR: распродажа отдаётся статически, перегенерация раз в 5 минут.
+// Без параметров: рендер на каждый запрос (данные берутся из Data Cache,
+// поэтому это дёшево). Статический пререндер потребовал бы БД на сборке.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return buildMetadata(

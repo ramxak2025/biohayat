@@ -6,7 +6,14 @@ import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
 import { goalName } from "@/lib/taxonomy";
 
-export const dynamic = "force-dynamic";
+// ISR: подборка по цели отдаётся статически, перегенерация раз в 5 минут.
+export const revalidate = 300;
+// Регистрирует маршрут как ISR: страницы генерируются при первом запросе
+// и кэшируются (на сборке БД не нужна, поэтому список пуст).
+export function generateStaticParams() {
+  return [];
+}
+
 
 export async function generateMetadata({
   params,
