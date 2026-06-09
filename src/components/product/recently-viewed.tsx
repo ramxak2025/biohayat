@@ -104,7 +104,7 @@ export function RecentlyViewed({
 
   return (
     <section className={className} aria-label="Недавно смотрели">
-      <h2 className="mb-5 text-2xl font-extrabold tracking-tight sm:text-3xl">
+      <h2 className="mb-5 text-xl font-extrabold tracking-tight">
         Недавно смотрели
       </h2>
       <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">

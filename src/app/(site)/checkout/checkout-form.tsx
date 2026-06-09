@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import {
-  CheckCircle2, ArrowRight, Loader2, Tag, X, MapPin, Plus, Package,
+  CheckCircle2, ArrowRight, Loader2, Tag, X, MapPin, Plus, Package, User, MessageSquare,
 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,29 @@ function SubmitButton() {
         </>
       )}
     </Button>
+  );
+}
+
+/** Секция-карточка формы оформления. */
+function FormSection({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-bold">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          {icon}
+        </span>
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }
 
@@ -182,7 +205,12 @@ export function CheckoutForm({
 
   return (
     <Container className="py-6 sm:py-8">
-      <h1 className="mb-6 text-2xl font-extrabold sm:text-3xl">Оформление заказа</h1>
+      <div className="mb-5 sm:mb-6">
+        <h1 className="text-2xl font-extrabold sm:text-3xl">Оформление заказа</h1>
+        <p className="mt-1 text-sm text-ink-muted">
+          Шаг 1 из 1 — менеджер подтвердит заказ по телефону
+        </p>
+      </div>
       <form
         action={formAction}
         onSubmit={(e) => {
@@ -192,7 +220,7 @@ export function CheckoutForm({
             setTouched({ customerName: true, phone: true, email: true, consent: true });
           }
         }}
-        className="grid gap-6 lg:grid-cols-[1fr_360px]"
+        className="flex flex-col gap-5 lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6"
       >
         <input
           type="hidden"
@@ -209,60 +237,66 @@ export function CheckoutForm({
         {promo ? <input type="hidden" name="promoCode" value={promo.code} /> : null}
         <input type="hidden" name="address" value={addressValue} />
 
-        <div className="space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line">
+        <div className="space-y-4">
           {state.error ? (
             <div className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
               {state.error}
             </div>
           ) : null}
 
-          <div>
-            <Label htmlFor="customerName" required>Ваше имя</Label>
-            <Input
-              id="customerName"
-              name="customerName"
-              placeholder="Иван Иванов"
-              autoComplete="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={() => markTouched("customerName")}
-              aria-invalid={Boolean(fieldError("customerName"))}
-            />
-            <FieldError>{fieldError("customerName")}</FieldError>
-          </div>
+          {/* ── Получатель ── */}
+          <FormSection title="Получатель" icon={<User className="h-4 w-4" aria-hidden />}>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="customerName" required>Ваше имя</Label>
+                <Input
+                  id="customerName"
+                  name="customerName"
+                  placeholder="Иван Иванов"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => markTouched("customerName")}
+                  aria-invalid={Boolean(fieldError("customerName"))}
+                />
+                <FieldError>{fieldError("customerName")}</FieldError>
+              </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="phone" required>Телефон</Label>
-              <PhoneInput
-                id="phone"
-                name="phone"
-                autoComplete="tel"
-                defaultValue={defaults.phone}
-                onValueChange={setPhone}
-                onBlur={() => markTouched("phone")}
-                aria-invalid={Boolean(fieldError("phone"))}
-              />
-              <FieldError>{fieldError("phone")}</FieldError>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="phone" required>Телефон</Label>
+                  <PhoneInput
+                    id="phone"
+                    name="phone"
+                    autoComplete="tel"
+                    defaultValue={defaults.phone}
+                    onValueChange={setPhone}
+                    onBlur={() => markTouched("phone")}
+                    aria-invalid={Boolean(fieldError("phone"))}
+                  />
+                  <FieldError>{fieldError("phone")}</FieldError>
+                </div>
+                <div>
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => markTouched("email")}
+                    aria-invalid={Boolean(fieldError("email"))}
+                  />
+                  <FieldError>{fieldError("email")}</FieldError>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="email@example.com"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => markTouched("email")}
-                aria-invalid={Boolean(fieldError("email"))}
-              />
-              <FieldError>{fieldError("email")}</FieldError>
-            </div>
-          </div>
+          </FormSection>
 
-          <div>
+          {/* ── Доставка ── */}
+          <FormSection title="Доставка" icon={<MapPin className="h-4 w-4" aria-hidden />}>
             <Label htmlFor="address">Адрес доставки</Label>
 
             {loggedIn && addresses.length > 0 ? (
@@ -320,50 +354,37 @@ export function CheckoutForm({
               </>
             )}
             <FieldError>{state.fieldErrors?.address}</FieldError>
-          </div>
+          </FormSection>
 
-          <div>
+          {/* ── Комментарий ── */}
+          <FormSection title="Комментарий" icon={<MessageSquare className="h-4 w-4" aria-hidden />}>
             <Label htmlFor="comment">Комментарий к заказу</Label>
             <Textarea id="comment" name="comment" placeholder="Удобное время, пожелания…" />
-          </div>
 
-          <label className="flex cursor-pointer items-start gap-3 text-sm text-ink-muted">
-            <Checkbox
-              name="consent"
-              className="mt-0.5"
-              checked={consent}
-              onChange={(e) => {
-                setConsent(e.target.checked);
-                markTouched("consent");
-              }}
-            />
-            <span>
-              Я согласен на обработку персональных данных в соответствии с{" "}
-              <Link href="/privacy-policy" className="text-brand-700 underline" target="_blank">
-                Политикой конфиденциальности
-              </Link>{" "}
-              (152-ФЗ).
-            </span>
-          </label>
-          <FieldError>{fieldError("consent")}</FieldError>
-        </div>
+            <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-ink-muted">
+              <Checkbox
+                name="consent"
+                className="mt-0.5"
+                checked={consent}
+                onChange={(e) => {
+                  setConsent(e.target.checked);
+                  markTouched("consent");
+                }}
+              />
+              <span>
+                Я согласен на обработку персональных данных в соответствии с{" "}
+                <Link href="/privacy-policy" className="text-brand-700 underline" target="_blank">
+                  Политикой конфиденциальности
+                </Link>{" "}
+                (152-ФЗ).
+              </span>
+            </label>
+            <FieldError>{fieldError("consent")}</FieldError>
+          </FormSection>
 
-        <aside className="h-fit space-y-3 rounded-2xl bg-surface p-5 ring-1 ring-line lg:sticky lg:top-24">
-          <h2 className="text-lg font-bold">Ваш заказ</h2>
-          <ul className="space-y-2 border-y border-line py-3 text-sm">
-            {items.map((i) => (
-              <li key={i.id} className="flex justify-between gap-2">
-                <span className="text-ink-muted">
-                  {i.name} <span className="text-ink-faint">× {i.qty}</span>
-                </span>
-                <span className="shrink-0 font-semibold">{formatMoney(i.priceKopecks * i.qty)}</span>
-              </li>
-            ))}
-          </ul>
-
-          {/* Промокод */}
-          <div>
-            <Label htmlFor="promo">Промокод</Label>
+          {/* ── Промокод ── */}
+          <FormSection title="Промокод" icon={<Tag className="h-4 w-4" aria-hidden />}>
+            <Label htmlFor="promo" className="sr-only">Промокод</Label>
             {promo ? (
               <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3.5 py-2.5">
                 <span className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-700">
@@ -412,30 +433,71 @@ export function CheckoutForm({
               </div>
             )}
             <FieldError>{promoError ?? state.fieldErrors?.promoCode}</FieldError>
-          </div>
+          </FormSection>
+        </div>
 
-          <div className="space-y-1.5 border-t border-line pt-3">
+        {/* ── Ваш заказ ── */}
+        <aside className="h-fit space-y-3 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5 lg:sticky lg:top-24">
+          <h2 className="flex items-center gap-2 text-base font-bold">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+              <Package className="h-4 w-4" aria-hidden />
+            </span>
+            Ваш заказ
+          </h2>
+          <ul className="space-y-2 border-y border-line py-3 text-sm">
+            {items.map((i) => (
+              <li key={i.id} className="flex justify-between gap-2">
+                <span className="text-ink-muted">
+                  {i.name} <span className="tnum text-ink-faint">× {i.qty}</span>
+                </span>
+                <span className="tnum shrink-0 font-semibold">{formatMoney(i.priceKopecks * i.qty)}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-sm">
               <span className="text-ink-muted">Товары</span>
-              <span className="font-semibold">{formatMoney(totalKopecks)}</span>
+              <span className="tnum font-semibold">{formatMoney(totalKopecks)}</span>
             </div>
             {discountKopecks > 0 ? (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-ink-muted">Скидка по промокоду</span>
-                <span className="font-semibold text-brand-700">−{formatMoney(discountKopecks)}</span>
+                <span className="tnum font-semibold text-brand-700">−{formatMoney(discountKopecks)}</span>
               </div>
             ) : null}
             <div className="flex items-center justify-between pt-1">
               <span className="font-bold">Итого</span>
-              <span className="text-xl font-extrabold">{formatMoney(finalKopecks)}</span>
+              <span className="tnum text-xl font-extrabold">{formatMoney(finalKopecks)}</span>
             </div>
           </div>
 
-          <SubmitButton />
-          <p className="text-center text-xs text-ink-faint">
+          {/* на мобайле кнопка живёт в прилипающей панели ниже */}
+          <div className="hidden lg:block">
+            <SubmitButton />
+          </div>
+          <p className="hidden text-center text-xs text-ink-faint lg:block">
             Оплата при получении. Это заявка, а не предоплата.
           </p>
         </aside>
+
+        {/* мобильная итоговая панель: прилипает к низу над нижним меню */}
+        <div className="sticky bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom))+10px)] z-10 rounded-2xl bg-surface/95 p-4 shadow-md ring-1 ring-line backdrop-blur lg:hidden">
+          {discountKopecks > 0 ? (
+            <div className="mb-1 flex items-center justify-between text-xs text-ink-muted">
+              <span>Скидка по промокоду</span>
+              <span className="tnum font-semibold text-brand-700">−{formatMoney(discountKopecks)}</span>
+            </div>
+          ) : null}
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-bold">Итого</span>
+            <span className="tnum text-xl font-extrabold">{formatMoney(finalKopecks)}</span>
+          </div>
+          <SubmitButton />
+          <p className="mt-2.5 text-center text-xs text-ink-faint">
+            Оплата при получении. Это заявка, а не предоплата.
+          </p>
+        </div>
       </form>
     </Container>
   );

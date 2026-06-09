@@ -1,4 +1,4 @@
-import { Star, MessageSquarePlus } from "lucide-react";
+import { Star, MessageSquarePlus, ChevronDown } from "lucide-react";
 import { ReviewForm } from "./review-form";
 import { cn } from "@/lib/utils";
 
@@ -66,11 +66,13 @@ export function ProductReviews({
   return (
     <div className="grid gap-6 lg:grid-cols-[340px_1fr] lg:gap-10">
       {/* сводка + форма */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {count > 0 ? (
-          <div className="rounded-2xl bg-surface-soft p-5">
+          <div className="rounded-2xl bg-surface p-5 ring-1 ring-line">
             <div className="flex items-end gap-3">
-              <span className="text-5xl font-extrabold leading-none">{avg.toLocaleString("ru-RU")}</span>
+              <span className="tnum text-5xl font-extrabold leading-none">
+                {avg.toLocaleString("ru-RU")}
+              </span>
               <div className="pb-1">
                 <RatingStars rating={avg} />
                 <div className="mt-1 text-sm text-ink-muted">
@@ -96,10 +98,22 @@ export function ProductReviews({
           </div>
         ) : null}
 
-        <div className="rounded-2xl bg-surface p-5 ring-1 ring-line">
-          <h3 className="mb-4 text-lg font-bold">Оставить отзыв</h3>
-          <ReviewForm productId={productId} />
-        </div>
+        {/* форма спрятана в <details>, чтобы не давить на список отзывов */}
+        <details className="group rounded-2xl bg-surface ring-1 ring-line">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-2 font-bold">
+              <MessageSquarePlus className="h-5 w-5 text-brand-500" aria-hidden />
+              Оставить отзыв
+            </span>
+            <ChevronDown
+              aria-hidden
+              className="h-5 w-5 shrink-0 text-ink-faint transition-transform group-open:rotate-180"
+            />
+          </summary>
+          <div className="border-t border-line p-5">
+            <ReviewForm productId={productId} />
+          </div>
+        </details>
       </div>
 
       {/* список отзывов */}
@@ -113,21 +127,32 @@ export function ProductReviews({
             </p>
           </div>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {reviews.map((review) => (
-              <li key={review.id} className="rounded-2xl bg-surface p-5 ring-1 ring-line">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-bold">{review.authorName}</span>
-                  <time
-                    dateTime={review.createdAt.toISOString()}
-                    className="text-xs text-ink-faint"
+              <li key={review.id} className="rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+                <div className="flex items-start gap-3">
+                  {/* аватар-кружок: первая буква имени */}
+                  <span
+                    aria-hidden
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 font-extrabold text-brand-700"
                   >
-                    {dateFormatter.format(review.createdAt)}
-                  </time>
+                    {review.authorName.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                      <span className="font-bold">{review.authorName}</span>
+                      <time
+                        dateTime={review.createdAt.toISOString()}
+                        className="text-xs text-ink-faint"
+                      >
+                        {dateFormatter.format(review.createdAt)}
+                      </time>
+                    </div>
+                    <RatingStars rating={review.rating} className="mt-1" size="h-3.5 w-3.5" />
+                  </div>
                 </div>
-                <RatingStars rating={review.rating} className="mt-1.5" />
                 {review.content ? (
-                  <p className="mt-2.5 whitespace-pre-line leading-relaxed text-ink-muted">
+                  <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
                     {review.content}
                   </p>
                 ) : null}

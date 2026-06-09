@@ -22,9 +22,13 @@ export function ProductGallery({
             <button
               key={i}
               onClick={() => setActive(i)}
+              aria-label={`Фото ${i + 1}`}
+              aria-current={i === active}
               className={cn(
-                "h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-2 transition",
-                i === active ? "ring-brand-500" : "ring-line hover:ring-brand-300",
+                "h-16 w-16 shrink-0 overflow-hidden rounded-xl transition",
+                i === active
+                  ? "ring-2 ring-brand-500"
+                  : "ring-1 ring-line hover:ring-brand-300",
               )}
             >
               <SmartImage src={img.url} alt={img.alt || name} ratio="1/1" rounded="rounded-none" />
@@ -32,12 +36,13 @@ export function ProductGallery({
           ))}
         </div>
       ) : null}
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <SmartImage
           src={current?.url}
           alt={current?.alt || name}
           ratio="1/1"
           rounded="rounded-2xl"
+          className="ring-1 ring-line"
           label={name}
           spec="1000×1000 (1:1)"
           priority

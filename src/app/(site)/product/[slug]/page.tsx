@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Script from "next/script";
-import { ChevronRight, Truck, ShieldCheck, Info } from "lucide-react";
-import { Container, Section, SectionHeader } from "@/components/ui/container";
+import { ChevronRight, ChevronDown, Truck, ShieldCheck } from "lucide-react";
+import { Container, Section } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductGrid } from "@/components/product/product-card";
@@ -97,115 +97,174 @@ export default async function ProductPage({
         )}
       </Script>
 
-      {/* breadcrumbs */}
-      <nav className="mb-4 flex flex-wrap items-center gap-1 text-sm text-ink-faint">
-        <Link href="/" className="hover:text-brand-700">Главная</Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <Link href={`/category/${product.category.slug}`} className="hover:text-brand-700">
+      {/* хлебные крошки: одна строка, длинное название обрезается */}
+      <nav
+        aria-label="Хлебные крошки"
+        className="mb-3 flex items-center gap-1 overflow-hidden whitespace-nowrap text-xs text-ink-faint"
+      >
+        <Link href="/" className="shrink-0 hover:text-brand-700">Главная</Link>
+        <ChevronRight className="h-3 w-3 shrink-0" aria-hidden />
+        <Link
+          href={`/category/${product.category.slug}`}
+          className="shrink-0 hover:text-brand-700"
+        >
           {product.category.name}
         </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-ink-muted">{product.name}</span>
+        <ChevronRight className="h-3 w-3 shrink-0" aria-hidden />
+        <span className="truncate text-ink-muted">{product.name}</span>
       </nav>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
         <ProductGallery images={product.images} name={product.name} />
 
-        <div>
-          <div className="flex flex-wrap gap-1.5">
-            {discount ? <Badge tone="sale">−{discount}%</Badge> : null}
+        <div className="min-w-0">
+          {/* чип категории + бейджи */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Link
+              href={`/category/${product.category.slug}`}
+              className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-bold leading-none text-brand-700 transition hover:bg-brand-100"
+            >
+              {product.category.name}
+            </Link>
             {product.badges.map((b) => (
               <Badge key={b} tone="accent">{b}</Badge>
             ))}
-            <Badge tone={product.inStock ? "success" : "neutral"}>
-              {product.inStock ? "В наличии" : "Нет в наличии"}
-            </Badge>
           </div>
 
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+          {/*
+            line-height задан инлайном намеренно: глобальное правило
+            `h1,h2{line-height:1.22; text-wrap:balance}` в globals.css не лежит
+            в @layer и потому перебивает любые leading-* утилиты (каскадные
+            слои Tailwind 4). На мобайле плотные 1.22 у многострочного
+            extrabold-названия + balance со swap-шрифтом давали наложение
+            строк друг на друга. Инлайновый стиль гарантированно побеждает.
+          */}
+          <h1
+            className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl"
+            style={{ lineHeight: 1.3, textWrap: "pretty" }}
+          >
             {product.name}
           </h1>
+
           {reviewStats ? (
             <a
               href="#reviews"
               className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-brand-700"
             >
               <RatingStars rating={reviewStats.avg} />
-              <span>
+              <span className="tnum">
                 {reviewStats.avg.toLocaleString("ru-RU")} · {reviewStats.count}{" "}
                 {pluralReviews(reviewStats.count)}
               </span>
             </a>
           ) : null}
-          {product.volume ? (
-            <p className="mt-1 text-ink-muted">{product.volume}</p>
-          ) : null}
-          {product.shortDescription ? (
-            <p className="mt-3 text-ink-muted">{product.shortDescription}</p>
-          ) : null}
 
-          <div className="mt-5 flex items-end gap-3">
-            <span className="text-3xl font-extrabold">{formatMoney(product.priceKopecks)}</span>
+          {/* цена + старая цена + чип скидки + наличие */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="tnum text-3xl font-extrabold tracking-tight">
+              {formatMoney(product.priceKopecks)}
+            </span>
             {product.oldPriceKopecks ? (
-              <span className="pb-1 text-lg font-medium text-ink-faint line-through">
+              <span className="tnum text-lg font-medium text-ink-faint line-through">
                 {formatMoney(product.oldPriceKopecks)}
               </span>
             ) : null}
+            {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
+            <span
+              className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
+                product.inStock ? "text-brand-700" : "text-ink-faint"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`h-2 w-2 rounded-full ${
+                  product.inStock ? "bg-brand-500" : "bg-line-strong"
+                }`}
+              />
+              {product.inStock ? "В наличии" : "Нет в наличии"}
+            </span>
           </div>
+
+          {product.volume ? (
+            <p className="mt-2 text-sm text-ink-muted">{product.volume}</p>
+          ) : null}
+          {product.shortDescription ? (
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">
+              {product.shortDescription}
+            </p>
+          ) : null}
 
           <div id="buy-area" className="mt-5 max-w-sm">
             <AddToCartButton full size="lg" item={cartItem} />
           </div>
 
-          <div className="mt-5 space-y-2.5 rounded-2xl bg-surface-soft p-4 text-sm">
-            <div className="flex items-center gap-2.5">
-              <Truck className="h-5 w-5 text-brand-500" />
+          {/* компактная полоса доверия */}
+          <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-surface-soft p-3.5 text-xs leading-snug text-ink-muted">
+            <div className="flex items-start gap-2">
+              <Truck className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />
               <span>
                 {freeDelivery
                   ? "Бесплатная доставка этого товара по России"
                   : `Бесплатная доставка от ${formatMoney(settings.freeDeliveryThresholdKopecks)}`}
               </span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className="h-5 w-5 text-brand-500" />
+            <div className="flex items-start gap-2">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />
               <span>Сертифицированная продукция, производство ООО «Восток»</span>
             </div>
           </div>
 
-          {/* дисклеймер БАД (152-ФЗ / реклама БАД) */}
-          <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-accent-200 bg-accent-50 p-4 text-sm text-accent-600">
-            <Info className="mt-0.5 h-5 w-5 shrink-0" />
-            <span>{settings.badDisclaimer}</span>
-          </div>
+          {/* дисклеймер БАД (152-ФЗ / реклама БАД) — мелкая сноска */}
+          <p className="mt-5 border-t border-line pt-3 text-[11px] leading-relaxed text-ink-faint">
+            {settings.badDisclaimer}
+          </p>
         </div>
       </div>
 
-      {/* характеристики / табы */}
+      {/* описание / состав / применение / противопоказания — аккордеоны */}
       {tabs.length > 0 ? (
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          {tabs.map((t) => (
-            <div key={t.title} className="rounded-2xl bg-surface p-5 ring-1 ring-line">
-              <h2 className="mb-2 text-lg font-bold">{t.title}</h2>
-              <div className="whitespace-pre-line leading-relaxed text-ink-muted">
-                {t.content}
-              </div>
-            </div>
-          ))}
+        <div className="mt-8 rounded-2xl bg-surface px-4 ring-1 ring-line sm:mt-10 sm:px-5">
+          <div className="divide-y divide-line">
+            {tabs.map((t, i) => (
+              <details key={t.title} className="group" open={i === 0}>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-3 [&::-webkit-details-marker]:hidden">
+                  <h2 className="text-[15px] font-bold sm:text-base">{t.title}</h2>
+                  <ChevronDown
+                    aria-hidden
+                    className="h-5 w-5 shrink-0 text-ink-faint transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <div className="max-w-3xl whitespace-pre-line pb-4 leading-relaxed text-ink-muted">
+                  {t.content}
+                </div>
+              </details>
+            ))}
+          </div>
         </div>
       ) : null}
 
       {/* отзывы */}
       <Section id="reviews" className="scroll-mt-24">
-        <SectionHeader
-          title="Отзывы"
-          subtitle="Публикуются после модерации — только честные впечатления"
-        />
+        <div className="mb-5">
+          <h2 className="text-xl font-extrabold tracking-tight">Отзывы</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Публикуются после модерации — только честные впечатления
+          </p>
+        </div>
         <ProductReviews productId={product.id} reviews={reviews} />
       </Section>
 
       {related.length > 0 ? (
         <Section className="pt-0">
-          <SectionHeader title="Похожие товары" />
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <h2 className="text-xl font-extrabold tracking-tight">Похожие товары</h2>
+            <Link
+              href={`/category/${product.category.slug}`}
+              className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800"
+            >
+              Все →
+            </Link>
+          </div>
           <ProductGrid products={related} />
         </Section>
       ) : null}

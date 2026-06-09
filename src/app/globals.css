@@ -99,17 +99,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Заголовки: плотный интерлиньяж и лёгкий минусовый трекинг */
-h1,
-h2,
-h3,
-h4 {
-  line-height: 1.22;
-  letter-spacing: -0.01em;
-}
-h1,
-h2 {
-  text-wrap: balance;
+/* Заголовки: плотный интерлиньяж и лёгкий минусовый трекинг.
+   Обязательно в @layer base — нелейерный CSS перебивал бы leading-*
+   утилиты Tailwind, из-за чего строки заголовков накладывались. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  h1,
+  h2 {
+    text-wrap: balance;
+  }
 }
 
 /* iOS safe-area helpers (нижнее меню) */

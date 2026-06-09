@@ -52,14 +52,14 @@ export function StickyBuyBar({
         bottom: "calc(var(--spacing-mobnav) + max(10px, env(safe-area-inset-bottom)) + 10px)",
       }}
     >
-      <div className="mx-auto flex w-full max-w-[460px] items-center gap-3 rounded-3xl border border-black/[0.04] bg-surface/95 p-2.5 pl-4 shadow-lg backdrop-blur-xl">
+      <div className="mx-auto flex w-full max-w-[460px] items-center gap-3 rounded-3xl bg-surface/95 p-2.5 pl-4 shadow-lg ring-1 ring-line backdrop-blur">
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-extrabold leading-tight text-ink">
+            <span className="tnum text-lg font-extrabold leading-tight text-ink">
               {formatMoney(item.priceKopecks)}
             </span>
             {oldPriceKopecks ? (
-              <span className="text-sm font-medium text-ink-faint line-through">
+              <span className="tnum text-sm font-medium text-ink-faint line-through">
                 {formatMoney(oldPriceKopecks)}
               </span>
             ) : null}
