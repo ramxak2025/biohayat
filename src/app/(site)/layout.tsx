@@ -3,7 +3,7 @@ import { FavoritesProvider } from "@/components/favorites/favorites-provider";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { MobileNav } from "@/components/site/mobile-nav";
-import { MobileSearch } from "@/components/site/mobile-search";
+import { MobileHeader } from "@/components/site/mobile-header";
 import { BackToTop } from "@/components/site/back-to-top";
 import { ChatWidget } from "@/components/site/chat-widget";
 import { CookieConsent } from "@/components/site/cookie-consent";
@@ -36,7 +36,8 @@ export default async function SiteLayout({
         <div className="hidden lg:block">
           <Header phone={settings.phone} />
         </div>
-        <MobileSearch />
+        {/* Мобильная шапка: логотип + поиск, сворачивается при скролле */}
+        <MobileHeader />
         <main className="flex-1">{children}</main>
         <Footer settings={settings} categories={navCats} />
         <MobileNav />

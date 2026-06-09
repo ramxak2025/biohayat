@@ -11,39 +11,22 @@ type Suggestion = { slug: string; name: string };
 const POPULAR = ["Витамин D3", "Коллаген", "Омега-3", "Масло чёрного тмина", "Мёд", "Цинк"];
 
 /**
- * Мобильный поиск: капсула bg-surface на кремовом фоне страницы (bg-bg) —
- * выглядит частью приложения, а не белой полосой. По тапу — полноэкранный
- * оверлей с живыми подсказками (учитывает опечатки). Только на мобильных.
+ * Капсула-триггер поиска. Используется в мобильной шапке (mobile-header.tsx).
  */
-export function MobileSearch() {
-  const [open, setOpen] = useState(false);
-
-  // блокируем прокрутку фона, когда оверлей открыт
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
+export function SearchTrigger({ onOpen }: { onOpen: () => void }) {
   return (
-    <>
-      <div className="sticky top-0 z-30 bg-bg/90 px-3 pb-2.5 pt-[max(10px,env(safe-area-inset-top))] backdrop-blur-xl lg:hidden">
-        <button
-          onClick={() => setOpen(true)}
-          className="flex h-11 w-full items-center gap-2.5 rounded-2xl bg-surface px-4 text-left text-[15px] text-ink-faint shadow-xs ring-1 ring-line transition active:scale-[0.99]"
-        >
-          <Search className="h-5 w-5 text-brand-500" />
-          Поиск: витамин D3, коллаген, мёд…
-        </button>
-      </div>
-
-      {open ? <SearchOverlay onClose={() => setOpen(false)} /> : null}
-    </>
+    <button
+      onClick={onOpen}
+      className="flex h-11 w-full items-center gap-2.5 rounded-2xl bg-surface px-4 text-left text-[15px] text-ink-faint shadow-xs ring-1 ring-line transition active:scale-[0.99]"
+    >
+      <Search className="h-5 w-5 text-brand-500" />
+      Поиск: витамин D3, коллаген, мёд…
+    </button>
   );
 }
 
-function SearchOverlay({ onClose }: { onClose: () => void }) {
+/** Полноэкранный оверлей поиска с живыми подсказками (учитывает опечатки). */
+export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Suggestion[]>([]);
   const [pending, start] = useTransition();
