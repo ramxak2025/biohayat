@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
+import { IdCard } from "lucide-react";
 import { Input, Label } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { updateProfile, type ProfileState } from "../actions";
@@ -23,7 +24,10 @@ export function ProfileForm({ customer }: { customer: Customer }) {
   }, [state]);
 
   return (
-    <form action={action} className="max-w-lg space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <form action={action} className="max-w-lg space-y-4 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+      <h2 className="flex items-center gap-2 font-bold">
+        <IdCard className="h-5 w-5 text-brand-500" /> Данные
+      </h2>
       <div>
         <Label htmlFor="phone">Телефон</Label>
         <Input id="phone" value={customer.phone} disabled />

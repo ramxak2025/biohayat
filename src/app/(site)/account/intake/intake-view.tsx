@@ -34,8 +34,15 @@ interface ProductLite {
   name: string;
 }
 
-/** Кнопка-чекбокс «Принял» для одного слота времени. */
-function SlotButton({
+/** Номер дня курса (1-based) для строки прогресса «День X из Y». */
+function courseDay(startDateIso: string, today: string): number {
+  const start = new Date(startDateIso.slice(0, 10) + "T00:00:00").getTime();
+  const now = new Date(today + "T00:00:00").getTime();
+  return Math.max(1, Math.floor((now - start) / 86_400_000) + 1);
+}
+
+/** Крупная чек-карточка слота времени: галочка анимированно «закрашивается». */
+function SlotCard({
   planId, day, slot, taken,
 }: {
   planId: string;
@@ -48,37 +55,51 @@ function SlotButton({
     <button
       type="button"
       disabled={pending}
+      aria-pressed={taken}
       onClick={() => start(async () => { await toggleIntake(planId, day, slot); })}
       className={cn(
-        "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition disabled:opacity-60",
+        "flex min-h-[64px] items-center gap-3 rounded-2xl p-3.5 text-left ring-1 transition disabled:opacity-60",
         taken
-          ? "bg-brand-500 text-white ring-brand-500 shadow-sm"
-          : "bg-surface text-ink ring-line-strong hover:bg-surface-soft",
+          ? "bg-brand-50 ring-brand-300"
+          : "bg-surface ring-line hover:bg-surface-soft",
       )}
     >
       <span
         className={cn(
-          "flex h-5 w-5 items-center justify-center rounded-full ring-1",
-          taken ? "bg-white text-brand-600 ring-white" : "ring-line-strong text-transparent",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-1 transition-colors duration-300",
+          taken ? "bg-brand-500 text-white ring-brand-500" : "bg-surface text-transparent ring-line-strong",
         )}
       >
-        <Check className="h-3.5 w-3.5" />
+        <Check
+          className={cn(
+            "h-5 w-5 transition-transform duration-300 ease-out",
+            taken ? "scale-100" : "scale-0",
+          )}
+        />
       </span>
-      <Clock className="h-3.5 w-3.5 opacity-70" />
-      {slot}
+      <span className="min-w-0">
+        <span className="tnum flex items-center gap-1.5 text-base font-extrabold">
+          <Clock className="h-3.5 w-3.5 text-ink-faint" /> {slot}
+        </span>
+        <span className={cn("block text-xs font-medium", taken ? "text-brand-700" : "text-ink-muted")}>
+          {taken ? "Принято" : "Отметить приём"}
+        </span>
+      </span>
     </button>
   );
 }
 
-/** Карточка одного курса с прогрессом дня и управлением. */
+/** Карточка курса: прогресс по дням, чек-карточки слотов, управление. */
 function PlanCard({ plan, today }: { plan: PlanData; today: string }) {
   const [pendingAction, startAction] = useTransition();
   const takenCount = plan.times.filter((t) => plan.takenSlots.includes(t)).length;
   const total = plan.times.length;
   const allDone = total > 0 && takenCount === total;
+  const day = courseDay(plan.startDate, today);
+  const dayCapped = plan.durationDays ? Math.min(day, plan.durationDays) : day;
 
   return (
-    <div className="rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <div className="rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -90,11 +111,6 @@ function PlanCard({ plan, today }: { plan: PlanData; today: string }) {
             ) : null}
           </div>
           {plan.note ? <p className="mt-1 text-sm text-ink-muted">{plan.note}</p> : null}
-          {plan.durationDays ? (
-            <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-ink-faint">
-              <CalendarDays className="h-3.5 w-3.5" /> Курс {plan.durationDays} дн.
-            </p>
-          ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <button
@@ -102,7 +118,7 @@ function PlanCard({ plan, today }: { plan: PlanData; today: string }) {
             title="Деактивировать курс"
             disabled={pendingAction}
             onClick={() => startAction(async () => { await setPlanActive(plan.id, false); })}
-            className="rounded-full p-2 text-ink-muted hover:bg-surface-soft hover:text-ink disabled:opacity-60"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface-soft hover:text-ink disabled:opacity-60"
           >
             <Power className="h-[18px] w-[18px]" />
           </button>
@@ -115,14 +131,32 @@ function PlanCard({ plan, today }: { plan: PlanData; today: string }) {
                 startAction(async () => { await deleteIntakePlan(plan.id); });
               }
             }}
-            className="rounded-full p-2 text-ink-muted hover:bg-danger/10 hover:text-danger disabled:opacity-60"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-danger/10 hover:text-danger disabled:opacity-60"
           >
             <Trash2 className="h-[18px] w-[18px]" />
           </button>
         </div>
       </div>
 
-      {/* Прогресс дня */}
+      {/* Прогресс курса по дням: «День X из Y» */}
+      {plan.durationDays ? (
+        <div className="mt-4">
+          <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-ink-muted">
+              <CalendarDays className="h-3.5 w-3.5" /> День {dayCapped} из {plan.durationDays}
+            </span>
+            <span className="tnum text-ink-faint">{Math.round((dayCapped / plan.durationDays) * 100)}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+            <div
+              className="h-full rounded-full bg-accent-400 transition-all"
+              style={{ width: `${Math.min(100, (dayCapped / plan.durationDays) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {/* Прогресс сегодняшнего дня по слотам */}
       <div className="mt-4 flex items-center gap-3">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-sunken">
           <div
@@ -130,15 +164,15 @@ function PlanCard({ plan, today }: { plan: PlanData; today: string }) {
             style={{ width: total ? `${(takenCount / total) * 100}%` : "0%" }}
           />
         </div>
-        <span className="shrink-0 text-xs font-bold text-ink-muted">
-          {takenCount} / {total}
+        <span className="tnum shrink-0 text-xs font-bold text-ink-muted">
+          {takenCount} / {total} сегодня
         </span>
       </div>
 
-      {/* Слоты времени */}
-      <div className="mt-4 flex flex-wrap gap-2">
+      {/* Чек-карточки слотов времени */}
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {plan.times.map((slot) => (
-          <SlotButton
+          <SlotCard
             key={slot}
             planId={plan.id}
             day={today}
@@ -158,13 +192,13 @@ function HistoryCalendar({ history }: { history: IntakeHistoryDay[] }) {
   if (slotsTotal === 0) return null;
 
   return (
-    <div className="mb-6 rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <div className="mb-6 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 font-bold">
           <CalendarDays className="h-5 w-5 text-brand-500" /> История за 28 дней
         </h2>
-        <span className="text-sm font-semibold text-ink-muted">
-          {takenTotal} из {slotsTotal} приёмов за месяц
+        <span className="tnum text-sm font-semibold text-ink-muted">
+          {takenTotal} из {slotsTotal} приёмов
         </span>
       </div>
 
@@ -179,9 +213,9 @@ function HistoryCalendar({ history }: { history: IntakeHistoryDay[] }) {
               key={d.day}
               title={d.total > 0 ? `${label}: ${d.taken} из ${d.total}` : `${label}: курсов не было`}
               className={cn(
-                "flex aspect-square items-center justify-center rounded-lg text-xs font-bold transition sm:text-sm",
-                full && "bg-brand-500 text-white",
-                partial && "bg-brand-200 text-brand-700", // полутон: отмечена часть слотов
+                "tnum flex aspect-square items-center justify-center rounded-lg text-xs font-bold transition sm:rounded-xl sm:text-sm",
+                full && "bg-brand-500 text-white shadow-xs",
+                partial && "bg-brand-200 text-brand-800", // полутон: отмечена часть слотов
                 !full && !partial && (d.total > 0 ? "bg-surface-sunken text-ink-faint" : "bg-surface-soft text-ink-faint/60"),
               )}
             >
@@ -237,7 +271,8 @@ function AddPlanForm({
   }
 
   return (
-    <form action={action} className="mt-4 space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <form action={action} className="mt-4 space-y-4 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+      <h2 className="font-bold">Новый курс</h2>
       {/* Скрытые поля времён — отправляются как множественное times */}
       {times.map((t) => (
         <input key={t} type="hidden" name="times" value={t} />
@@ -250,7 +285,7 @@ function AddPlanForm({
           onClick={() => setMode("catalog")}
           disabled={!products.length}
           className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition disabled:opacity-50",
+            "min-h-11 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition disabled:opacity-50",
             mode === "catalog" ? "bg-brand-500 text-white ring-brand-500" : "ring-line-strong text-ink-muted hover:bg-surface-soft",
           )}
         >
@@ -260,7 +295,7 @@ function AddPlanForm({
           type="button"
           onClick={() => setMode("custom")}
           className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition",
+            "min-h-11 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition",
             mode === "custom" ? "bg-brand-500 text-white ring-brand-500" : "ring-line-strong text-ink-muted hover:bg-surface-soft",
           )}
         >
@@ -292,13 +327,13 @@ function AddPlanForm({
           {times.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700"
+              className="tnum inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700"
             >
               <Clock className="h-3.5 w-3.5" /> {t}
               <button
                 type="button"
                 onClick={() => setTimes((prev) => prev.filter((x) => x !== t))}
-                className="ml-0.5 rounded-full text-brand-700/70 hover:text-brand-700"
+                className="-m-1 flex h-7 w-7 items-center justify-center rounded-full text-brand-700/70 hover:text-brand-700"
                 aria-label={`Удалить ${t}`}
               >
                 <X className="h-3.5 w-3.5" />
@@ -363,7 +398,7 @@ export function IntakeView({
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold">Приём БАД</h1>
+        <h1 className="text-2xl font-extrabold sm:text-3xl">Приём БАД</h1>
         <Button onClick={() => setShowForm((v) => !v)} variant={showForm ? "outline" : "primary"}>
           {showForm ? <><X className="h-4 w-4" /> Закрыть</> : <><Plus className="h-4 w-4" /> Добавить курс</>}
         </Button>
@@ -371,15 +406,17 @@ export function IntakeView({
 
       {/* Сводка по сегодняшнему дню */}
       {plans.length > 0 ? (
-        <div className="mb-6 rounded-2xl bg-brand-500 p-5 text-white ring-1 ring-brand-500">
+        <div className="mb-6 rounded-2xl bg-brand-500 p-5 text-white shadow-brand">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-sm font-medium text-white/80">Сегодня, {todayLabel}</div>
-              <div className="mt-0.5 text-2xl font-extrabold">
+              <div className="tnum mt-0.5 text-2xl font-extrabold">
                 Принято {takenSlots} из {totalSlots}
               </div>
             </div>
-            <PillBottle className="h-10 w-10 text-white/80" />
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <PillBottle className="h-7 w-7 text-white" />
+            </span>
           </div>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25">
             <div
@@ -397,10 +434,13 @@ export function IntakeView({
 
       {plans.length === 0 ? (
         !showForm ? (
-          <div className="rounded-2xl bg-surface-soft py-16 text-center">
-            <PillBottle className="mx-auto h-10 w-10 text-ink-faint" />
-            <p className="mt-3 text-ink-muted">У вас пока нет активных курсов приёма.</p>
-            <Button className="mt-5" onClick={() => setShowForm(true)}>
+          <div className="rounded-2xl bg-surface py-16 text-center ring-1 ring-line">
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-50">
+              <PillBottle className="h-8 w-8 text-brand-500" />
+            </span>
+            <p className="mt-4 font-semibold text-ink">Активных курсов пока нет</p>
+            <p className="mt-1 text-sm text-ink-muted">Добавьте курс — и отмечайте приёмы одним касанием.</p>
+            <Button size="lg" className="mt-5" onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4" /> Добавить курс
             </Button>
           </div>

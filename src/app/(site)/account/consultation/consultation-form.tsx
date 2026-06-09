@@ -13,7 +13,7 @@ const TOPICS = ["Подбор БАД", "Совместимость", "Похуд
 function Submit() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" disabled={pending}>
+    <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
       {pending ? "Отправка…" : "Отправить заявку"}
     </Button>
   );
@@ -53,7 +53,8 @@ export function ConsultationForm({
   }
 
   return (
-    <form ref={formRef} action={action} className="max-w-2xl space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <form ref={formRef} action={action} className="max-w-2xl space-y-4 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+      <h2 className="font-bold">Заявка на консультацию</h2>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="name" required>Имя</Label>

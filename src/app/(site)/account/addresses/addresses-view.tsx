@@ -42,7 +42,8 @@ function AddAddressForm({ onSaved }: { onSaved: () => void }) {
   }, [state, onSaved]);
 
   return (
-    <form ref={formRef} action={action} className="space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <form ref={formRef} action={action} className="space-y-4 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+      <h2 className="font-bold">Новый адрес</h2>
       {state.error ? (
         <div className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">{state.error}</div>
       ) : null}
@@ -95,7 +96,7 @@ function AddressCard({ address }: { address: AddressData }) {
               else toast.success("Адрес удалён");
             });
           }}
-          className="shrink-0 rounded-full p-2 text-ink-muted hover:bg-danger/10 hover:text-danger disabled:opacity-60"
+          className="-m-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-muted transition hover:bg-danger/10 hover:text-danger disabled:opacity-60"
         >
           <Trash2 className="h-[18px] w-[18px]" />
         </button>
@@ -105,7 +106,6 @@ function AddressCard({ address }: { address: AddressData }) {
         <Button
           type="button"
           variant="outline"
-          size="sm"
           className="mt-3"
           disabled={pending}
           onClick={() =>
@@ -129,7 +129,8 @@ export function AddressesView({ addresses }: { addresses: AddressData[] }) {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold sm:text-3xl">Мои адреса</h1>
         <Button onClick={() => setShowForm((v) => !v)} variant={showForm ? "outline" : "primary"}>
           {showForm ? <><X className="h-4 w-4" /> Закрыть</> : <><Plus className="h-4 w-4" /> Добавить адрес</>}
         </Button>
@@ -142,12 +143,15 @@ export function AddressesView({ addresses }: { addresses: AddressData[] }) {
       ) : null}
 
       {addresses.length === 0 && !showForm ? (
-        <div className="rounded-2xl bg-surface-soft py-16 text-center">
-          <MapPin className="mx-auto h-10 w-10 text-ink-faint" />
-          <p className="mt-3 text-ink-muted">
-            Сохранённых адресов пока нет. Они ускоряют оформление заказа.
+        <div className="rounded-2xl bg-surface py-16 text-center ring-1 ring-line">
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent-50">
+            <MapPin className="h-8 w-8 text-accent-500" />
+          </span>
+          <p className="mt-4 font-semibold text-ink">Сохранённых адресов пока нет</p>
+          <p className="mx-auto mt-1 max-w-sm px-4 text-sm text-ink-muted">
+            Сохраните адрес — оформление заказа станет быстрее.
           </p>
-          <Button className="mt-5" onClick={() => setShowForm(true)}>
+          <Button size="lg" className="mt-5" onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4" /> Добавить адрес
           </Button>
         </div>

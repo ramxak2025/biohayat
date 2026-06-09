@@ -24,7 +24,7 @@ export function DeleteAccountForm() {
   const [state, action] = useActionState(deleteAccount, init);
 
   return (
-    <div className="max-w-lg rounded-2xl bg-surface p-5 ring-1 ring-danger/30">
+    <div className="max-w-lg rounded-2xl bg-surface p-4 ring-1 ring-danger/30 sm:p-5">
       <h2 className="flex items-center gap-2 font-bold text-danger">
         <TriangleAlert className="h-5 w-5" /> Удаление аккаунта
       </h2>

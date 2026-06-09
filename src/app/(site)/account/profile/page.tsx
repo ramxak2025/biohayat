@@ -18,7 +18,7 @@ export default async function ProfilePage() {
 
   return (
     <AccountShell name={session.name}>
-      <h1 className="mb-6 text-2xl font-extrabold">Профиль</h1>
+      <h1 className="mb-6 text-2xl font-extrabold sm:text-3xl">Профиль</h1>
       <div className="space-y-6">
         <ProfileForm customer={customer} />
         <SecurityForm />

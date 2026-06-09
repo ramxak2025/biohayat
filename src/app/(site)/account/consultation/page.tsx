@@ -35,7 +35,7 @@ export default async function ConsultationPage() {
 
   return (
     <AccountShell name={session.name}>
-      <h1 className="mb-2 text-2xl font-extrabold">Консультация нутрициолога</h1>
+      <h1 className="mb-2 text-2xl font-extrabold sm:text-3xl">Консультация нутрициолога</h1>
       <p className="mb-6 max-w-2xl text-ink-muted">
         Опишите ваш вопрос — наш нутрициолог подберёт БАД, проверит совместимость и составит
         рекомендации. Мы свяжемся с вами по указанному телефону.
@@ -45,9 +45,12 @@ export default async function ConsultationPage() {
 
       <h2 className="mb-4 mt-10 text-lg font-extrabold">Мои заявки</h2>
       {requests.length === 0 ? (
-        <div className="rounded-2xl bg-surface-soft py-14 text-center">
-          <MessageCircleHeart className="mx-auto h-10 w-10 text-ink-faint" />
-          <p className="mt-3 text-ink-muted">У вас пока нет заявок на консультацию.</p>
+        <div className="rounded-2xl bg-surface py-14 text-center ring-1 ring-line">
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent-50">
+            <MessageCircleHeart className="h-8 w-8 text-accent-500" />
+          </span>
+          <p className="mt-4 font-semibold text-ink">Заявок пока нет</p>
+          <p className="mt-1 text-sm text-ink-muted">Отправьте первую через форму выше — это бесплатно.</p>
         </div>
       ) : (
         <div className="space-y-4">

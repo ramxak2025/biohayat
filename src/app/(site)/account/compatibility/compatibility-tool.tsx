@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FlaskConical, Info } from "lucide-react";
+import { FlaskConical, Info, OctagonAlert, TriangleAlert, Sparkles } from "lucide-react";
 import type { CompatibilityType } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
@@ -14,11 +14,39 @@ interface Rule {
   note: string | null;
 }
 
-// Оформление групп по типу совместимости
-const GROUPS: { type: CompatibilityType; emoji: string; title: string; ring: string; badge: string }[] = [
-  { type: "ANTAGONIST", emoji: "🔴", title: "Нельзя вместе", ring: "ring-danger/30 bg-danger/5", badge: "bg-danger/10 text-danger" },
-  { type: "CAUTION", emoji: "🟡", title: "С осторожностью", ring: "ring-accent-400/30 bg-accent-50", badge: "bg-accent-50 text-accent-600" },
-  { type: "SYNERGY", emoji: "🟢", title: "Синергия", ring: "ring-brand-400/30 bg-brand-50", badge: "bg-brand-50 text-brand-700" },
+// Оформление групп по типу совместимости: цветовая полоса слева у карточки
+const GROUPS: {
+  type: CompatibilityType;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  iconTone: string;
+  bar: string;
+  badge: string;
+}[] = [
+  {
+    type: "ANTAGONIST",
+    icon: OctagonAlert,
+    title: "Нельзя вместе",
+    iconTone: "text-sale",
+    bar: "border-l-sale",
+    badge: "bg-sale-soft text-sale",
+  },
+  {
+    type: "CAUTION",
+    icon: TriangleAlert,
+    title: "С осторожностью",
+    iconTone: "text-accent-500",
+    bar: "border-l-accent-400",
+    badge: "bg-accent-50 text-accent-700",
+  },
+  {
+    type: "SYNERGY",
+    icon: Sparkles,
+    title: "Синергия",
+    iconTone: "text-brand-500",
+    bar: "border-l-brand-500",
+    badge: "bg-brand-50 text-brand-700",
+  },
 ];
 
 export function CompatibilityTool({
@@ -52,8 +80,11 @@ export function CompatibilityTool({
 
   return (
     <div>
-      <h1 className="mb-1 flex items-center gap-2 text-2xl font-extrabold">
-        <FlaskConical className="h-6 w-6 text-brand-500" /> Совместимость БАД
+      <h1 className="mb-1 flex items-center gap-2.5 text-2xl font-extrabold sm:text-3xl">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50">
+          <FlaskConical className="h-5 w-5 text-brand-600" />
+        </span>
+        Совместимость БАД
       </h1>
       <p className="mb-6 text-sm text-ink-muted">
         Отметьте компоненты, которые вы принимаете, — мы покажем, как они сочетаются друг с другом.
@@ -61,8 +92,8 @@ export function CompatibilityTool({
       </p>
 
       {/* Выбор компонентов */}
-      <div className="rounded-2xl bg-surface p-5 ring-1 ring-line">
-        <div className="mb-3 text-sm font-semibold text-ink">Что вы принимаете?</div>
+      <div className="rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+        <h2 className="mb-3 font-bold">Что вы принимаете?</h2>
         {components.length === 0 ? (
           <p className="text-sm text-ink-muted">Список компонентов пуст.</p>
         ) : (
@@ -76,7 +107,7 @@ export function CompatibilityTool({
                   onClick={() => toggle(c)}
                   aria-pressed={active}
                   className={cn(
-                    "rounded-full px-3.5 py-1.5 text-sm font-semibold transition",
+                    "inline-flex min-h-11 items-center rounded-full px-4 py-2.5 text-sm font-semibold transition",
                     active
                       ? "bg-brand-500 text-white shadow-sm"
                       : "bg-surface-soft text-ink-muted hover:bg-surface-sunken hover:text-ink",
@@ -93,26 +124,29 @@ export function CompatibilityTool({
       {/* Результаты */}
       <div className="mt-6 space-y-6">
         {selected.size < 2 ? (
-          <div className="rounded-2xl bg-surface-soft py-12 text-center text-ink-muted ring-1 ring-line">
-            Выберите минимум два компонента, чтобы увидеть их совместимость.
-          </div>
+          <Empty>Выберите минимум два компонента, чтобы увидеть их совместимость.</Empty>
         ) : matched.length === 0 ? (
-          <div className="rounded-2xl bg-surface-soft py-12 text-center text-ink-muted ring-1 ring-line">
-            Для выбранных компонентов известных правил совместимости не найдено.
-          </div>
+          <Empty>Для выбранных компонентов известных правил совместимости не найдено.</Empty>
         ) : (
           GROUPS.map((g) => {
             const items = matched.filter((r) => r.type === g.type);
             if (items.length === 0) return null;
+            const GroupIcon = g.icon;
             return (
               <section key={g.type}>
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold">
-                  <span>{g.emoji}</span> {g.title}
+                  <GroupIcon className={cn("h-5 w-5", g.iconTone)} /> {g.title}
                   <span className="text-sm font-semibold text-ink-faint">({items.length})</span>
                 </h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {items.map((r) => (
-                    <div key={r.id} className={cn("rounded-2xl p-4 ring-1", g.ring)}>
+                    <div
+                      key={r.id}
+                      className={cn(
+                        "rounded-2xl border-l-4 bg-surface p-4 ring-1 ring-line",
+                        g.bar,
+                      )}
+                    >
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold">{r.componentA}</span>
                         <span className="text-ink-faint">+</span>
@@ -141,6 +175,17 @@ export function CompatibilityTool({
           Проконсультируйтесь со специалистом.
         </p>
       </div>
+    </div>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl bg-surface py-12 text-center ring-1 ring-line">
+      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-surface-soft">
+        <FlaskConical className="h-7 w-7 text-ink-faint" />
+      </span>
+      <p className="mx-auto mt-3 max-w-sm px-4 text-ink-muted">{children}</p>
     </div>
   );
 }

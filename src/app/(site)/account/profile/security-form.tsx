@@ -33,7 +33,7 @@ export function SecurityForm() {
   }, [state]);
 
   return (
-    <form ref={formRef} action={action} className="max-w-lg space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line">
+    <form ref={formRef} action={action} className="max-w-lg space-y-4 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
       <h2 className="flex items-center gap-2 font-bold">
         <ShieldCheck className="h-5 w-5 text-brand-500" /> Безопасность
       </h2>

@@ -20,7 +20,6 @@ export default async function AddressesPage() {
 
   return (
     <AccountShell name={session.name}>
-      <h1 className="mb-6 text-2xl font-extrabold">Мои адреса</h1>
       <AddressesView addresses={addresses} />
     </AccountShell>
   );
