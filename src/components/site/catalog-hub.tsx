@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/product/product-card";
 import { AudienceCards } from "@/components/site/audience-cards";
 import { CategoryTiles } from "@/components/site/category-tiles";
 import { GOALS } from "@/lib/taxonomy";
-import type { CategoryWithCount, ProductCardData } from "@/lib/queries";
+import type { CategoryWithCount, ProductCardData, PurchasedProduct } from "@/lib/queries";
 
 /**
  * Мобильный «хаб каталога» (как у Ozon/ВкусВилл): быстрая ориентация
@@ -14,12 +14,23 @@ import type { CategoryWithCount, ProductCardData } from "@/lib/queries";
  * мини-плитки «Кому» и плитки категорий с обложкой SmartImage.
  * Рендерится только на «чистом» /catalog без фильтров; на десктопе скрыт.
  */
+/** «N дн. назад» для плашки «Вы уже заказывали». */
+function daysAgoLabel(date: Date): string {
+  const days = Math.floor((Date.now() - date.getTime()) / 86_400_000);
+  if (days <= 0) return "сегодня";
+  if (days === 1) return "вчера";
+  return `${days} дн. назад`;
+}
+
 export function CatalogHub({
   categories,
   hits,
+  purchased = [],
 }: {
   categories: CategoryWithCount[];
   hits: ProductCardData[];
+  /** Залогиненному — его прошлые покупки для быстрого повтора. */
+  purchased?: PurchasedProduct[];
 }) {
   return (
     <Container className="space-y-7 pb-8 pt-5">
@@ -59,6 +70,28 @@ export function CatalogHub({
           })}
         </div>
       </section>
+
+      {/* ── Персональное: быстрый повтор прошлых покупок ── */}
+      {purchased.length > 0 ? (
+        <section aria-label="Вы уже заказывали">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-xl font-extrabold tracking-tight">Вы уже заказывали</h2>
+            <Link href="/account/orders" className="text-sm font-semibold text-brand-700">
+              Заказы <ArrowRight className="inline h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </div>
+          <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+            {purchased.map(({ product, lastOrderedAt }) => (
+              <div key={product.id} className="w-40 shrink-0 snap-start">
+                <div className="mb-1.5 inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700">
+                  {daysAgoLabel(lastOrderedAt)}
+                </div>
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* ── «Кому»: мини-плитки, как на главной ── */}
       <section aria-label="Кому">

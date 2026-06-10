@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
 import { SearchTrigger, SearchOverlay } from "@/components/site/mobile-search";
+import { useCart } from "@/components/cart/cart-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -20,6 +22,7 @@ import { cn } from "@/lib/utils";
 export function MobileHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { count: cartCount } = useCart();
 
   useEffect(() => {
     let ticking = false;
@@ -76,6 +79,20 @@ export function MobileHeader() {
           <div className="min-w-0 flex-1">
             <SearchTrigger onOpen={() => setOpen(true)} compact />
           </div>
+
+          {/* Корзина — всегда под рукой (у залогиненных её нет в нижнем баре) */}
+          <Link
+            href="/cart"
+            aria-label={cartCount > 0 ? `Корзина, ${cartCount} тов.` : "Корзина"}
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface text-ink shadow-xs ring-1 ring-line active:scale-95"
+          >
+            <ShoppingBag className="h-5 w-5" strokeWidth={1.9} />
+            {cartCount > 0 ? (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-400 px-1 text-[10px] font-bold text-white">
+                {cartCount}
+              </span>
+            ) : null}
+          </Link>
         </div>
       </header>
 

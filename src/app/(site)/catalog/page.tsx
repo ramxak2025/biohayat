@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { CatalogView } from "@/components/product/catalog-view";
 import { CatalogHub } from "@/components/site/catalog-hub";
-import { getCategoriesWithCounts, getProducts } from "@/lib/queries";
+import { getCategoriesWithCounts, getProducts, getPurchasedProducts } from "@/lib/queries";
+import { getCustomerSession } from "@/lib/customer-auth";
 import { audienceName, goalName } from "@/lib/taxonomy";
 import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
@@ -41,6 +42,11 @@ export default async function CatalogPage({
 }) {
   const { q, category, goal, audience } = await searchParams;
   const isFiltered = Boolean(q || category || goal || audience);
+
+  // Персонализация хаба: «Вы уже заказывали» для залогиненных
+  // (страница force-dynamic — cookies здесь допустимы).
+  const session = isFiltered ? null : await getCustomerSession();
+  const purchased = session ? await getPurchasedProducts(session.sub, 10) : [];
 
   // Категории со счётчиками подходят и сайдбару/чипсам (slug + name).
   const categories = await getCategoriesWithCounts();
@@ -85,7 +91,7 @@ export default async function CatalogPage({
   return (
     <>
       <div className="lg:hidden">
-        <CatalogHub categories={categories} hits={featured.items} />
+        <CatalogHub purchased={purchased} categories={categories} hits={featured.items} />
       </div>
       <div className="max-lg:hidden">
         <CatalogView

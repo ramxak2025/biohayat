@@ -366,3 +366,30 @@ export async function getSortedProducts(opts: Omit<ProductsOpts, "search">, sort
   if (sort === "popular") return getProducts(opts);
   return reviveDates(await getCachedSortedProducts(opts, sort));
 }
+
+/* ─────────── Персональное: «Вы уже заказывали» (каталог для залогиненных) ─────────── */
+
+/** Товары из заказов покупателя с датой последнего заказа. Без кэша — данные личные. */
+export async function getPurchasedProducts(customerId: string, take = 10) {
+  const rows = await prisma.orderItem.findMany({
+    where: { order: { customerId }, productId: { not: null }, product: { isActive: true } },
+    select: {
+      order: { select: { createdAt: true } },
+      product: { include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true } },
+    },
+    orderBy: { order: { createdAt: "desc" } },
+    take: 60,
+  });
+  const seen = new Set<string>();
+  const picked: { product: NonNullable<(typeof rows)[number]["product"]>; lastOrderedAt: Date }[] = [];
+  for (const r of rows) {
+    if (!r.product || seen.has(r.product.id)) continue;
+    seen.add(r.product.id);
+    picked.push({ product: r.product, lastOrderedAt: r.order.createdAt });
+    if (picked.length >= take) break;
+  }
+  const withStats = await withReviewStats(picked.map((p) => p.product));
+  return withStats.map((product, i) => ({ product, lastOrderedAt: picked[i].lastOrderedAt }));
+}
+
+export type PurchasedProduct = Awaited<ReturnType<typeof getPurchasedProducts>>[number];

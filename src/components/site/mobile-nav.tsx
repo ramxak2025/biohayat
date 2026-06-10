@@ -25,9 +25,10 @@ export function MobileNav() {
   const { count: favCount } = useFavorites();
   const { count: cartCount } = useCart();
   const loggedIn = useAuthFlag();
-  // В личном кабинете меню переключается на режим «здоровье»:
-  // акцент на трекер приёма БАД, а не только на покупки.
-  const accountMode = loggedIn && (pathname === "/account" || pathname.startsWith("/account/"));
+  // Залогиненный пользователь живёт в ОДНОМ постоянном баре везде —
+  // без переключений между «магазинным» и «кабинетным» режимами.
+  // «Магазин» открывает каталог (корзина — иконкой в шапке).
+  const accountMode = loggedIn;
 
   // Оптимистичная подсветка нажатой вкладки до фактической смены маршрута
   const [pendingHref, setPendingHref] = useState<string | null>(null);
@@ -53,7 +54,8 @@ export function MobileNav() {
       <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around glass rounded-[26px] px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05]">
         {accountMode ? (
           <>
-            <Tab href="/" label="Магазин" icon={Store} active={false} onPress={setPendingHref} />
+            {/* «Магазин» активен на любой странице вне кабинета (весь шоппинг — одна зона) */}
+            <Tab href="/catalog" label="Магазин" icon={Store} active={!current.startsWith("/account")} onPress={setPendingHref} />
             <Tab href="/account/orders" label="Заказы" icon={Package} active={isActive("/account/orders")} onPress={setPendingHref} />
             <CenterButton
               href="/account/intake"
@@ -68,13 +70,7 @@ export function MobileNav() {
         ) : (
           <>
             <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} onPress={setPendingHref} />
-            {loggedIn ? (
-              /* Залогиненному — быстрый вход в трекер приёма прямо из магазина
-                 (избранное остаётся в ЛК-баре и сердечками на карточках) */
-              <Tab href="/account/intake" label="Приём" icon={Pill} active={false} onPress={setPendingHref} />
-            ) : (
-              <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
-            )}
+            <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
             <CenterButton
               href="/catalog"
               label="Каталог"
