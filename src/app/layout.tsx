@@ -38,6 +38,10 @@ export const viewport: Viewport = {
   themeColor: "#3a9447",
   width: "device-width",
   initialScale: 1,
+  // Запрет масштабирования (как в нативных приложениях): любой зум в iOS
+  // «отклеивает» fixed-бары от экрана — они плавают при скролле.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
