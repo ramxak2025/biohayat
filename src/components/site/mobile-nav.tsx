@@ -136,7 +136,7 @@ function TabIcon({
       {badge > 0 ? (
         <span
           className={cn(
-            "absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white ring-2 ring-surface",
+            "absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white",
             badgeTone === "accent" ? "bg-accent-400" : "bg-sale",
           )}
         >

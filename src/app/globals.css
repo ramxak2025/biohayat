@@ -137,7 +137,9 @@ body {
 /* Матовое «жидкое стекло» (стиль iOS): сильное размытие + насыщение цвета
    под стеклом. Используется мобильной шапкой и нижним баром навигации. */
 .glass {
-  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  /* rgba, а не color-mix: старые iOS Safari не поддерживают color-mix,
+     фон становился прозрачным и шапка/бар «исчезали» */
+  background: rgba(255, 255, 255, 0.72);
   -webkit-backdrop-filter: blur(20px) saturate(1.7);
   backdrop-filter: blur(20px) saturate(1.7);
 }
@@ -190,16 +192,15 @@ body {
 }
 
 /* Плавное появление страницы при переходе (template.tsx) */
+/* Только opacity, БЕЗ transform: в WebKit (iOS) анимация transform у
+   обёртки страницы делает её containing block для fixed-потомков
+   (плашка покупки «прилипала» к контенту), даже с конечным none. */
 @keyframes page-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    /* none обязателен: fixed-элементы страницы (sticky-панель покупки)
-       должны позиционироваться от viewport, а не от обёртки шаблона */
-    transform: none;
   }
 }
 .page-in {
