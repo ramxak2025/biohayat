@@ -4,3 +4,8 @@
 	encode gzip zstd
 	reverse_proxy app:3000
 }
+
+# www.домен → основной домен (сертификат выпускается и для www автоматически)
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
