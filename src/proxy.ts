@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { cookieSecure } from "@/lib/cookie-secure";
 import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "hayat_session";
@@ -30,7 +31,7 @@ export async function proxy(req: NextRequest) {
         res.cookies.set(AUTH_FLAG_COOKIE, "1", {
           path: "/",
           sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
+          secure: cookieSecure(),
           maxAge: 60 * 60 * 24 * 30,
         });
         return res;

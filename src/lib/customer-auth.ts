@@ -1,4 +1,5 @@
 import "server-only";
+import { cookieSecure } from "@/lib/cookie-secure";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
@@ -33,7 +34,7 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,
@@ -41,7 +42,7 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
   // Клиентский флаг наличия сессии (без секретов — просто «1»).
   store.set(AUTH_FLAG_COOKIE, "1", {
     httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,
