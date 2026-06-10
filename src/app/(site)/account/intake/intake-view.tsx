@@ -245,13 +245,17 @@ function SubmitAddButton() {
 
 /** Форма добавления курса (раскрывается по кнопке). */
 function AddPlanForm({
-  products, onCreated,
+  products, purchased, onCreated,
 }: {
   products: ProductLite[];
+  purchased: ProductLite[];
   onCreated: () => void;
 }) {
   const [state, action] = useActionState<IntakeState, FormData>(createIntakePlan, {});
-  const [mode, setMode] = useState<"catalog" | "custom">(products.length ? "catalog" : "custom");
+  const [mode, setMode] = useState<"purchased" | "catalog" | "custom">(
+    purchased.length ? "purchased" : products.length ? "catalog" : "custom",
+  );
+  const [purchasedId, setPurchasedId] = useState<string>(purchased[0]?.id ?? "");
   const [times, setTimes] = useState<string[]>(["09:00"]);
   const [newTime, setNewTime] = useState("");
 
@@ -278,8 +282,19 @@ function AddPlanForm({
         <input key={t} type="hidden" name="times" value={t} />
       ))}
 
-      {/* Переключатель: товар из каталога или своё название */}
-      <div className="flex gap-2">
+      {/* Переключатель: из покупок, из каталога или своё название */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setMode("purchased")}
+          disabled={!purchased.length}
+          className={cn(
+            "min-h-11 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition disabled:opacity-50",
+            mode === "purchased" ? "bg-brand-500 text-white ring-brand-500" : "ring-line-strong text-ink-muted hover:bg-surface-soft",
+          )}
+        >
+          Мои покупки
+        </button>
         <button
           type="button"
           onClick={() => setMode("catalog")}
@@ -303,7 +318,29 @@ function AddPlanForm({
         </button>
       </div>
 
-      {mode === "catalog" ? (
+      {mode === "purchased" ? (
+        <div>
+          <Label required>Из ваших заказов</Label>
+          <input type="hidden" name="productId" value={purchasedId} />
+          <div className="flex flex-wrap gap-2">
+            {purchased.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPurchasedId(p.id)}
+                className={cn(
+                  "min-h-11 rounded-2xl px-3.5 py-2 text-left text-sm font-semibold ring-1 transition",
+                  purchasedId === p.id
+                    ? "bg-brand-50 text-brand-700 ring-brand-400"
+                    : "bg-surface text-ink-muted ring-line hover:bg-surface-soft",
+                )}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : mode === "catalog" ? (
         <div>
           <Label htmlFor="productId" required>Товар</Label>
           <Select id="productId" name="productId" defaultValue="">
@@ -375,11 +412,13 @@ function AddPlanForm({
 }
 
 export function IntakeView({
-  today, plans, products, history,
+  today, plans, products, purchased, history,
 }: {
   today: string;
   plans: PlanData[];
   products: ProductLite[];
+  /** Купленные пользователем товары — приоритетный выбор для нового курса. */
+  purchased: ProductLite[];
   history: IntakeHistoryDay[];
 }) {
   const [showForm, setShowForm] = useState(false);
@@ -430,7 +469,7 @@ export function IntakeView({
       {/* История приёма за последние 4 недели */}
       <HistoryCalendar history={history} />
 
-      {showForm ? <AddPlanForm products={products} onCreated={() => setShowForm(false)} /> : null}
+      {showForm ? <AddPlanForm products={products} purchased={purchased} onCreated={() => setShowForm(false)} /> : null}
 
       {plans.length === 0 ? (
         !showForm ? (

@@ -78,6 +78,26 @@ export default async function IntakePage() {
     take: 200,
   });
 
+  // Купленные пользователем БАД — приоритетный выбор при добавлении курса.
+  const purchasedItems = await prisma.orderItem.findMany({
+    where: {
+      order: { customerId: session.sub },
+      productId: { not: null },
+      product: { isActive: true },
+    },
+    select: { product: { select: { id: true, name: true } }, order: { select: { createdAt: true } } },
+    orderBy: { order: { createdAt: "desc" } },
+    take: 100,
+  });
+  const seenIds = new Set<string>();
+  const purchased: { id: string; name: string }[] = [];
+  for (const it of purchasedItems) {
+    if (it.product && !seenIds.has(it.product.id)) {
+      seenIds.add(it.product.id);
+      purchased.push(it.product);
+    }
+  }
+
   // Сериализуем только нужные поля, чтобы клиентский компонент получил простые данные.
   const plansData = plans.map((p) => ({
     id: p.id,
@@ -91,7 +111,7 @@ export default async function IntakePage() {
 
   return (
     <AccountShell name={session.name}>
-      <IntakeView today={today} plans={plansData} products={products} history={history} />
+      <IntakeView today={today} plans={plansData} products={products} purchased={purchased} history={history} />
     </AccountShell>
   );
 }

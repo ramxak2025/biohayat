@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Home, Heart, LayoutGrid, ShoppingBag, User } from "lucide-react";
+import { Home, Heart, LayoutGrid, ShoppingBag, User, Store, Package, Pill } from "lucide-react";
+import { useAuthFlag } from "@/lib/use-auth-flag";
 import { useFavorites } from "@/components/favorites/favorites-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,10 @@ export function MobileNav() {
   const pathname = usePathname();
   const { count: favCount } = useFavorites();
   const { count: cartCount } = useCart();
+  const loggedIn = useAuthFlag();
+  // В личном кабинете меню переключается на режим «здоровье»:
+  // акцент на трекер приёма БАД, а не только на покупки.
+  const accountMode = loggedIn && (pathname === "/account" || pathname.startsWith("/account/"));
 
   // Оптимистичная подсветка нажатой вкладки до фактической смены маршрута
   const [pendingHref, setPendingHref] = useState<string | null>(null);
@@ -46,29 +51,69 @@ export function MobileNav() {
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden">
       <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around glass rounded-[26px] px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05]">
-        <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} onPress={setPendingHref} />
-        <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
-
-        {/* центральная приподнятая кнопка — чуть крупнее остальных */}
-        <Link
-          href="/catalog"
-          aria-label="Каталог"
-          onClick={() => setPendingHref("/catalog")}
-          className="flex min-h-[50px] flex-1 flex-col items-center justify-end transition-transform duration-100 active:scale-95"
-        >
-          <CatalogIcon active={isActive("/catalog")} />
-          <span className="mt-1 pb-1.5 text-[10px] font-medium leading-none text-brand-700">Каталог</span>
-        </Link>
-
-        <Tab href="/cart" label="Корзина" icon={ShoppingBag} active={isActive("/cart")} badge={cartCount} badgeTone="accent" onPress={setPendingHref} />
-        <Tab href="/account" label="Кабинет" icon={User} active={isActive("/account", true)} onPress={setPendingHref} />
+        {accountMode ? (
+          <>
+            <Tab href="/" label="Магазин" icon={Store} active={false} onPress={setPendingHref} />
+            <Tab href="/account/orders" label="Заказы" icon={Package} active={isActive("/account/orders")} onPress={setPendingHref} />
+            <CenterButton
+              href="/account/intake"
+              label="Приём"
+              icon={Pill}
+              active={isActive("/account/intake")}
+              onPress={setPendingHref}
+            />
+            <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
+            <Tab href="/account" label="Обзор" icon={User} active={isActive("/account", true)} onPress={setPendingHref} />
+          </>
+        ) : (
+          <>
+            <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} onPress={setPendingHref} />
+            <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
+            <CenterButton
+              href="/catalog"
+              label="Каталог"
+              icon={LayoutGrid}
+              active={isActive("/catalog")}
+              onPress={setPendingHref}
+            />
+            <Tab href="/cart" label="Корзина" icon={ShoppingBag} active={isActive("/cart")} badge={cartCount} badgeTone="accent" onPress={setPendingHref} />
+            <Tab href="/account" label="Кабинет" icon={User} active={isActive("/account", true)} onPress={setPendingHref} />
+          </>
+        )}
       </div>
     </nav>
   );
 }
 
-/** Иконка каталога с пульсацией, пока навигация по ссылке в работе. */
-function CatalogIcon({ active }: { active: boolean }) {
+/** Центральная приподнятая акцентная кнопка (Каталог в магазине, Приём в ЛК). */
+function CenterButton({
+  href, label, icon, active, onPress,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  active: boolean;
+  onPress: (href: string) => void;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      onClick={() => onPress(href)}
+      className="flex min-h-[50px] flex-1 flex-col items-center justify-end transition-transform duration-100 active:scale-95"
+    >
+      <CenterIcon icon={icon} active={active} />
+      <span className="mt-1 pb-1.5 text-[10px] font-medium leading-none text-brand-700">{label}</span>
+    </Link>
+  );
+}
+
+function CenterIcon({
+  icon: Icon, active,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  active: boolean;
+}) {
   const { pending } = useLinkStatus();
   return (
     <span
@@ -78,7 +123,7 @@ function CatalogIcon({ active }: { active: boolean }) {
         pending && "animate-pulse",
       )}
     >
-      <LayoutGrid className="h-6 w-6" strokeWidth={2.2} />
+      <Icon className="h-6 w-6" strokeWidth={2.2} />
     </span>
   );
 }
