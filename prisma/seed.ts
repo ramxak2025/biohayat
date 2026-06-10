@@ -73,6 +73,19 @@ async function main() {
   });
   console.log(`👤 Админ: ${adminEmail} / ${adminPassword}`);
 
+  // 2.1 Тестовый редактор (роль EDITOR: контент без настроек, удалений и интеграций)
+  await prisma.adminUser.upsert({
+    where: { email: "editor@biohayat.ru" },
+    update: { role: "EDITOR", isActive: true },
+    create: {
+      email: "editor@biohayat.ru",
+      name: "Редактор",
+      passwordHash: await bcrypt.hash("Editor123!", 12),
+      role: "EDITOR",
+    },
+  });
+  console.log("👤 Редактор: editor@biohayat.ru / Editor123!");
+
   // 3. Категории
   const catIdBySlug = new Map<string, string>();
   for (const c of seedCategories) {

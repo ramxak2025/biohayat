@@ -48,7 +48,7 @@ export function MobileHeader() {
     <>
       <header
         className={cn(
-          "glass sticky top-0 z-40 transition-shadow duration-300 lg:hidden",
+          "glass glass-extend sticky top-0 z-40 transition-shadow duration-300 lg:hidden",
           scrolled
             ? "shadow-[0_1px_0_rgba(26,29,26,0.07),0_10px_30px_rgba(26,29,26,0.07)]"
             : "shadow-[0_1px_0_rgba(26,29,26,0.04)]",

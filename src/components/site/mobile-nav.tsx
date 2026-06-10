@@ -73,7 +73,7 @@ function CatalogIcon({ active }: { active: boolean }) {
   return (
     <span
       className={cn(
-        "-mt-6 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-brand ring-[3px] ring-surface transition-transform",
+        "-mt-6 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-brand transition-transform",
         active ? "bg-brand-600" : "bg-linear-to-br from-brand-500 to-brand-600",
         pending && "animate-pulse",
       )}

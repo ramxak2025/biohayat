@@ -147,6 +147,22 @@ body {
   }
 }
 
+/* Продолжение стекла НАД шапкой: на iOS контент при скролле уезжает под
+   статус-бар — псевдоэлемент накрывает эту зону тем же матовым стеклом,
+   и граница больше не режет капсулу поиска. */
+.glass-extend::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 120px;
+  background: inherit;
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  backdrop-filter: blur(20px) saturate(1.7);
+  pointer-events: none;
+}
+
 /* Скрытый скроллбар для горизонтальных лент */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

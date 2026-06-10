@@ -56,7 +56,7 @@ export function CatalogView({
               (на десктопе их заменяет боковое меню) */}
           <ChipsRow
             activeKey={activeSlug ?? basePath}
-            className={cn("-mx-4 px-4 py-1 lg:hidden", sortBase ? "mb-3" : "mb-6")}
+            className={cn("-mx-4 scroll-pl-4 px-4 py-1 lg:hidden", sortBase ? "mb-3" : "mb-6")}
           >
             <Chip href="/catalog" active={basePath === "/catalog" && !activeSlug}>
               Все
@@ -73,9 +73,11 @@ export function CatalogView({
 
           {/* Компактная панель сортировки (через ?sort=, ссылки кэш-дружелюбны) */}
           {sortBase ? (
-            <div className="no-scrollbar -mx-4 mb-6 flex snap-x items-center gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:px-0">
-              <span className="inline-flex shrink-0 items-center gap-1 pr-1 text-xs font-semibold text-ink-faint">
-                <ArrowDownUp className="h-3.5 w-3.5" aria-hidden />
+            <div className="no-scrollbar -mx-4 mb-6 flex items-center gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:px-0">
+              {/* Без snap-x: снап пристыковывал первый чип к краю и выталкивал
+                  подпись «Сортировка» за левую границу экрана */}
+              <span className="inline-flex shrink-0 items-center gap-1.5 pr-1 text-sm font-bold text-ink-muted">
+                <ArrowDownUp className="h-4 w-4 text-brand-600" aria-hidden />
                 Сортировка
               </span>
               {SORT_OPTIONS.map((o) => (
