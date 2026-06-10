@@ -42,7 +42,9 @@ export const viewport: Viewport = {
   // «отклеивает» fixed-бары от экрана — они плавают при скролле.
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover",
+  // БЕЗ viewportFit cover: с ним env(safe-area-inset-*) меняется при
+  // сворачивании панелей Safari во время скролла, и шапка с нижним баром
+  // «гуляют» на эти пиксели. Без cover инсеты стабильны (нулевые).
 };
 
 export default async function RootLayout({

@@ -20,7 +20,7 @@ export function Header({ phone }: { phone: string }) {
   const current = (href: string) => (pathname === href ? ("page" as const) : undefined);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 hidden border-b border-line bg-surface/90 backdrop-blur-md lg:block">
       {/* Тонкая utility-полоса: телефон + сервисные ссылки */}
       <div className="border-b border-line/70 bg-surface-soft/70 py-1.5 text-xs text-ink-muted">
         <Container className="flex items-center justify-between">

@@ -32,10 +32,9 @@ export default async function SiteLayout({
   return (
     <CartProvider>
       <FavoritesProvider>
-        {/* Шапка только на десктопе — на мобильном навигация снизу */}
-        <div className="hidden lg:block">
-          <Header phone={settings.phone} />
-        </div>
+        {/* Шапка только на десктопе (скрытие — на самом header, иначе
+            обёртка ломает position: sticky) */}
+        <Header phone={settings.phone} />
         {/* Мобильная шапка: логотип + поиск, сворачивается при скролле */}
         <MobileHeader />
         <main className="flex-1">{children}</main>

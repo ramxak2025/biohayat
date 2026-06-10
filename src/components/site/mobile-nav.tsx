@@ -68,7 +68,13 @@ export function MobileNav() {
         ) : (
           <>
             <Tab href="/" label="Главная" icon={Home} active={isActive("/", true)} onPress={setPendingHref} />
-            <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
+            {loggedIn ? (
+              /* Залогиненному — быстрый вход в трекер приёма прямо из магазина
+                 (избранное остаётся в ЛК-баре и сердечками на карточках) */
+              <Tab href="/account/intake" label="Приём" icon={Pill} active={false} onPress={setPendingHref} />
+            ) : (
+              <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
+            )}
             <CenterButton
               href="/catalog"
               label="Каталог"
