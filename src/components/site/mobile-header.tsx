@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
 import { SearchTrigger, SearchOverlay } from "@/components/site/mobile-search";
-import { useCart } from "@/components/cart/cart-provider";
+import { useAuthFlag, useAuthName } from "@/lib/use-auth-flag";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,7 +21,8 @@ import { cn } from "@/lib/utils";
 export function MobileHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { count: cartCount } = useCart();
+  const loggedIn = useAuthFlag();
+  const name = useAuthName();
 
   useEffect(() => {
     let ticking = false;
@@ -80,19 +80,16 @@ export function MobileHeader() {
             <SearchTrigger onOpen={() => setOpen(true)} compact />
           </div>
 
-          {/* Корзина — всегда под рукой (у залогиненных её нет в нижнем баре) */}
-          <Link
-            href="/cart"
-            aria-label={cartCount > 0 ? `Корзина, ${cartCount} тов.` : "Корзина"}
-            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface text-ink shadow-xs ring-1 ring-line active:scale-95"
-          >
-            <ShoppingBag className="h-5 w-5" strokeWidth={1.9} />
-            {cartCount > 0 ? (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-400 px-1 text-[10px] font-bold text-white">
-                {cartCount}
-              </span>
-            ) : null}
-          </Link>
+          {/* Аватар клиента → карточка профиля (корзина живёт в нижнем баре) */}
+          {loggedIn ? (
+            <Link
+              href="/account/profile"
+              aria-label="Мой профиль"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-base font-extrabold text-white shadow-brand active:scale-95"
+            >
+              {(name.trim().charAt(0) || "Я").toUpperCase()}
+            </Link>
+          ) : null}
         </div>
       </header>
 

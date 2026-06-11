@@ -11,6 +11,7 @@ const COOKIE_NAME = "hayat_customer";
 // FavoritesProvider) читает его из document.cookie, поэтому публичные страницы
 // могут рендериться статически (ISR) — серверу не нужно трогать cookies().
 const AUTH_FLAG_COOKIE = "hayat_auth";
+const NAME_COOKIE = "hayat_uname"; // не-httpOnly: имя для аватарки в шапке
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
 
 function getSecret(): Uint8Array {
@@ -39,6 +40,14 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
     path: "/",
     maxAge: MAX_AGE,
   });
+  // Имя для клиентской аватарки (не секрет; httpOnly не нужен)
+  store.set(NAME_COOKIE, encodeURIComponent(payload.name), {
+    httpOnly: false,
+    secure: cookieSecure(),
+    sameSite: "lax",
+    path: "/",
+    maxAge: MAX_AGE,
+  });
   // Клиентский флаг наличия сессии (без секретов — просто «1»).
   store.set(AUTH_FLAG_COOKIE, "1", {
     httpOnly: false,
@@ -53,6 +62,7 @@ export async function destroyCustomerSession(): Promise<void> {
   const store = await cookies();
   store.delete(COOKIE_NAME);
   store.delete(AUTH_FLAG_COOKIE);
+  store.delete(NAME_COOKIE);
 }
 
 export async function getCustomerSession(): Promise<CustomerSession | null> {

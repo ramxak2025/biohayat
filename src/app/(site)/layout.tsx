@@ -2,6 +2,8 @@ import { CartProvider } from "@/components/cart/cart-provider";
 import { FavoritesProvider } from "@/components/favorites/favorites-provider";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
+import { FooterVisibility } from "@/components/site/footer-visibility";
+import { IOSViewportFix } from "@/components/site/ios-viewport-fix";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { MobileHeader } from "@/components/site/mobile-header";
 import { BackToTop } from "@/components/site/back-to-top";
@@ -38,7 +40,12 @@ export default async function SiteLayout({
         {/* Мобильная шапка: логотип + поиск, сворачивается при скролле */}
         <MobileHeader />
         <main className="flex-1">{children}</main>
-        <Footer settings={settings} categories={navCats} />
+        {/* В ЛК на мобильном футера нет — ощущение нативного приложения */}
+        <FooterVisibility>
+          <Footer settings={settings} categories={navCats} />
+        </FooterVisibility>
+        {/* Пере-привязка fixed/sticky после клавиатуры iOS */}
+        <IOSViewportFix />
         <MobileNav />
         <BackToTop />
         <CookieConsent />

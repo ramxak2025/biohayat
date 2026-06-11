@@ -4,6 +4,17 @@ import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "hayat_session";
 
+async function sessionPayload(token: string | undefined): Promise<Record<string, unknown> | null> {
+  if (!token) return null;
+  try {
+    const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    return payload as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 async function isValidSession(token: string | undefined): Promise<boolean> {
   if (!token) return false;
   try {
@@ -26,14 +37,19 @@ export async function proxy(req: NextRequest) {
   if (pathname.startsWith("/account")) {
     if (!req.cookies.get(AUTH_FLAG_COOKIE)?.value) {
       const customerToken = req.cookies.get(CUSTOMER_COOKIE)?.value;
-      if (customerToken && (await isValidSession(customerToken))) {
+      const payload = await sessionPayload(customerToken);
+      if (payload) {
         const res = NextResponse.next();
-        res.cookies.set(AUTH_FLAG_COOKIE, "1", {
+        const opts = {
           path: "/",
-          sameSite: "lax",
+          sameSite: "lax" as const,
           secure: cookieSecure(),
           maxAge: 60 * 60 * 24 * 30,
-        });
+        };
+        res.cookies.set(AUTH_FLAG_COOKIE, "1", opts);
+        if (typeof payload.name === "string" && payload.name) {
+          res.cookies.set("hayat_uname", encodeURIComponent(payload.name), opts);
+        }
         return res;
       }
     }

@@ -40,3 +40,18 @@ function getServerSnapshot(): boolean {
 export function useAuthFlag(): boolean {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+/** Имя покупателя из не-httpOnly cookie hayat_uname (для аватарки в шапке). */
+export function useAuthName(): string {
+  const read = () => {
+    if (typeof document === "undefined") return "";
+    const m = document.cookie.match(/(?:^|;\s*)hayat_uname=([^;]*)/);
+    try {
+      return m ? decodeURIComponent(m[1]) : "";
+    } catch {
+      return "";
+    }
+  };
+  // useSyncExternalStore уже импортирован для useAuthFlag — переиспользуем подписку
+  return useSyncExternalStore(subscribe, read, () => "");
+}

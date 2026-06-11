@@ -54,9 +54,9 @@ export function MobileNav() {
       <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around glass rounded-[26px] px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05]">
         {accountMode ? (
           <>
-            {/* «Магазин» активен на любой странице вне кабинета (весь шоппинг — одна зона) */}
-            <Tab href="/catalog" label="Магазин" icon={Store} active={!current.startsWith("/account")} onPress={setPendingHref} />
-            <Tab href="/account/orders" label="Заказы" icon={Package} active={isActive("/account/orders")} onPress={setPendingHref} />
+            {/* «Каталог» активен на любой витринной странице (вне ЛК и корзины) */}
+            <Tab href="/catalog" label="Каталог" icon={LayoutGrid} active={!current.startsWith("/account") && !current.startsWith("/cart")} onPress={setPendingHref} />
+            <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
             <CenterButton
               href="/account/intake"
               label="Приём"
@@ -64,8 +64,8 @@ export function MobileNav() {
               active={isActive("/account/intake")}
               onPress={setPendingHref}
             />
-            <Tab href="/account/favorites" label="Избранное" icon={Heart} active={isActive("/account/favorites")} badge={favCount} onPress={setPendingHref} />
-            <Tab href="/account" label="Обзор" icon={User} active={isActive("/account", true)} onPress={setPendingHref} />
+            <Tab href="/cart" label="Корзина" icon={ShoppingBag} active={isActive("/cart")} badge={cartCount} badgeTone="accent" onPress={setPendingHref} />
+            <Tab href="/account" label="Кабинет" icon={User} active={current.startsWith("/account") && !isActive("/account/favorites") && !isActive("/account/intake")} onPress={setPendingHref} />
           </>
         ) : (
           <>
