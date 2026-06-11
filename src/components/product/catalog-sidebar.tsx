@@ -1,23 +1,28 @@
 import Link from "next/link";
 import { Tag, LayoutGrid } from "lucide-react";
-import { AUDIENCES, GOALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { Category } from "@prisma/client";
 
 /**
- * Левое боковое меню каталога (десктоп) — как в продвинутых интернет-магазинах:
- * категории + быстрые подборки «Кому» и «Зачем», с подсветкой активного раздела.
+ * Левое боковое меню каталога (десктоп): только категории + быстрые пункты
+ * «Все товары» и «Распродажа», с подсветкой активного раздела.
+ *
+ * Sticky-офсет учитывает суммарную высоту десктопной шапки
+ * (см. src/components/site/header.tsx): 28px utility-полоса +
+ * var(--spacing-header) (72px) основная строка + 44px навигация + 1px граница
+ * = 145px, плюс 16px воздуха → top = var(--spacing-header) + 89px = 161px.
+ * max-h оставляет ещё 16px снизу, чтобы длинный список скроллился внутри.
  */
 export function CatalogSidebar({
   categories,
   activeHref,
 }: {
-  categories: Pick<Category, "slug" | "name">[];
+  categories: (Pick<Category, "slug" | "name"> & { count?: number })[];
   activeHref: string;
 }) {
   return (
     <aside className="hidden w-[248px] shrink-0 lg:block">
-      <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
+      <div className="sticky top-[calc(var(--spacing-header)+89px)] max-h-[calc(100dvh-var(--spacing-header)-105px)] overflow-y-auto pr-1">
         <Group>
           <Item href="/catalog" active={activeHref === "/catalog"} icon={<LayoutGrid className="h-4 w-4" />}>
             Все товары
@@ -30,26 +35,13 @@ export function CatalogSidebar({
         <GroupTitle>Категории</GroupTitle>
         <Group>
           {categories.map((c) => (
-            <Item key={c.slug} href={`/category/${c.slug}`} active={activeHref === `/category/${c.slug}`}>
+            <Item
+              key={c.slug}
+              href={`/category/${c.slug}`}
+              active={activeHref === `/category/${c.slug}`}
+              count={c.count}
+            >
               {c.name}
-            </Item>
-          ))}
-        </Group>
-
-        <GroupTitle>Кому</GroupTitle>
-        <Group>
-          {AUDIENCES.map((a) => (
-            <Item key={a.slug} href={`/for/${a.slug}`} active={activeHref === `/for/${a.slug}`}>
-              {a.name}
-            </Item>
-          ))}
-        </Group>
-
-        <GroupTitle>Зачем</GroupTitle>
-        <Group>
-          {GOALS.map((g) => (
-            <Item key={g.slug} href={`/goal/${g.slug}`} active={activeHref === `/goal/${g.slug}`}>
-              {g.name}
             </Item>
           ))}
         </Group>
@@ -75,12 +67,14 @@ function Item({
   active,
   icon,
   tone,
+  count,
   children,
 }: {
   href: string;
   active: boolean;
   icon?: React.ReactNode;
   tone?: "sale";
+  count?: number;
   children: React.ReactNode;
 }) {
   return (
@@ -89,12 +83,17 @@ function Item({
       className={cn(
         "flex items-center gap-2.5 rounded-xl px-3 py-2 text-[14px] font-medium transition",
         active
-          ? "bg-brand-500 text-white shadow-sm"
+          ? "bg-brand-50 font-semibold text-brand-700"
           : cn("hover:bg-surface-soft", tone === "sale" ? "text-sale" : "text-ink-muted hover:text-ink"),
       )}
     >
       {icon}
-      <span className="truncate">{children}</span>
+      <span className="min-w-0 flex-1 truncate">{children}</span>
+      {typeof count === "number" ? (
+        <span className={cn("shrink-0 text-xs tabular-nums", active ? "text-brand-600" : "text-ink-faint")}>
+          {count}
+        </span>
+      ) : null}
     </Link>
   );
 }

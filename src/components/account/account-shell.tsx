@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Package, Heart, PillBottle, FlaskConical, MessageCircleHeart, UserCog, LogOut, MapPin,
+  LayoutDashboard, Package, Heart, PillBottle, FlaskConical, MessageCircleHeart, UserCog, LogOut, MapPin, ChevronLeft,
 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
@@ -27,13 +27,14 @@ export function AccountShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // На корне кабинета мобильной навигации сверху нет — там сам дашборд.
+  const isRoot = pathname === "/account";
   return (
     // Нижний отступ на мобильных — под фиксированное мобильное меню
     <Container className="py-6 pb-[calc(var(--spacing-mobnav)+2.5rem)] sm:py-8 lg:pb-12">
       <div className="grid gap-5 lg:grid-cols-[272px_1fr] lg:gap-8">
-        {/* min-w-0 обязателен: иначе лента чипсов растягивает грид-колонку
-            шире вьюпорта и мобильный браузер «зумит» текст всей страницы */}
-        <aside className="h-fit min-w-0 lg:sticky lg:top-24">
+        {/* На корне кабинета колонка на мобильном пуста — прячем, чтобы не было лишнего gap */}
+        <aside className={cn("h-fit min-w-0 lg:sticky lg:top-24", isRoot && "hidden lg:block")}>
           {/* Шапка пользователя — только на десктопе (на мобильном экономим высоту) */}
           <div className="mb-3 hidden items-center gap-3 rounded-2xl bg-surface p-4 shadow-xs ring-1 ring-line lg:flex">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-lg font-extrabold text-white">
@@ -45,32 +46,18 @@ export function AccountShell({
             </div>
           </div>
 
-          {/* Мобайл: горизонтальная snap-лента чипсов-разделов */}
-          <nav
-            aria-label="Разделы личного кабинета"
-            className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:hidden"
-          >
-            {tabs.map((t) => {
-              const active = t.exact ? pathname === t.href : pathname.startsWith(t.href);
-              const Icon = t.icon;
-              return (
-                <Link
-                  key={t.href}
-                  href={t.href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition",
-                    active
-                      ? "bg-brand-500 text-white shadow-sm"
-                      : "bg-surface text-ink-muted ring-1 ring-line hover:bg-surface-soft hover:text-ink",
-                  )}
-                >
-                  <Icon className="h-[18px] w-[18px]" />
-                  {t.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Мобайл: компактный возврат к дашборду кабинета (вместо ленты чипсов) */}
+          {!isRoot && (
+            <nav aria-label="Навигация по кабинету" className="lg:hidden">
+              <Link
+                href="/account"
+                className="-ml-2 inline-flex min-h-11 items-center gap-0.5 rounded-xl px-2 text-sm font-semibold text-ink-muted transition active:bg-surface-soft"
+              >
+                <ChevronLeft className="h-5 w-5" />
+                Кабинет
+              </Link>
+            </nav>
+          )}
 
           {/* Десктоп: вертикальное меню карточкой */}
           <nav

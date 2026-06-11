@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CatalogView } from "@/components/product/catalog-view";
 import { CatalogHub } from "@/components/site/catalog-hub";
+import { GoalCollections } from "@/components/site/goal-collections";
 import { getCategoriesWithCounts, getProducts, getPurchasedProducts } from "@/lib/queries";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { audienceName, goalName } from "@/lib/taxonomy";
@@ -94,6 +95,11 @@ export default async function CatalogPage({
         <CatalogHub purchased={purchased} categories={categories} hits={featured.items} />
       </div>
       <div className="max-lg:hidden">
+        {/* Десктопное стартовое окно каталога: подборки-карточки над товарами */}
+        <div className="mx-auto w-full max-w-[1280px] px-4 pt-8 sm:px-6 lg:px-8">
+          <h2 className="mb-3 text-xl font-extrabold tracking-tight">Подборки</h2>
+          <GoalCollections variant="grid" />
+        </div>
         <CatalogView
           title="Каталог товаров"
           description="Натуральные витамины, БАД, масла, мёд и бальзамы ХАЯТ."

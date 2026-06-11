@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Tag, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { ProductCard } from "@/components/product/product-card";
 import { AudienceCards } from "@/components/site/audience-cards";
 import { CategoryTiles } from "@/components/site/category-tiles";
-import { GOALS } from "@/lib/taxonomy";
+import { GoalCollections } from "@/components/site/goal-collections";
 import type { CategoryWithCount, ProductCardData, PurchasedProduct } from "@/lib/queries";
 
 /**
@@ -41,35 +41,18 @@ export function CatalogHub({
         </p>
       </header>
 
-      {/* ── «Зачем»: лента чипсов-целей (фирменные пилюли, как на главной) ── */}
-      <section aria-label="Подборки по целям">
-        <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 py-1">
-          <Link
-            href="/sale"
-            className="inline-flex min-h-10 shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full bg-sale py-1.5 pl-1.5 pr-4 text-sm font-bold text-white shadow-xs transition active:opacity-90"
-          >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20">
-              <Tag className="h-4 w-4" aria-hidden />
-            </span>
-            Распродажа
-          </Link>
-          {GOALS.map((g) => {
-            const Icon = g.icon;
-            return (
-              <Link
-                key={g.slug}
-                href={`/goal/${g.slug}`}
-                className="group inline-flex min-h-10 shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full bg-surface py-1.5 pl-1.5 pr-4 text-sm font-semibold text-ink shadow-xs ring-1 ring-line transition active:bg-brand-50"
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition group-active:bg-brand-500 group-active:text-white">
-                  <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
-                </span>
-                {g.name}
-              </Link>
-            );
-          })}
-        </div>
+      {/* ── «Кому»: мини-плитки, как на главной ── */}
+      <section aria-label="Кому">
+        <h2 className="mb-3 text-lg font-extrabold tracking-tight">Кому</h2>
+        <AudienceCards />
       </section>
+
+      {/* ── Подборки: Распродажа и цели — крупные карточки горизонтально ── */}
+      <section aria-label="Подборки">
+        <h2 className="mb-3 text-lg font-extrabold tracking-tight">Подборки</h2>
+        <GoalCollections variant="rail" />
+      </section>
+
 
       {/* ── Персональное: быстрый повтор прошлых покупок ── */}
       {purchased.length > 0 ? (
@@ -92,12 +75,6 @@ export function CatalogHub({
           </div>
         </section>
       ) : null}
-
-      {/* ── «Кому»: мини-плитки, как на главной ── */}
-      <section aria-label="Кому">
-        <h2 className="mb-3 text-lg font-extrabold tracking-tight">Кому</h2>
-        <AudienceCards />
-      </section>
 
       {/* ── Категории: плитки с обложкой SmartImage и счётчиком товаров ── */}
       <section aria-label="Категории">

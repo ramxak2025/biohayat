@@ -10,6 +10,11 @@ import { cn } from "@/lib/utils";
  */
 export function FooterVisibility({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const inAccount = pathname === "/account" || pathname.startsWith("/account/");
-  return <div className={cn(inAccount && "max-lg:hidden")}>{children}</div>;
+  // ЛК, корзина и оформление — «приложенческие» экраны: без футера на мобильном
+  const appLike =
+    pathname === "/account" ||
+    pathname.startsWith("/account/") ||
+    pathname === "/cart" ||
+    pathname === "/checkout";
+  return <div className={cn(appLike && "max-lg:hidden")}>{children}</div>;
 }

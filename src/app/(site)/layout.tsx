@@ -37,7 +37,7 @@ export default async function SiteLayout({
       <FavoritesProvider>
         {/* Шапка только на десктопе (скрытие — на самом header, иначе
             обёртка ломает position: sticky) */}
-        <Header phone={settings.phone} />
+        <Header phone={settings.phone} workingHours={settings.workingHours} categories={navCats} />
         {/* Мобайл: скроллится этот контейнер, а не body (стабильные бары);
             на десктопе lg:contents растворяет обёртку и скроллится body */}
         <div id="app-scroll" className="flex min-h-0 flex-1 flex-col lg:contents">
