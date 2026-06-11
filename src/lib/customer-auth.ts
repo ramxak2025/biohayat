@@ -41,7 +41,9 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
     maxAge: MAX_AGE,
   });
   // Имя для клиентской аватарки (не секрет; httpOnly не нужен)
-  store.set(NAME_COOKIE, encodeURIComponent(payload.name), {
+  // Без encodeURIComponent: cookies().set кодирует значение сам,
+  // двойное кодирование давало «%» вместо буквы в аватарке
+  store.set(NAME_COOKIE, payload.name, {
     httpOnly: false,
     secure: cookieSecure(),
     sameSite: "lax",

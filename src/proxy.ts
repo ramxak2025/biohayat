@@ -48,7 +48,7 @@ export async function proxy(req: NextRequest) {
         };
         res.cookies.set(AUTH_FLAG_COOKIE, "1", opts);
         if (typeof payload.name === "string" && payload.name) {
-          res.cookies.set("hayat_uname", encodeURIComponent(payload.name), opts);
+          res.cookies.set("hayat_uname", payload.name, opts);
         }
         return res;
       }
