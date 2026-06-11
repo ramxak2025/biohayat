@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { appScrollTop, appScrollTo, onAppScroll } from "@/lib/app-scroll";
 
 /**
  * Кнопка «Наверх»: появляется после 600px скролла, плавно прокручивает
@@ -15,20 +16,20 @@ export function BackToTop() {
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setVisible(window.scrollY > 600));
+      raf = requestAnimationFrame(() => setVisible(appScrollTop() > 600));
     };
     onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const off = onAppScroll(onScroll);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
+      off();
     };
   }, []);
 
   return (
     <button
       type="button"
-      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      onClick={() => appScrollTo(0, true)}
       aria-label="Наверх"
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}

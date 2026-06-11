@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SearchTrigger, SearchOverlay } from "@/components/site/mobile-search";
 import { useAuthFlag, useAuthName } from "@/lib/use-auth-flag";
+import { appScrollTop, onAppScroll } from "@/lib/app-scroll";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,13 +31,12 @@ export function MobileHeader() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        setScrolled(window.scrollY > 6);
+        setScrolled(appScrollTop() > 6);
         ticking = false;
       });
     };
     onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return onAppScroll(onScroll);
   }, []);
 
   // блокируем прокрутку фона, когда оверлей открыт

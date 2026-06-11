@@ -4,6 +4,7 @@ import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { FooterVisibility } from "@/components/site/footer-visibility";
 import { IOSViewportFix } from "@/components/site/ios-viewport-fix";
+import { ScrollManager } from "@/components/site/scroll-manager";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { MobileHeader } from "@/components/site/mobile-header";
 import { BackToTop } from "@/components/site/back-to-top";
@@ -37,13 +38,17 @@ export default async function SiteLayout({
         {/* Шапка только на десктопе (скрытие — на самом header, иначе
             обёртка ломает position: sticky) */}
         <Header phone={settings.phone} />
-        {/* Мобильная шапка: логотип + поиск, сворачивается при скролле */}
-        <MobileHeader />
-        <main className="flex-1">{children}</main>
-        {/* В ЛК на мобильном футера нет — ощущение нативного приложения */}
-        <FooterVisibility>
-          <Footer settings={settings} categories={navCats} />
-        </FooterVisibility>
+        {/* Мобайл: скроллится этот контейнер, а не body (стабильные бары);
+            на десктопе lg:contents растворяет обёртку и скроллится body */}
+        <div id="app-scroll" className="flex min-h-0 flex-1 flex-col lg:contents">
+          <MobileHeader />
+          <main className="flex-1">{children}</main>
+          {/* В ЛК на мобильном футера нет — ощущение нативного приложения */}
+          <FooterVisibility>
+            <Footer settings={settings} categories={navCats} />
+          </FooterVisibility>
+        </div>
+        <ScrollManager />
         {/* Пере-привязка fixed/sticky после клавиатуры iOS */}
         <IOSViewportFix />
         <MobileNav />
