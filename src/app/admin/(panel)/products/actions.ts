@@ -41,6 +41,37 @@ const schema = z.object({
   metaDescription: z.string().optional(),
 });
 
+/**
+ * Лесенка оптовых цен: до 3 уровней из полей tier{1..3}MinQty / tier{1..3}Price.
+ * Пустая пара полей — уровень не используется. Цена приходит в рублях → копейки.
+ */
+function parseTiers(
+  formData: FormData,
+): { tiers: { minQty: number; priceKopecks: number }[] } | { error: string } {
+  const tiers: { minQty: number; priceKopecks: number }[] = [];
+  for (const i of [1, 2, 3] as const) {
+    const qtyRaw = String(formData.get(`tier${i}MinQty`) ?? "").trim();
+    const priceRaw = String(formData.get(`tier${i}Price`) ?? "").trim().replace(",", ".");
+    if (!qtyRaw && !priceRaw) continue;
+    if (!qtyRaw || !priceRaw) return { error: `Уровень ${i}: заполните и количество, и цену` };
+    const minQty = Number(qtyRaw);
+    const price = Number(priceRaw);
+    if (!Number.isInteger(minQty) || minQty < 2) {
+      return { error: `Уровень ${i}: «от … шт» — целое число от 2` };
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      return { error: `Уровень ${i}: цена должна быть больше нуля` };
+    }
+    tiers.push({ minQty, priceKopecks: rubToKopecks(price) });
+  }
+  for (let i = 1; i < tiers.length; i++) {
+    if (tiers[i].minQty <= tiers[i - 1].minQty) {
+      return { error: "Количества «от … шт» должны идти по возрастанию" };
+    }
+  }
+  return { tiers };
+}
+
 function parse(formData: FormData) {
   const obj = Object.fromEntries(formData.entries());
   const parsed = schema.safeParse(obj);
@@ -95,6 +126,10 @@ export async function createProduct(_prev: FormState, formData: FormData): Promi
   if (!parsed.success) {
     return { error: "Проверьте поля формы", fieldErrors: fieldErrors(parsed.error) };
   }
+  const tiersResult = parseTiers(formData);
+  if ("error" in tiersResult) {
+    return { error: "Проверьте поля формы", fieldErrors: { tiers: tiersResult.error } };
+  }
   const data = buildData(parsed.data, flags);
 
   const exists = await prisma.product.findUnique({ where: { slug: data.slug } });
@@ -104,6 +139,7 @@ export async function createProduct(_prev: FormState, formData: FormData): Promi
     data: {
       ...data,
       images: { create: images.map((url, i) => ({ url, sortOrder: i })) },
+      wholesaleTiers: { create: tiersResult.tiers },
     },
   });
   revalidateProduct(data.slug);
@@ -116,6 +152,10 @@ export async function updateProduct(id: string, _prev: FormState, formData: Form
   if (!parsed.success) {
     return { error: "Проверьте поля формы", fieldErrors: fieldErrors(parsed.error) };
   }
+  const tiersResult = parseTiers(formData);
+  if ("error" in tiersResult) {
+    return { error: "Проверьте поля формы", fieldErrors: { tiers: tiersResult.error } };
+  }
   const data = buildData(parsed.data, flags);
 
   const clash = await prisma.product.findFirst({ where: { slug: data.slug, NOT: { id } } });
@@ -123,10 +163,12 @@ export async function updateProduct(id: string, _prev: FormState, formData: Form
 
   await prisma.$transaction([
     prisma.productImage.deleteMany({ where: { productId: id } }),
+    prisma.wholesaleTier.deleteMany({ where: { productId: id } }),
     prisma.product.update({
       data: {
         ...data,
         images: { create: images.map((url, i) => ({ url, sortOrder: i })) },
+        wholesaleTiers: { create: tiersResult.tiers },
       },
       where: { id },
     }),

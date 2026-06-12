@@ -9,7 +9,7 @@ import { SubmitButton } from "@/components/admin/form-controls";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { kopecksToRub } from "@/lib/utils";
 import { createProduct, updateProduct, type FormState } from "./actions";
-import type { Product, ProductImage, Category } from "@prisma/client";
+import type { Product, ProductImage, Category, WholesaleTier } from "@prisma/client";
 
 const init: FormState = {};
 
@@ -17,11 +17,12 @@ export function ProductForm({
   product,
   categories,
 }: {
-  product?: Product & { images: ProductImage[] };
+  product?: Product & { images: ProductImage[]; wholesaleTiers?: WholesaleTier[] };
   categories: Pick<Category, "id" | "name">[];
 }) {
   const action = product ? updateProduct.bind(null, product.id) : createProduct;
   const [state, formAction] = useActionState(action, init);
+  const tiers = [...(product?.wholesaleTiers ?? [])].sort((a, b) => a.minQty - b.minQty);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -145,6 +146,46 @@ export function ProductForm({
                 <Checkbox name="isFeatured" defaultChecked={product?.isFeatured} /> Хит (на главной)
               </label>
             </div>
+          </Card>
+
+          <Card className="space-y-3">
+            <div>
+              <h2 className="font-bold">Оптовые цены (опт)</h2>
+              <p className="mt-1 text-xs text-ink-faint">
+                Цены видны только одобренным оптовикам на opt.biohayat.ru
+              </p>
+            </div>
+            {([1, 2, 3] as const).map((i) => {
+              const tier = tiers[i - 1];
+              return (
+                <div key={i} className="flex items-center gap-2 text-sm font-medium text-ink-muted">
+                  <span className="shrink-0">от</span>
+                  <Input
+                    name={`tier${i}MinQty`}
+                    type="number"
+                    min="2"
+                    step="1"
+                    className="w-20 px-3"
+                    defaultValue={tier?.minQty ?? ""}
+                    aria-label={`Уровень ${i}: минимальное количество, шт`}
+                  />
+                  <span className="shrink-0">шт —</span>
+                  <Input
+                    name={`tier${i}Price`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className="min-w-0 flex-1 px-3"
+                    defaultValue={tier ? kopecksToRub(tier.priceKopecks) : ""}
+                    placeholder="цена, ₽"
+                    aria-label={`Уровень ${i}: цена за штуку, ₽`}
+                  />
+                  <span className="shrink-0">₽ за шт</span>
+                </div>
+              );
+            })}
+            <p className="text-xs text-ink-faint">Пустые строки — уровень не используется.</p>
+            <FieldError>{state.fieldErrors?.tiers}</FieldError>
           </Card>
 
           <Card>
