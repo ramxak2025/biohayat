@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/account-shell";
+import { PushOptIn } from "@/components/account/push-opt-in";
 import { IntakeView, type IntakeHistoryDay } from "./intake-view";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
@@ -98,6 +99,12 @@ export default async function IntakePage() {
     }
   }
 
+  // Публичный VAPID-ключ для подписки на push (генерируется при старте сервера, см. src/instrumentation.ts).
+  const pushSettings = await prisma.siteSettings.findUnique({
+    where: { id: "default" },
+    select: { vapidPublicKey: true },
+  });
+
   // Сериализуем только нужные поля, чтобы клиентский компонент получил простые данные.
   const plansData = plans.map((p) => ({
     id: p.id,
@@ -112,6 +119,9 @@ export default async function IntakePage() {
   return (
     <AccountShell name={session.name}>
       <IntakeView today={today} plans={plansData} products={products} purchased={purchased} history={history} />
+      <div className="mt-4">
+        <PushOptIn publicKey={pushSettings?.vapidPublicKey ?? ""} />
+      </div>
     </AccountShell>
   );
 }

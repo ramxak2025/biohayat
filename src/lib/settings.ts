@@ -35,6 +35,9 @@ const DEFAULTS: SiteSettings = {
   yandexVerification: null,
   googleVerification: null,
   yandexMetrikaId: null,
+  bonusPercent: 5,
+  vapidPublicKey: null,
+  vapidPrivateKey: null,
   badDisclaimer:
     "БАД. НЕ ЯВЛЯЕТСЯ ЛЕКАРСТВЕННЫМ СРЕДСТВОМ. Имеются противопоказания, необходима консультация специалиста.",
   updatedAt: new Date(0),
