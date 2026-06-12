@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Package, Heart, PillBottle, MapPin, FlaskConical, MessageCircleHeart, UserCog, LogOut, ChevronRight, Pencil, Sparkles,
+  Package, Heart, PillBottle, MapPin, FlaskConical, MessageCircleHeart, UserCog, LogOut, ChevronRight, Pencil, Sparkles, Coins, Gift,
 } from "lucide-react";
 import { AuthForms } from "./auth-forms";
 import { AccountShell } from "@/components/account/account-shell";
@@ -234,7 +234,12 @@ export default async function AccountPage() {
           <SectionRow href="/account/consultation" icon={MessageCircleHeart} tone="bg-accent-50 text-accent-700" title="Консультация" />
         </SectionGroup>
 
-        <SectionGroup title="Аккаунт" delay={240}>
+        <SectionGroup title="Бонусы и друзья" delay={240}>
+          <SectionRow href="/account/bonuses" icon={Coins} tone="bg-accent-50 text-accent-700" title="Бонусные баллы" count={Math.round(bonusKopecks / 100)} />
+          <SectionRow href="/account/referral" icon={Gift} tone="bg-brand-50 text-brand-600" title="Пригласить друга — 300 ₽" />
+        </SectionGroup>
+
+        <SectionGroup title="Аккаунт" delay={300}>
           <SectionRow href="/account/profile" icon={UserCog} tone="bg-surface-soft text-ink-muted" title="Профиль и данные" />
         </SectionGroup>
       </div>

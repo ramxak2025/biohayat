@@ -39,9 +39,9 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ── Сторис (мобильный акцент): кружки над hero ── */}
+      {/* ── Сторис: кружки над hero (мобайл и десктоп) ── */}
       {stories.length > 0 ? (
-        <Section className="pb-0 pt-3 lg:hidden">
+        <Section className="pb-0 pt-3 sm:pt-5">
           <Container>
             <Stories stories={stories} />
           </Container>
