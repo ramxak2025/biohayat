@@ -117,42 +117,36 @@ export function ReferralView({
           Приведите друга — {formatMoney(bonusKopecks)} обоим
         </h2>
         <p className="mt-2 max-w-md text-sm text-white/85">
-          Друг вводит ваш код и оформляет первый заказ. После доставки {formatMoney(bonusKopecks)} получаете
+          Друг переходит по вашей ссылке и оформляет первый заказ. После его оплаты {formatMoney(bonusKopecks)} получаете
           вы, и столько же — он.
         </p>
 
-        <div className="mt-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-white/70">Ваш код</div>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/15 px-4 py-3 sm:flex-1">
-              <span className="select-all font-mono text-xl font-extrabold tracking-widest">{code}</span>
-              <button
-                type="button"
-                onClick={() => copy(code, "Код")}
-                title="Скопировать код"
-                className="-m-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition hover:bg-white/15"
-              >
-                <Copy className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                onClick={() => copy(link, "Ссылка")}
-                className="bg-white text-brand-700 hover:bg-white/90 active:bg-white/80 disabled:bg-white/70"
-              >
-                <Copy className="h-4 w-4" /> Скопировать ссылку
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={share}
-                className="border-white/40 bg-transparent text-white hover:bg-white/10"
-              >
-                <Share2 className="h-4 w-4" /> Поделиться
-              </Button>
-            </div>
-          </div>
+        <div className="mt-6 space-y-3">
+          {/* Код: пунктирная рамка-«купон», тап по коду копирует */}
+          <button
+            type="button"
+            onClick={() => copy(code, "Код")}
+            title="Нажмите, чтобы скопировать код"
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-white/35 bg-white/10 px-5 py-3.5 transition active:scale-[0.99] active:bg-white/15"
+          >
+            <span className="text-left">
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-white/60">
+                Ваш код
+              </span>
+              <span className="font-mono text-2xl font-extrabold tracking-[0.18em]">{code}</span>
+            </span>
+            <Copy className="h-5 w-5 shrink-0 text-white/70" />
+          </button>
+
+          {/* Одна главная кнопка — Поделиться */}
+          <Button
+            type="button"
+            size="lg"
+            onClick={share}
+            className="w-full bg-white text-brand-700 shadow-lg hover:bg-white/90 active:bg-white/80"
+          >
+            <Share2 className="h-5 w-5" /> Поделиться с другом
+          </Button>
         </div>
       </div>
 

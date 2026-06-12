@@ -160,7 +160,7 @@ export async function submitOrder(
   const session = await getCustomerSession();
 
   // Бонусные баллы (1 балл = 1 копейка): сколько клиент попросил списать.
-  // Сервер сам ограничит балансом и 50% суммы заказа после промокод-скидки.
+  // Сервер сам ограничит балансом и 20% суммы заказа после промокод-скидки.
   const bonusSpendRaw = Number(formData.get("bonusSpend") || 0);
   const bonusSpendRequested =
     session && Number.isFinite(bonusSpendRaw) ? Math.max(0, Math.floor(bonusSpendRaw)) : 0;
@@ -212,7 +212,7 @@ export async function submitOrder(
         });
       }
 
-      // Списание бонусных баллов: clamp по балансу и 50% суммы после промокода.
+      // Списание бонусных баллов: clamp по балансу и 20% суммы после промокода.
       // decrement через updateMany с условием gte — защита от гонки двух заказов
       // на один баланс; при неудаче оформляем заказ без списания.
       let bonusSpentKopecks = 0;
@@ -224,7 +224,7 @@ export async function submitOrder(
         bonusSpentKopecks = Math.min(
           bonusSpendRequested,
           Math.max(0, customer?.bonusKopecks ?? 0),
-          Math.floor(totalKopecks / 2),
+          Math.floor(totalKopecks / 5),
         );
         if (bonusSpentKopecks > 0) {
           const debited = await tx.customer.updateMany({

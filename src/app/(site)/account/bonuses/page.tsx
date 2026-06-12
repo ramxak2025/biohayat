@@ -92,7 +92,7 @@ export default async function AccountBonusesPage() {
           </li>
           <li className="flex gap-2.5">
             <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-            Баллами можно оплатить до 50% суммы следующего заказа — поле «Списать баллы» на оформлении.
+            Баллами можно оплатить до 20% суммы следующего заказа — поле «Списать баллы» на оформлении.
           </li>
           <li className="flex gap-2.5">
             <BadgePercent className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />

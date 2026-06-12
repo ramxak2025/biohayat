@@ -208,11 +208,11 @@ export function CheckoutForm({
   const discountKopecks = promo ? Math.min(promo.discountKopecks, totalKopecks) : 0;
   const afterPromoKopecks = Math.max(0, totalKopecks - discountKopecks);
 
-  // Списание бонусов: не больше баланса и не больше 50% суммы после промокода.
+  // Списание бонусов: не больше баланса и не больше 20% суммы после промокода.
   // Сервер всё равно перепроверит и обрежет (submitOrder).
   const showBonus = loggedIn && bonusBalanceKopecks > 0;
   const maxBonusKopecks = showBonus
-    ? Math.min(bonusBalanceKopecks, Math.floor(afterPromoKopecks / 2))
+    ? Math.min(bonusBalanceKopecks, Math.floor(afterPromoKopecks / 5))
     : 0;
   const requestedBonusKopecks = Math.round((Number(bonusInput.replace(",", ".")) || 0) * 100);
   const bonusSpendKopecks = Math.min(Math.max(0, requestedBonusKopecks), maxBonusKopecks);
@@ -459,7 +459,7 @@ export function CheckoutForm({
             <FormSection title="Списать баллы" icon={<Coins className="h-4 w-4" aria-hidden />}>
               <p className="text-sm text-ink-muted">
                 У вас <span className="tnum font-bold text-ink">{formatMoney(bonusBalanceKopecks)}</span> бонусов.
-                Можно оплатить до 50% заказа — сейчас это{" "}
+                Можно оплатить до 20% заказа — сейчас это{" "}
                 <span className="tnum font-semibold">{formatMoney(maxBonusKopecks)}</span>.
               </p>
               <div className="mt-3 flex gap-2">

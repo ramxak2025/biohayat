@@ -1,5 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import { rewardReferralOnFirstOrder } from "@/lib/referral";
+import type { OrderStatus } from "@prisma/client";
+
+/** Статусы «заказ оплачен» (включая последующие этапы доставки):
+ *  бонусы и реферальные начисления срабатывают на первом из них. */
+export const PAID_STATUSES: OrderStatus[] = [
+  "PAID", "ASSEMBLING", "SHIPPED", "IN_TRANSIT", "DELIVERED",
+];
 
 /**
  * Бонусные баллы (1 балл = 1 копейка): начисление за доставленный заказ

@@ -121,10 +121,10 @@ export async function rewardReferralOnFirstOrder(tx: Tx, orderId: string): Promi
   });
   if (already) return;
 
-  // Бонус только за ПЕРВЫЙ доставленный заказ. accrueOrderBonus уже «занял»
+  // Бонус только за ПЕРВЫЙ ОПЛАЧЕННЫЙ заказ (PAID и далее). accrueOrderBonus уже «занял»
   // флаг bonusAccrued для текущего заказа, поэтому этот заказ учтён в count.
   const deliveredCount = await tx.order.count({
-    where: { customerId: customer.id, status: "DELIVERED" },
+    where: { customerId: customer.id, status: { in: ["PAID", "ASSEMBLING", "SHIPPED", "IN_TRANSIT", "DELIVERED"] } },
   });
   if (deliveredCount !== 1) return;
 

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { bitrixGet } from "@/lib/bitrix";
 import { rateLimit } from "@/lib/rate-limit";
-import { accrueOrderBonus, revertOrderBonusOnCancel } from "@/lib/bonus";
+import { accrueOrderBonus, revertOrderBonusOnCancel, PAID_STATUSES } from "@/lib/bonus";
 import type { OrderStatus, Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ function clientIp(req: NextRequest): string {
 }
 
 /**
- * Бонусы при смене статуса из Битрикс24: начисление при DELIVERED,
+ * Бонусы при смене статуса из Битрикс24: начисление на первом «оплаченном» статусе,
  * возврат при CANCELLED. Вызывается ПОСЛЕ updateMany по тем же заказам.
  * Идемпотентность — внутри хелперов (флаги bonusAccrued / bonusSpentKopecks),
  * поэтому повторные вебхуки и заказы, уже бывшие в этом статусе, безопасны.
@@ -31,14 +31,14 @@ async function applyBonusForStatus(
   status: OrderStatus,
   bonusPercent: number,
 ): Promise<void> {
-  if (status !== "DELIVERED" && status !== "CANCELLED") return;
+  if (!PAID_STATUSES.includes(status) && status !== "CANCELLED") return;
   const orders = await prisma.order.findMany({
     where: { ...where, status, customerId: { not: null } },
     select: { id: true },
   });
   for (const { id } of orders) {
     await prisma.$transaction(async (tx) => {
-      if (status === "DELIVERED") await accrueOrderBonus(tx, id, bonusPercent);
+      if (PAID_STATUSES.includes(status)) await accrueOrderBonus(tx, id, bonusPercent);
       else await revertOrderBonusOnCancel(tx, id);
     });
   }

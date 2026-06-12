@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
 import { syncOrderToBitrix } from "@/lib/bitrix";
 import { getSettings } from "@/lib/settings";
-import { accrueOrderBonus, revertOrderBonusOnCancel } from "@/lib/bonus";
+import { accrueOrderBonus, revertOrderBonusOnCancel, PAID_STATUSES } from "@/lib/bonus";
 import type { OrderStatus } from "@prisma/client";
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
@@ -24,7 +24,8 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
     await tx.order.update({ where: { id }, data: { status } });
 
     // Бонусы: начисляем при доставке (однократно — по флагу bonusAccrued).
-    if (status === "DELIVERED") {
+    // Начисление — на первом «оплаченном» статусе (идемпотентно по bonusAccrued)
+    if (PAID_STATUSES.includes(status)) {
       await accrueOrderBonus(tx, id, settings.bonusPercent);
     }
 

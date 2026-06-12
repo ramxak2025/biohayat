@@ -3,5 +3,8 @@ import { destroySession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   await destroySession();
-  return NextResponse.redirect(new URL("/admin/login", req.url));
+  // База редиректа — из NEXT_PUBLIC_SITE_URL: за реверс-прокси req.url
+  // указывает на localhost:3000, и выход «скидывал» на localhost.
+  const base = process.env.NEXT_PUBLIC_SITE_URL || req.url;
+  return NextResponse.redirect(new URL("/admin/login", base));
 }
