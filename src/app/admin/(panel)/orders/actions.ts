@@ -4,10 +4,13 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { syncOrderToBitrix } from "@/lib/bitrix";
+import { getSettings } from "@/lib/settings";
+import { accrueOrderBonus, revertOrderBonusOnCancel } from "@/lib/bonus";
 import type { OrderStatus } from "@prisma/client";
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
   await requireSession();
+  const settings = await getSettings();
   let restocked = false;
   await prisma.$transaction(async (tx) => {
     // Текущий статус читаем внутри транзакции: возврат остатков делаем только
@@ -20,7 +23,15 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
 
     await tx.order.update({ where: { id }, data: { status } });
 
+    // Бонусы: начисляем при доставке (однократно — по флагу bonusAccrued).
+    if (status === "DELIVERED") {
+      await accrueOrderBonus(tx, id, settings.bonusPercent);
+    }
+
     if (status !== "CANCELLED" || order.status === "CANCELLED") return;
+
+    // Бонусы: возвращаем списанные и снимаем начисленные (однократно).
+    await revertOrderBonusOnCancel(tx, id);
 
     // Возвращаем остатки позиций отменённого заказа (только товарам
     // с включённым учётом: stockQty != null).

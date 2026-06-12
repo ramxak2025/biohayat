@@ -7,6 +7,7 @@ import { AuthForms } from "./auth-forms";
 import { AccountShell } from "@/components/account/account-shell";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
+import { formatMoney } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export default async function AccountPage() {
 
   const today = toDayStr(new Date());
 
-  const [ordersCount, favCount, addressesCount, activePlans, takenTodayRaw] = await Promise.all([
+  const [ordersCount, favCount, addressesCount, activePlans, takenTodayRaw, customer] = await Promise.all([
     prisma.order.count({ where: { customerId: session.sub } }),
     prisma.favorite.count({ where: { customerId: session.sub } }),
     prisma.customerAddress.count({ where: { customerId: session.sub } }),
@@ -68,9 +69,14 @@ export default async function AccountPage() {
     prisma.intakeLog.count({
       where: { day: today, plan: { customerId: session.sub, isActive: true } },
     }),
+    prisma.customer.findUnique({
+      where: { id: session.sub },
+      select: { bonusKopecks: true },
+    }),
   ]);
 
   const plansCount = activePlans.length;
+  const bonusKopecks = customer?.bonusKopecks ?? 0;
 
   // Сколько приёмов запланировано на сегодня: суммируем слоты курсов,
   // чьё окно (startDate … startDate + durationDays − 1) включает сегодня.
@@ -119,6 +125,12 @@ export default async function AccountPage() {
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-extrabold">{session.name}</h1>
           <p className="tnum mt-0.5 text-sm text-ink-faint">{formatPhone(session.phone)}</p>
+          <Link
+            href="/account/bonuses"
+            className="tnum mt-1.5 inline-flex max-w-full items-center gap-1 rounded-full bg-accent-50 px-2.5 py-1 text-xs font-bold text-accent-700 ring-1 ring-line transition hover:bg-accent-100 active:scale-[0.97]"
+          >
+            🪙 {formatMoney(bonusKopecks)} бонусов
+          </Link>
         </div>
         <Link
           href="/account/profile"

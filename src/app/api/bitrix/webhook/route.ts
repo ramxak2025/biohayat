@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { bitrixGet } from "@/lib/bitrix";
 import { rateLimit } from "@/lib/rate-limit";
-import type { OrderStatus } from "@prisma/client";
+import { accrueOrderBonus, revertOrderBonusOnCancel } from "@/lib/bonus";
+import type { OrderStatus, Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,30 @@ function clientIp(req: NextRequest): string {
   const fwd = req.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0].trim();
   return req.headers.get("x-real-ip") || "unknown";
+}
+
+/**
+ * Бонусы при смене статуса из Битрикс24: начисление при DELIVERED,
+ * возврат при CANCELLED. Вызывается ПОСЛЕ updateMany по тем же заказам.
+ * Идемпотентность — внутри хелперов (флаги bonusAccrued / bonusSpentKopecks),
+ * поэтому повторные вебхуки и заказы, уже бывшие в этом статусе, безопасны.
+ */
+async function applyBonusForStatus(
+  where: Prisma.OrderWhereInput,
+  status: OrderStatus,
+  bonusPercent: number,
+): Promise<void> {
+  if (status !== "DELIVERED" && status !== "CANCELLED") return;
+  const orders = await prisma.order.findMany({
+    where: { ...where, status, customerId: { not: null } },
+    select: { id: true },
+  });
+  for (const { id } of orders) {
+    await prisma.$transaction(async (tx) => {
+      if (status === "DELIVERED") await accrueOrderBonus(tx, id, bonusPercent);
+      else await revertOrderBonusOnCancel(tx, id);
+    });
+  }
 }
 
 /** Токен из Authorization: Bearer или ?token= (обратная совместимость). */
@@ -84,6 +109,7 @@ export async function POST(req: NextRequest) {
           where: { ...where, status: { not: status as OrderStatus } },
           data: { status: status as OrderStatus },
         });
+        await applyBonusForStatus(where, status as OrderStatus, settings.bonusPercent);
         return NextResponse.json({ ok: true, updated: updated.count });
       }
       return NextResponse.json({ error: "invalid status" }, { status: 400 });
@@ -116,6 +142,7 @@ export async function POST(req: NextRequest) {
         },
         data: { status, bitrixDealId: entityId },
       });
+      await applyBonusForStatus({ bitrixDealId: entityId }, status, settings.bonusPercent);
       return NextResponse.json({ ok: true, updated: updated.count, status });
     }
 
@@ -131,6 +158,7 @@ export async function POST(req: NextRequest) {
         where: { bitrixLeadId: entityId, status: { not: status } },
         data: { status },
       });
+      await applyBonusForStatus({ bitrixLeadId: entityId }, status, settings.bonusPercent);
       return NextResponse.json({ ok: true, updated: updated.count, status });
     }
 

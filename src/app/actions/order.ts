@@ -159,6 +159,12 @@ export async function submitOrder(
   const referer = (await headers()).get("referer") || undefined;
   const session = await getCustomerSession();
 
+  // Бонусные баллы (1 балл = 1 копейка): сколько клиент попросил списать.
+  // Сервер сам ограничит балансом и 50% суммы заказа после промокод-скидки.
+  const bonusSpendRaw = Number(formData.get("bonusSpend") || 0);
+  const bonusSpendRequested =
+    session && Number.isFinite(bonusSpendRaw) ? Math.max(0, Math.floor(bonusSpendRaw)) : 0;
+
   // Позиции с включённым учётом остатков (stockQty != null) — для списания.
   const trackedItems = items.filter(
     (i) => i.productId !== null && priceById.get(i.productId)?.stockQty != null,
@@ -206,16 +212,40 @@ export async function submitOrder(
         });
       }
 
-      return tx.order.create({
+      // Списание бонусных баллов: clamp по балансу и 50% суммы после промокода.
+      // decrement через updateMany с условием gte — защита от гонки двух заказов
+      // на один баланс; при неудаче оформляем заказ без списания.
+      let bonusSpentKopecks = 0;
+      if (session && bonusSpendRequested > 0) {
+        const customer = await tx.customer.findUnique({
+          where: { id: session.sub },
+          select: { bonusKopecks: true },
+        });
+        bonusSpentKopecks = Math.min(
+          bonusSpendRequested,
+          Math.max(0, customer?.bonusKopecks ?? 0),
+          Math.floor(totalKopecks / 2),
+        );
+        if (bonusSpentKopecks > 0) {
+          const debited = await tx.customer.updateMany({
+            where: { id: session.sub, bonusKopecks: { gte: bonusSpentKopecks } },
+            data: { bonusKopecks: { decrement: bonusSpentKopecks } },
+          });
+          if (debited.count === 0) bonusSpentKopecks = 0;
+        }
+      }
+
+      const created = await tx.order.create({
         data: {
           customerName: data.customerName.trim(),
           phone: data.phone.trim(),
           email: data.email || null,
           address: data.address || null,
           comment: data.comment || null,
-          totalKopecks,
+          totalKopecks: Math.max(0, totalKopecks - bonusSpentKopecks),
           promoCode: promo?.code ?? null,
           discountKopecks,
+          bonusSpentKopecks,
           consentGiven: true,
           consentAt: new Date(),
           source: referer ? "Сайт biohayat.ru" : "Сайт",
@@ -223,6 +253,20 @@ export async function submitOrder(
           items: { create: items },
         },
       });
+
+      // Запись в историю бонусов — после создания заказа (нужен orderId).
+      if (session && bonusSpentKopecks > 0) {
+        await tx.bonusTransaction.create({
+          data: {
+            customerId: session.sub,
+            amountKopecks: -bonusSpentKopecks,
+            reason: "redeem",
+            orderId: created.id,
+          },
+        });
+      }
+
+      return created;
     })
     .catch((e: unknown) => {
       if (e instanceof StockError) {

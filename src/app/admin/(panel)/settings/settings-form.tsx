@@ -64,6 +64,26 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         />
       </Section>
 
+      <Section
+        title="Бонусная программа"
+        hint="Баллы начисляются после доставки заказа: 1 балл = 1 копейка. 0 — программа отключена."
+      >
+        <div>
+          <Label htmlFor="bonusPercent">Процент бонусов от заказа</Label>
+          <Input
+            id="bonusPercent"
+            name="bonusPercent"
+            type="number"
+            min={0}
+            max={50}
+            step={1}
+            defaultValue={String(settings.bonusPercent)}
+            className="max-w-40"
+          />
+          <p className="mt-1 text-xs text-ink-faint">От 0 до 50%. Списать в заказе можно не больше 50% его суммы.</p>
+        </div>
+      </Section>
+
       <Section title="Интеграция с Битрикс24" hint="Заявки с сайта будут создаваться лидами в CRM.">
         <label className="flex items-center gap-2.5 text-sm font-medium">
           <Checkbox name="bitrixEnabled" defaultChecked={settings.bitrixEnabled} /> Включить интеграцию

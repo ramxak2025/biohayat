@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import {
-  CheckCircle2, ArrowRight, Loader2, Tag, X, MapPin, Plus, Package, User, MessageSquare,
+  CheckCircle2, ArrowRight, Loader2, Tag, X, MapPin, Plus, Package, User, MessageSquare, Coins,
 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -120,10 +120,12 @@ export function CheckoutForm({
   loggedIn,
   addresses,
   defaults,
+  bonusBalanceKopecks = 0,
 }: {
   loggedIn: boolean;
   addresses: SavedAddress[];
   defaults: { name?: string; phone?: string; email?: string };
+  bonusBalanceKopecks?: number;
 }) {
   const { items, totalKopecks, clear, ready } = useCart();
   const [state, formAction] = useActionState(submitOrder, initial);
@@ -167,6 +169,9 @@ export function CheckoutForm({
     });
   }
 
+  // ── бонусные баллы (1 балл = 1 копейка; вводим в рублях) ──
+  const [bonusInput, setBonusInput] = useState("");
+
   // ── сохранённые адреса ──
   const defaultAddressId = addresses[0]?.id ?? "new";
   const [addressId, setAddressId] = useState<string>(defaultAddressId);
@@ -201,7 +206,18 @@ export function CheckoutForm({
   }
 
   const discountKopecks = promo ? Math.min(promo.discountKopecks, totalKopecks) : 0;
-  const finalKopecks = Math.max(0, totalKopecks - discountKopecks);
+  const afterPromoKopecks = Math.max(0, totalKopecks - discountKopecks);
+
+  // Списание бонусов: не больше баланса и не больше 50% суммы после промокода.
+  // Сервер всё равно перепроверит и обрежет (submitOrder).
+  const showBonus = loggedIn && bonusBalanceKopecks > 0;
+  const maxBonusKopecks = showBonus
+    ? Math.min(bonusBalanceKopecks, Math.floor(afterPromoKopecks / 2))
+    : 0;
+  const requestedBonusKopecks = Math.round((Number(bonusInput.replace(",", ".")) || 0) * 100);
+  const bonusSpendKopecks = Math.min(Math.max(0, requestedBonusKopecks), maxBonusKopecks);
+
+  const finalKopecks = Math.max(0, afterPromoKopecks - bonusSpendKopecks);
 
   return (
     <Container className="py-6 sm:py-8">
@@ -235,6 +251,9 @@ export function CheckoutForm({
           )}
         />
         {promo ? <input type="hidden" name="promoCode" value={promo.code} /> : null}
+        {bonusSpendKopecks > 0 ? (
+          <input type="hidden" name="bonusSpend" value={bonusSpendKopecks} />
+        ) : null}
         <input type="hidden" name="address" value={addressValue} />
 
         <div className="space-y-4">
@@ -434,6 +453,49 @@ export function CheckoutForm({
             )}
             <FieldError>{promoError ?? state.fieldErrors?.promoCode}</FieldError>
           </FormSection>
+
+          {/* ── Бонусные баллы (только для залогиненных с балансом) ── */}
+          {showBonus ? (
+            <FormSection title="Списать баллы" icon={<Coins className="h-4 w-4" aria-hidden />}>
+              <p className="text-sm text-ink-muted">
+                У вас <span className="tnum font-bold text-ink">{formatMoney(bonusBalanceKopecks)}</span> бонусов.
+                Можно оплатить до 50% заказа — сейчас это{" "}
+                <span className="tnum font-semibold">{formatMoney(maxBonusKopecks)}</span>.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Label htmlFor="bonusSpendRub" className="sr-only">Сумма списания, ₽</Label>
+                <Input
+                  id="bonusSpendRub"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={maxBonusKopecks / 100}
+                  step="0.01"
+                  placeholder="0"
+                  value={bonusInput}
+                  onChange={(e) => setBonusInput(e.target.value)}
+                  onBlur={() => {
+                    // Приводим к фактически применяемой сумме (clamp по максимуму).
+                    setBonusInput(bonusSpendKopecks > 0 ? String(bonusSpendKopecks / 100) : "");
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={maxBonusKopecks <= 0}
+                  onClick={() => setBonusInput(String(maxBonusKopecks / 100))}
+                  className="shrink-0"
+                >
+                  Списать максимум
+                </Button>
+              </div>
+              {bonusSpendKopecks > 0 ? (
+                <p className="mt-2 text-xs text-ink-faint">
+                  Спишем <span className="tnum font-semibold text-brand-700">{formatMoney(bonusSpendKopecks)}</span> при оформлении заказа.
+                </p>
+              ) : null}
+            </FormSection>
+          ) : null}
         </div>
 
         {/* ── Ваш заказ ── */}
@@ -466,6 +528,12 @@ export function CheckoutForm({
                 <span className="tnum font-semibold text-brand-700">−{formatMoney(discountKopecks)}</span>
               </div>
             ) : null}
+            {bonusSpendKopecks > 0 ? (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-ink-muted">Бонусы</span>
+                <span className="tnum font-semibold text-brand-700">−{formatMoney(bonusSpendKopecks)}</span>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between pt-1">
               <span className="font-bold">Итого</span>
               <span className="tnum text-xl font-extrabold">{formatMoney(finalKopecks)}</span>
@@ -487,6 +555,12 @@ export function CheckoutForm({
             <div className="mb-1 flex items-center justify-between text-xs text-ink-muted">
               <span>Скидка по промокоду</span>
               <span className="tnum font-semibold text-brand-700">−{formatMoney(discountKopecks)}</span>
+            </div>
+          ) : null}
+          {bonusSpendKopecks > 0 ? (
+            <div className="mb-1 flex items-center justify-between text-xs text-ink-muted">
+              <span>Бонусы</span>
+              <span className="tnum font-semibold text-brand-700">−{formatMoney(bonusSpendKopecks)}</span>
             </div>
           ) : null}
           <div className="mb-3 flex items-center justify-between">

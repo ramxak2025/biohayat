@@ -15,11 +15,12 @@ export default async function CheckoutPage() {
 
   let addresses: SavedAddress[] = [];
   let defaults: { name?: string; phone?: string; email?: string } = {};
+  let bonusBalanceKopecks = 0;
   if (session) {
     const [customer, saved] = await Promise.all([
       prisma.customer.findUnique({
         where: { id: session.sub },
-        select: { name: true, phone: true, email: true },
+        select: { name: true, phone: true, email: true, bonusKopecks: true },
       }),
       prisma.customerAddress.findMany({
         where: { customerId: session.sub },
@@ -33,7 +34,15 @@ export default async function CheckoutPage() {
       phone: customer?.phone,
       email: customer?.email ?? undefined,
     };
+    bonusBalanceKopecks = customer?.bonusKopecks ?? 0;
   }
 
-  return <CheckoutForm loggedIn={Boolean(session)} addresses={addresses} defaults={defaults} />;
+  return (
+    <CheckoutForm
+      loggedIn={Boolean(session)}
+      addresses={addresses}
+      defaults={defaults}
+      bonusBalanceKopecks={bonusBalanceKopecks}
+    />
+  );
 }

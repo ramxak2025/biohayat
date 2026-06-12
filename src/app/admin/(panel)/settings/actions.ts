@@ -28,6 +28,11 @@ export async function updateSettings(_prev: SettingsState, fd: FormData): Promis
   await requireAdmin();
 
   const freeDeliveryRub = Number(fd.get("freeDeliveryRub") || 0);
+  // Процент бонусов от суммы заказа: целое число 0..50.
+  const bonusPercentRaw = Number(fd.get("bonusPercent"));
+  const bonusPercent = Number.isFinite(bonusPercentRaw)
+    ? Math.min(50, Math.max(0, Math.round(bonusPercentRaw)))
+    : 5;
 
   try {
     await prisma.siteSettings.upsert({
@@ -48,6 +53,7 @@ export async function updateSettings(_prev: SettingsState, fd: FormData): Promis
         ogrn: str(fd, "ogrn"),
         legalAddress: str(fd, "legalAddress"),
         freeDeliveryThresholdKopecks: rubToKopecks(freeDeliveryRub),
+        bonusPercent,
         bitrixWebhookUrl: str(fd, "bitrixWebhookUrl"),
         bitrixEnabled: fd.get("bitrixEnabled") === "on",
         bitrixChatCode: str(fd, "bitrixChatCode"),

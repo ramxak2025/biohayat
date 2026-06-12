@@ -378,6 +378,13 @@ model Customer {
   // Бонусный баланс в копейках (1 балл = 1 копейка для простоты расчётов)
   bonusKopecks Int @default(0)
 
+  // Реферальная программа
+  referralCode String? // персональный код приглашения (уникальность — в коде)
+  // (уникальность не через @unique, чтобы db:push в автодеплое не требовал --accept-data-loss)
+  referredById String? // кто пригласил
+  referredBy   Customer?  @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals    Customer[] @relation("Referrals")
+
   @@index([createdAt])
 }
 
@@ -543,4 +550,25 @@ model BonusTransaction {
   createdAt     DateTime @default(now())
 
   @@index([customerId, createdAt])
+}
+
+// ─────────────────────────────────────────────
+//  Сторис на главной (кружки, как в приложениях)
+// ─────────────────────────────────────────────
+model Story {
+  id        String   @id @default(cuid())
+  title     String // подпись под кружком
+  cover     String? // изображение-обложка кружка
+  image     String? // картинка контента сторис
+  text      String?  @db.Text // текст поверх/под картинкой
+  link      String? // куда ведёт кнопка
+  ctaLabel  String? // текст кнопки
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
 }
