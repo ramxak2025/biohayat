@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCustomer } from "@/lib/customer-auth";
 import { syncConsultationToBitrix } from "@/lib/bitrix";
 import { normalizePhone } from "@/lib/utils";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type ConsultationState = { ok?: boolean; error?: string };
 
@@ -14,6 +15,11 @@ export async function submitConsultation(
   fd: FormData,
 ): Promise<ConsultationState> {
   const session = await requireCustomer();
+
+  // Антиспам: не более 3 заявок на консультацию в час на клиента.
+  if (!rateLimit(`consult:${session.sub}`, 3, 60 * 60 * 1000)) {
+    return { error: "Слишком много заявок. Попробуйте позже — не более 3 заявок в час." };
+  }
 
   const name = String(fd.get("name") || "").trim() || session.name;
   const phoneRaw = String(fd.get("phone") || "").trim() || session.phone;

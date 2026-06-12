@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { rewardReferralOnFirstOrder } from "@/lib/referral";
 
 /**
  * Бонусные баллы (1 балл = 1 копейка): начисление за доставленный заказ
@@ -15,30 +16,35 @@ type Tx = Prisma.TransactionClient;
  * флаг bonusAccrued «занимается» атомарным updateMany.
  */
 export async function accrueOrderBonus(tx: Tx, orderId: string, bonusPercent: number): Promise<void> {
-  if (bonusPercent <= 0) return;
+  if (bonusPercent > 0) {
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, bonusAccrued: false, customerId: { not: null } },
+      data: { bonusAccrued: true },
+    });
+    if (claimed.count > 0) {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: { customerId: true, totalKopecks: true },
+      });
+      if (order?.customerId) {
+        const amount = Math.round((order.totalKopecks * bonusPercent) / 100);
+        if (amount > 0) {
+          await tx.customer.update({
+            where: { id: order.customerId },
+            data: { bonusKopecks: { increment: amount } },
+          });
+          await tx.bonusTransaction.create({
+            data: { customerId: order.customerId, amountKopecks: amount, reason: "order", orderId },
+          });
+        }
+      }
+    }
+  }
 
-  const claimed = await tx.order.updateMany({
-    where: { id: orderId, bonusAccrued: false, customerId: { not: null } },
-    data: { bonusAccrued: true },
-  });
-  if (claimed.count === 0) return;
-
-  const order = await tx.order.findUnique({
-    where: { id: orderId },
-    select: { customerId: true, totalKopecks: true },
-  });
-  if (!order?.customerId) return;
-
-  const amount = Math.round((order.totalKopecks * bonusPercent) / 100);
-  if (amount <= 0) return;
-
-  await tx.customer.update({
-    where: { id: order.customerId },
-    data: { bonusKopecks: { increment: amount } },
-  });
-  await tx.bonusTransaction.create({
-    data: { customerId: order.customerId, amountKopecks: amount, reason: "order", orderId },
-  });
+  // Реферальный бонус обоим за первый доставленный заказ приглашённого.
+  // Своя идемпотентность (отсутствие прежней referral-транзакции + count
+  // доставленных == 1), поэтому безопасно при любом bonusPercent и повторах.
+  await rewardReferralOnFirstOrder(tx, orderId);
 }
 
 /**

@@ -2,14 +2,14 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireAdmin } from "@/lib/auth";
 import { syncOrderToBitrix } from "@/lib/bitrix";
 import { getSettings } from "@/lib/settings";
 import { accrueOrderBonus, revertOrderBonusOnCancel } from "@/lib/bonus";
 import type { OrderStatus } from "@prisma/client";
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   const settings = await getSettings();
   let restocked = false;
   await prisma.$transaction(async (tx) => {

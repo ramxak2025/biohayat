@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { rubToKopecks } from "@/lib/utils";
 import type { DiscountType } from "@prisma/client";
 
@@ -62,7 +62,7 @@ function revalidatePromo() {
 }
 
 export async function createPromoCode(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireSession();
+  await requireAdmin();
   const { parsed, flags } = parse(formData);
   if (!parsed.success) {
     return { error: "Проверьте поля формы", fieldErrors: fieldErrors(parsed.error) };
@@ -80,7 +80,7 @@ export async function createPromoCode(_prev: FormState, formData: FormData): Pro
 }
 
 export async function updatePromoCode(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireSession();
+  await requireAdmin();
   const { parsed, flags } = parse(formData);
   if (!parsed.success) {
     return { error: "Проверьте поля формы", fieldErrors: fieldErrors(parsed.error) };
@@ -99,7 +99,7 @@ export async function updatePromoCode(id: string, _prev: FormState, formData: Fo
 
 /** Быстрая активация/деактивация из списка. */
 export async function togglePromoCodeActive(id: string, isActive: boolean): Promise<void> {
-  await requireSession();
+  await requireAdmin();
   await prisma.promoCode.update({ where: { id }, data: { isActive } });
   revalidatePromo();
 }

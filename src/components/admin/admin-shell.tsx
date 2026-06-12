@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  LayoutDashboard, Package, FolderTree, Image as ImageIcon,
+  LayoutDashboard, Package, FolderTree, Image as ImageIcon, CirclePlay,
   FileText, ClipboardList, Settings, LogOut, Menu, X, ExternalLink,
   Users, FlaskConical, TicketPercent, Star,
 } from "lucide-react";
@@ -17,6 +17,7 @@ const nav = [
   { href: "/admin/products", label: "Товары", icon: Package },
   { href: "/admin/categories", label: "Категории", icon: FolderTree },
   { href: "/admin/banners", label: "Баннеры", icon: ImageIcon },
+  { href: "/admin/stories", label: "Сторис", icon: CirclePlay },
   { href: "/admin/materials", label: "Материалы", icon: FileText },
   { href: "/admin/reviews", label: "Отзывы", icon: Star },
   { href: "/admin/promocodes", label: "Промокоды", icon: TicketPercent },

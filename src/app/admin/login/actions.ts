@@ -11,12 +11,19 @@ export async function loginAction(
 ): Promise<LoginState> {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
-  const next = String(formData.get("next") || "/admin");
+  const nextRaw = String(formData.get("next") || "/admin");
   if (!email || !password) return { error: "Введите e-mail и пароль" };
 
   const ok = await authenticate(email, password);
   if (!ok) return { error: "Неверный e-mail или пароль" };
 
+  // Защита от открытого редиректа: только внутренние пути /admin/*.
+  // Отсекаем "//" (protocol-relative), обратные слеши и пути вне /admin.
+  const safeNext =
+    nextRaw.startsWith("/admin") && !nextRaw.startsWith("//") && !nextRaw.includes("\\")
+      ? nextRaw
+      : "/admin";
+
   // Сессия записана в cookie — переходим в админку.
-  redirect(next.startsWith("/admin") ? next : "/admin");
+  redirect(safeNext);
 }

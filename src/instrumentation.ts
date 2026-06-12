@@ -32,6 +32,17 @@ function mskDay(date: Date): string {
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
+  // Проверка критичного секрета сессий при старте. НЕ бросаем (чтобы не ронять
+  // контейнер целиком), но громко предупреждаем — без секрета авторизация
+  // админки/ЛК работать не будет либо станет небезопасной.
+  const authSecret = process.env.AUTH_SECRET;
+  if (!authSecret || authSecret.length < 16) {
+    console.error(
+      "[security] AUTH_SECRET не задан или короче 16 символов! " +
+        "Сессии админки и ЛК небезопасны. Задайте надёжный AUTH_SECRET в окружении.",
+    );
+  }
+
   // Динамический импорт: prisma и web-push должны грузиться только в nodejs-рантайме.
   const { prisma } = await import("@/lib/prisma");
   const { ensureVapidKeys, sendPushToCustomer } = await import("@/lib/push");

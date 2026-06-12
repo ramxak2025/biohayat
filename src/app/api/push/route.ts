@@ -4,6 +4,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCustomerSession } from "@/lib/customer-auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,10 @@ interface SubscriptionBody {
 export async function POST(req: NextRequest) {
   const session = await getCustomerSession();
   if (!session) return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 });
+
+  if (!rateLimit(`push:${session.sub}`, 30, 60_000)) {
+    return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
+  }
 
   let body: SubscriptionBody;
   try {
@@ -46,6 +51,10 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await getCustomerSession();
   if (!session) return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 });
+
+  if (!rateLimit(`push:${session.sub}`, 30, 60_000)) {
+    return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
+  }
 
   let endpoint: string | undefined;
   try {

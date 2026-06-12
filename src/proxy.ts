@@ -29,6 +29,18 @@ async function isValidSession(token: string | undefined): Promise<boolean> {
 const CUSTOMER_COOKIE = "hayat_customer";
 const AUTH_FLAG_COOKIE = "hayat_auth";
 
+/**
+ * Безопасный относительный путь для редиректа: только внутренние пути.
+ * Отсекаем открытый редирект — путь должен начинаться с одного "/",
+ * но не с "//" (protocol-relative) и не содержать обратный слеш.
+ */
+function safeNextPath(path: string | null | undefined, fallback: string): string {
+  if (!path || !path.startsWith("/") || path.startsWith("//") || path.includes("\\")) {
+    return fallback;
+  }
+  return path;
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -68,7 +80,9 @@ export async function proxy(req: NextRequest) {
   // Остальные /admin/* требуют авторизации.
   if (!valid) {
     const url = new URL("/admin/login", req.url);
-    url.searchParams.set("next", pathname);
+    // pathname всегда внутренний, но прогоняем через safeNextPath на случай
+    // экзотических значений — открытый редирект исключён на стороне логина.
+    url.searchParams.set("next", safeNextPath(pathname, "/admin"));
     return NextResponse.redirect(url);
   }
 

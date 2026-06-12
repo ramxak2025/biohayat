@@ -475,3 +475,28 @@ const getCachedMaterialsForProduct = unstable_cache(
 export async function getMaterialsForProduct(product: { goals: string[] }) {
   return reviveDates(await getCachedMaterialsForProduct([...product.goals].sort()));
 }
+
+/* ─────────── Сторис на главной ─────────── */
+
+const getCachedStories = unstable_cache(
+  () =>
+    prisma.story.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ["stories"],
+  { tags: ["content"], revalidate: 120 },
+);
+
+/** Активные сторис с учётом окна показа (startsAt/endsAt). */
+export async function getActiveStories() {
+  const now = Date.now();
+  const all = reviveDates(await getCachedStories());
+  return all.filter(
+    (s) =>
+      (!s.startsAt || s.startsAt.getTime() <= now) &&
+      (!s.endsAt || s.endsAt.getTime() >= now),
+  );
+}
+
+export type StoryData = Awaited<ReturnType<typeof getActiveStories>>[number];

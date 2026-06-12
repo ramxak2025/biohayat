@@ -10,6 +10,7 @@ import {
 } from "@/lib/customer-auth";
 import { rateLimit, rateLimitRetryAfter } from "@/lib/rate-limit";
 import { normalizePhone } from "@/lib/utils";
+import { applyReferral } from "@/lib/referral";
 
 export type AuthState = { error?: string };
 
@@ -81,6 +82,20 @@ export async function updateProfile(_prev: ProfileState, fd: FormData): Promise<
   });
   revalidatePath("/account");
   revalidatePath("/account/profile");
+  return { ok: true };
+}
+
+// ─────────────────────────────────────────────
+//  Реферальная программа: активация кода друга
+// ─────────────────────────────────────────────
+export type ReferralState = { ok?: boolean; error?: string };
+
+export async function applyReferralCode(_prev: ReferralState, fd: FormData): Promise<ReferralState> {
+  const session = await requireCustomer();
+  const code = String(fd.get("code") || "");
+  const res = await applyReferral(session.sub, code);
+  if (!res.ok) return { error: res.error };
+  revalidatePath("/account/referral");
   return { ok: true };
 }
 

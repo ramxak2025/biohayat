@@ -54,7 +54,8 @@ export async function sendPushToCustomer(customerId: string, payload: PushPayloa
   if (subs.length === 0) return;
 
   const body = JSON.stringify(payload);
-  await Promise.all(
+  // allSettled: сбой одной подписки не должен отменять отправку остальным.
+  await Promise.allSettled(
     subs.map(async (sub) => {
       try {
         await webpush.sendNotification(

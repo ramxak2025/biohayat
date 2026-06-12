@@ -21,6 +21,37 @@ function buildEndpoint(webhookUrl: string, method: string): string {
   return `${base}${method}.json`;
 }
 
+/**
+ * SSRF-защита: вебхук Битрикс24 задаётся в админке, но даже доверенный ввод
+ * не должен указывать на localhost/приватные сети. Разрешаем только https
+ * и публичные хосты — иначе бросаем ошибку до выполнения fetch.
+ */
+function assertSafeBitrixUrl(rawUrl: string): void {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    throw new Error("Некорректный URL Битрикс24");
+  }
+  if (url.protocol !== "https:") {
+    throw new Error("URL Битрикс24 должен использовать https");
+  }
+  const host = url.hostname.toLowerCase();
+  const isPrivate =
+    host === "localhost" ||
+    host === "0.0.0.0" ||
+    host === "[::1]" ||
+    host === "::1" ||
+    /^127\./.test(host) ||
+    /^10\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^169\.254\./.test(host) ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host);
+  if (isPrivate) {
+    throw new Error("URL Битрикс24 указывает на приватную сеть — запрос заблокирован");
+  }
+}
+
 // Таймаут одного запроса и паузы между повторами (3 попытки: сразу, +1с, +3с).
 const FETCH_TIMEOUT_MS = 8000;
 const RETRY_DELAYS_MS = [1000, 3000];
@@ -34,6 +65,8 @@ function sleep(ms: number): Promise<void> {
  * Ошибки 4xx и логические ошибки Битрикс24 не ретраим — повтор не поможет.
  */
 async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  // SSRF-guard в общей точке всех запросов к Битрикс24.
+  assertSafeBitrixUrl(url);
   let lastError: unknown;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     if (attempt > 0) await sleep(RETRY_DELAYS_MS[attempt - 1]);

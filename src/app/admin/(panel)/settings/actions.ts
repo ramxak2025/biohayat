@@ -56,6 +56,10 @@ export async function updateSettings(_prev: SettingsState, fd: FormData): Promis
         bonusPercent,
         bitrixWebhookUrl: str(fd, "bitrixWebhookUrl"),
         bitrixEnabled: fd.get("bitrixEnabled") === "on",
+        // ВНИМАНИЕ: bitrixChatCode — произвольный JS-виджет Битрикс24, его
+        // НЕЛЬЗЯ прогонять через HTML-санитайзер (это сломает скрипт). XSS-риск
+        // снимается RBAC: задать виджет может только ADMIN (см. requireAdmin()
+        // в начале updateSettings). Рендер — src/components/site/chat-widget.tsx.
         bitrixChatCode: str(fd, "bitrixChatCode"),
         bitrixResponsibleId: str(fd, "bitrixResponsibleId"),
         bitrixWebhookToken: str(fd, "bitrixWebhookToken"),

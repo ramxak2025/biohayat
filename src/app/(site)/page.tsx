@@ -8,7 +8,8 @@ import { AudienceCards } from "@/components/site/audience-cards";
 import { SaleBanner } from "@/components/site/sale-banner";
 import { ProductCard, ProductGrid } from "@/components/product/product-card";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
-import { getNavCategories, getProducts, getBanners, getPublishedMaterials } from "@/lib/queries";
+import { getNavCategories, getProducts, getBanners, getPublishedMaterials, getActiveStories } from "@/lib/queries";
+import { Stories } from "@/components/site/stories";
 import type { ProductCardData } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
@@ -24,19 +25,29 @@ const LEAF_PATH =
   "M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z";
 
 export default async function HomePage() {
-  const [categories, featured, sale, heroBanners, materials, settings] = await Promise.all([
+  const [categories, featured, sale, heroBanners, materials, settings, stories] = await Promise.all([
     getNavCategories(),
     getProducts({ featured: true, take: 10 }),
     getProducts({ onSale: true, take: 5 }),
     getBanners("HERO"),
     getPublishedMaterials(3),
     getSettings(),
+    getActiveStories(),
   ]);
 
   const hero = heroBanners[0];
 
   return (
     <>
+      {/* ── Сторис (мобильный акцент): кружки над hero ── */}
+      {stories.length > 0 ? (
+        <Section className="pb-0 pt-3 lg:hidden">
+          <Container>
+            <Stories stories={stories} />
+          </Container>
+        </Section>
+      ) : null}
+
       {/* ── Hero: компактная премиальная карточка ── */}
       <Section className="pb-4 pt-4 sm:pb-6 sm:pt-8">
         <Container>

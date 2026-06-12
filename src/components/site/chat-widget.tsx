@@ -7,6 +7,12 @@ import { useEffect } from "react";
  * В админке (Настройки → Битрикс24) вставляется код виджета — здесь он
  * безопасно исполняется (script-теги из innerHTML сами не запускаются,
  * поэтому используем createContextualFragment).
+ *
+ * БЕЗОПАСНОСТЬ: `code` — доверенный произвольный JS-виджет, его НЕЛЬЗЯ
+ * санитизировать (сломается скрипт). Источник доверия — RBAC: значение
+ * задаётся только из настроек, доступных ADMIN (requireAdmin в
+ * src/app/admin/(panel)/settings/actions.ts). Не передавать сюда
+ * пользовательский ввод.
  */
 export function ChatWidget({ code }: { code?: string | null }) {
   useEffect(() => {
