@@ -10,6 +10,10 @@ import type { ProductCardData } from "@/lib/queries";
 export function ProductCard({ product }: { product: ProductCardData }) {
   const discount = discountPercent(product.priceKopecks, product.oldPriceKopecks);
   const image = product.images[0]?.url;
+  // stockQty === null — учёт остатков выключен, продаём как раньше.
+  const soldOut = !product.inStock || product.stockQty === 0;
+  const lowStock =
+    !soldOut && product.stockQty !== null && product.stockQty >= 1 && product.stockQty <= 5;
 
   return (
     <div className="group flex flex-col rounded-2xl bg-surface p-2 shadow-xs ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
@@ -30,7 +34,8 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         />
         <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
           {product.isFeatured ? <Badge tone="accent">хит</Badge> : null}
-          {!product.inStock ? <Badge tone="neutral">нет в наличии</Badge> : null}
+          {soldOut ? <Badge tone="neutral">нет в наличии</Badge> : null}
+          {lowStock ? <Badge tone="sale-soft">Осталось {product.stockQty} шт</Badge> : null}
         </div>
         <div className="absolute right-2 top-2">
           <FavoriteButton productId={product.id} />
@@ -81,6 +86,8 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         <AddToCartButton
           full
           size="sm"
+          inStock={!soldOut}
+          maxQty={product.stockQty ?? 99}
           item={{
             id: product.id,
             slug: product.slug,

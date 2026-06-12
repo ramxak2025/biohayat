@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Truck, ShieldCheck, Leaf } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, Leaf, Sparkles } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { CategoryTiles } from "@/components/site/category-tiles";
@@ -131,6 +131,36 @@ export default async function HomePage() {
             <SectionHeader title="Зачем" subtitle="Выберите по своей цели — мы подскажем" />
             <CollectionTiles variant="goal" />
           </div>
+
+          {/* ── CTA квиза: компактная карточка, на десктопе — баннер-полоса ── */}
+          <Link
+            href="/quiz"
+            className="group relative block overflow-hidden rounded-3xl bg-gradient-to-r from-brand-600 to-brand-500 p-5 text-white shadow-md transition hover:shadow-lg sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-6"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rotate-12 fill-white/[0.08] sm:right-32 sm:-top-10 sm:h-40 sm:w-40"
+            >
+              <path d={LEAF_PATH} />
+            </svg>
+            <span className="relative flex items-center gap-3 sm:gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15">
+                <Sparkles className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-base font-extrabold leading-tight sm:text-lg">
+                  Не знаете, что выбрать?
+                </span>
+                <span className="mt-0.5 block text-sm text-white/85">
+                  Подбор за 1 минуту — три коротких вопроса
+                </span>
+              </span>
+            </span>
+            <span className="relative mt-4 inline-flex h-11 items-center justify-center gap-1.5 rounded-full bg-white px-5 text-sm font-bold text-brand-700 shadow-sm transition group-hover:bg-white/90 sm:mt-0 sm:shrink-0">
+              Пройти подбор <ArrowRight className="h-4 w-4" aria-hidden />
+            </span>
+          </Link>
         </Container>
       </Section>
 

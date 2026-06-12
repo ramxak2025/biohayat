@@ -57,7 +57,13 @@ export default async function AccountPage() {
     prisma.customerAddress.count({ where: { customerId: session.sub } }),
     prisma.intakePlan.findMany({
       where: { customerId: session.sub, isActive: true },
-      select: { times: true, startDate: true, durationDays: true },
+      select: {
+        id: true,
+        times: true,
+        startDate: true,
+        durationDays: true,
+        product: { select: { name: true, slug: true, volume: true } },
+      },
     }),
     prisma.intakeLog.count({
       where: { day: today, plan: { customerId: session.sub, isActive: true } },
@@ -75,6 +81,33 @@ export default async function AccountPage() {
   }, 0);
   const takenToday = Math.min(takenTodayRaw, todayTotal);
   const progress = todayTotal > 0 ? Math.round((takenToday / todayTotal) * 100) : 0;
+
+  // «Банка заканчивается»: ёмкость берём из product.volume («60 капсул» → 60),
+  // расход в день — число слотов курса, принято — все отметки IntakeLog по плану.
+  const capacityRe = /(\d{2,4})\s*(капс|табл|шт)/i;
+  const candidates = activePlans.filter(
+    (p) => p.product && p.times.length > 0 && capacityRe.test(p.product.volume ?? ""),
+  );
+  let runningOut: { name: string; slug: string; daysLeft: number }[] = [];
+  if (candidates.length > 0) {
+    const takenByPlan = await prisma.intakeLog.groupBy({
+      by: ["planId"],
+      where: { planId: { in: candidates.map((p) => p.id) } },
+      _count: { _all: true },
+    });
+    const takenMap = new Map(takenByPlan.map((g) => [g.planId, g._count._all]));
+    runningOut = candidates
+      .flatMap((p) => {
+        const capacity = Number(capacityRe.exec(p.product!.volume!)![1]);
+        const perDay = p.times.length;
+        const left = capacity - (takenMap.get(p.id) ?? 0);
+        const daysLeft = Math.floor(left / perDay);
+        if (daysLeft > 7 || daysLeft <= -1) return [];
+        return [{ name: p.product!.name, slug: p.product!.slug, daysLeft }];
+      })
+      .sort((a, b) => a.daysLeft - b.daysLeft)
+      .slice(0, 2);
+  }
 
   return (
     <AccountShell name={session.name}>
@@ -143,6 +176,36 @@ export default async function AccountPage() {
           </div>
           <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-ink-muted" />
         </Link>
+      )}
+
+      {/* «Банка заканчивается»: прогноз по активным курсам с привязанным товаром */}
+      {runningOut.length > 0 && (
+        <div className="animate-fade-up mb-6 space-y-3" style={{ animationDelay: "90ms" }}>
+          {runningOut.map((r) => (
+            <div
+              key={r.slug}
+              className="flex items-center gap-4 rounded-2xl bg-accent-50 p-4 shadow-xs ring-1 ring-line sm:p-5"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-100 text-accent-700">
+                <PillBottle className="h-[22px] w-[22px]" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-extrabold leading-tight">{r.name}</div>
+                <div className="mt-0.5 text-xs text-ink-muted">
+                  {r.daysLeft <= 0
+                    ? "Заканчивается со дня на день"
+                    : `Закончится через ~${r.daysLeft} ${plural(r.daysLeft, ["день", "дня", "дней"])}`}
+                </div>
+              </div>
+              <Link
+                href={`/product/${r.slug}`}
+                className="shrink-0 rounded-full bg-surface px-4 py-2.5 text-sm font-bold text-accent-700 ring-1 ring-line transition hover:bg-accent-100 active:scale-[0.97]"
+              >
+                Заказать ещё
+              </Link>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Разделы — группы-списки как в настройках iOS */}

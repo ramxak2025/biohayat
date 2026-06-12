@@ -11,16 +11,25 @@ export function AddToCartButton({
   item,
   size = "md",
   full,
+  maxQty = 99,
+  inStock = true,
 }: {
   item: Omit<CartItem, "qty">;
   size?: "sm" | "md" | "lg";
   full?: boolean;
+  /** Максимум штук (остаток на складе); по умолчанию 99 — учёт выключен. */
+  maxQty?: number;
+  inStock?: boolean;
 }) {
   const { add, items, setQty } = useCart();
   const inCart = items.find((i) => i.id === item.id);
   const [justAdded, setJustAdded] = useState(false);
 
+  const max = Math.min(Math.max(maxQty, 0), 99);
+  const available = inStock && max > 0;
+
   if (inCart) {
+    const atMax = inCart.qty >= max;
     return (
       <div
         className={cn(
@@ -37,13 +46,31 @@ export function AddToCartButton({
         </button>
         <span className="min-w-8 text-center font-bold text-brand-700">{inCart.qty}</span>
         <button
-          onClick={() => add(item)}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-white shadow-xs transition hover:bg-brand-600"
+          onClick={() => {
+            if (atMax) {
+              toast.info(`Доступно только ${max} шт`, { description: item.name });
+              return;
+            }
+            add(item);
+          }}
+          disabled={atMax}
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-white shadow-xs transition hover:bg-brand-600",
+            atMax && "cursor-not-allowed opacity-50 hover:bg-brand-500",
+          )}
           aria-label="Увеличить"
         >
           <Plus className="h-4 w-4" />
         </button>
       </div>
+    );
+  }
+
+  if (!available) {
+    return (
+      <Button size={size} className={cn(full && "w-full")} disabled>
+        Нет в наличии
+      </Button>
     );
   }
 

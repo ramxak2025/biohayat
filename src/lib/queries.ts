@@ -5,6 +5,8 @@ import {
   GOAL_CATEGORY_ALIASES,
   AUDIENCE_CATEGORY_ALIASES,
   AXIS_DUPLICATE_CATEGORY_SLUGS,
+  GOALS,
+  AUDIENCES,
 } from "@/lib/taxonomy";
 
 /* ─────────── Data Cache ───────────
@@ -393,3 +395,83 @@ export async function getPurchasedProducts(customerId: string, take = 10) {
 }
 
 export type PurchasedProduct = Awaited<ReturnType<typeof getPurchasedProducts>>[number];
+
+/* ─────────── Кросс-линковка: статьи ↔ товары ─────────── */
+
+/**
+ * Товары, релевантные статье: текст материала (title+excerpt+content, lower)
+ * прогоняется по keywords осей таксономии; берётся первый совпавший goal
+ * (или audience), по нему — до 4 товаров (where повторяет loadProducts).
+ * Без совпадений — 4 хитов. Включает reviewStats → тег "reviews" тоже.
+ */
+const getCachedProductsForMaterial = unstable_cache(
+  async (materialSlug: string) => {
+    const material = await prisma.material.findUnique({ where: { slug: materialSlug } });
+    if (!material) return [];
+
+    const text = `${material.title} ${material.excerpt ?? ""} ${material.content}`.toLowerCase();
+    const goal = GOALS.find((g) => g.keywords.some((k) => text.includes(k)))?.slug;
+    const audience = goal
+      ? undefined
+      : AUDIENCES.find((a) => a.keywords.some((k) => text.includes(k)))?.slug;
+
+    const where = {
+      isActive: true,
+      AND: axisConditions({ goal, audience }),
+      // нет совпадений по осям — показываем хиты
+      ...(goal || audience ? {} : { isFeatured: true }),
+    };
+    const items = await prisma.product.findMany({
+      where,
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
+      take: 4,
+    });
+    return withReviewStats(items);
+  },
+  ["products-for-material"],
+  { tags: ["catalog", "content", "reviews"], revalidate: 300 },
+);
+
+/** Подборка «Подойдёт для этого» под статьёй (до 4 товаров). */
+export async function getProductsForMaterial(materialSlug: string) {
+  return reviveDates(await getCachedProductsForMaterial(materialSlug));
+}
+
+/**
+ * Статьи, релевантные товару: по целям товара собираем keywords из GOALS и
+ * ищем материалы, у которых title/excerpt содержит любую из них (take 3).
+ * Fallback — 3 свежих опубликованных. Ключ кэша — отсортированный список
+ * целей (стабильный для товаров с одинаковым набором).
+ */
+const getCachedMaterialsForProduct = unstable_cache(
+  async (goalSlugs: string[]) => {
+    const keywords = GOALS.filter((g) => goalSlugs.includes(g.slug)).flatMap((g) => g.keywords);
+    if (keywords.length > 0) {
+      const matched = await prisma.material.findMany({
+        where: {
+          isPublished: true,
+          OR: keywords.flatMap((k) => [
+            { title: { contains: k, mode: "insensitive" as const } },
+            { excerpt: { contains: k, mode: "insensitive" as const } },
+          ]),
+        },
+        orderBy: { publishedAt: "desc" },
+        take: 3,
+      });
+      if (matched.length > 0) return matched;
+    }
+    return prisma.material.findMany({
+      where: { isPublished: true },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+    });
+  },
+  ["materials-for-product"],
+  { tags: ["catalog", "content"], revalidate: 300 },
+);
+
+/** Статьи «Полезно почитать» для карточки товара (до 3). */
+export async function getMaterialsForProduct(product: { goals: string[] }) {
+  return reviveDates(await getCachedMaterialsForProduct([...product.goals].sort()));
+}

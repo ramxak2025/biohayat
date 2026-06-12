@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { headers } from "next/headers";
+import { revalidateTag } from "next/cache";
 import type { PromoCode } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { syncOrderToBitrix } from "@/lib/bitrix";
@@ -26,6 +27,9 @@ const orderSchema = z.object({
   consent: z.literal(true, { message: "Необходимо согласие на обработку персональных данных" }),
   items: z.array(itemSchema).min(1, "Корзина пуста"),
 });
+
+/** Недостаточно товара на складе (текст уже готов для показа пользователю). */
+class StockError extends Error {}
 
 export type OrderActionState = {
   ok: boolean;
@@ -118,7 +122,7 @@ export async function submitOrder(
   // Перепроверяем цены по БД (защита от подмены на клиенте).
   const products = await prisma.product.findMany({
     where: { id: { in: data.items.map((i) => i.id) } },
-    select: { id: true, name: true, priceKopecks: true },
+    select: { id: true, name: true, priceKopecks: true, stockQty: true },
   });
   const priceById = new Map(products.map((p) => [p.id, p]));
 
@@ -155,6 +159,13 @@ export async function submitOrder(
   const referer = (await headers()).get("referer") || undefined;
   const session = await getCustomerSession();
 
+  // Позиции с включённым учётом остатков (stockQty != null) — для списания.
+  const trackedItems = items.filter(
+    (i) => i.productId !== null && priceById.get(i.productId)?.stockQty != null,
+  );
+
+  let stockError: string | null = null;
+
   const order = await prisma
     .$transaction(async (tx) => {
       // Атомарно занимаем применение промокода: updateMany с условием по лимиту
@@ -169,6 +180,30 @@ export async function submitOrder(
           data: { usedCount: { increment: 1 } },
         });
         if (claimed.count === 0) throw new Error("PROMO_EXHAUSTED");
+      }
+
+      // Списание остатков: updateMany с условием stockQty >= qty атомарно
+      // защищает от гонки двух параллельных заказов на последние штуки.
+      // count === 0 — остатка не хватает, транзакция откатывается целиком.
+      for (const it of trackedItems) {
+        const decremented = await tx.product.updateMany({
+          where: { id: it.productId!, stockQty: { gte: it.qty } },
+          data: { stockQty: { decrement: it.qty } },
+        });
+        if (decremented.count === 0) {
+          const fresh = await tx.product.findUnique({
+            where: { id: it.productId! },
+            select: { stockQty: true },
+          });
+          throw new StockError(
+            `«${it.name}»: осталось всего ${Math.max(0, fresh?.stockQty ?? 0)} шт`,
+          );
+        }
+        // Остаток дошёл до нуля — снимаем флаг наличия.
+        await tx.product.updateMany({
+          where: { id: it.productId!, stockQty: { lte: 0 } },
+          data: { inStock: false },
+        });
       }
 
       return tx.order.create({
@@ -190,17 +225,31 @@ export async function submitOrder(
       });
     })
     .catch((e: unknown) => {
+      if (e instanceof StockError) {
+        stockError = e.message;
+        return null;
+      }
       if (e instanceof Error && e.message === "PROMO_EXHAUSTED") return null;
       throw e;
     });
 
   if (!order) {
+    if (stockError) {
+      return {
+        ok: false,
+        error: `${stockError}. Уменьшите количество в корзине и отправьте заказ ещё раз.`,
+      };
+    }
     return {
       ok: false,
       error: "Промокод только что исчерпан. Удалите его и отправьте заказ ещё раз.",
       fieldErrors: { promoCode: "Лимит применений промокода исчерпан" },
     };
   }
+
+  // Остатки изменились — сбрасываем кэш каталога, чтобы бейджи и «нет в наличии»
+  // на витрине не отставали (тот же тег, что в админских actions товаров).
+  if (trackedItems.length > 0) revalidateTag("catalog", { expire: 0 });
 
   // Сохранение адреса в ЛК (по галочке «Сохранить адрес»).
   if (session && formData.get("saveAddress") === "on" && data.address) {

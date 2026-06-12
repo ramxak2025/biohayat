@@ -122,6 +122,15 @@ export function ProductForm({
               </div>
             </div>
             <div>
+              <Label htmlFor="stockQty">Остаток на складе, шт</Label>
+              <Input id="stockQty" name="stockQty" type="number" min="0" step="1"
+                defaultValue={product?.stockQty ?? ""} placeholder="не отслеживать" />
+              <p className="mt-1 text-xs text-ink-faint">
+                Пустое поле — учёт остатков выключен, товар продаётся без ограничений
+              </p>
+              <FieldError>{state.fieldErrors?.stockQty}</FieldError>
+            </div>
+            <div>
               <Label htmlFor="badges">Бейджи (через запятую)</Label>
               <Input id="badges" name="badges" defaultValue={product?.badges.join(", ")} placeholder="хит, новинка" />
             </div>

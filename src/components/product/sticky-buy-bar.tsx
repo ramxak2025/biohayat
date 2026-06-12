@@ -16,11 +16,14 @@ export function StickyBuyBar({
   item,
   oldPriceKopecks,
   inStock = true,
+  maxQty = 99,
   targetId = "buy-area",
 }: {
   item: Omit<CartItem, "qty">;
   oldPriceKopecks?: number | null;
   inStock?: boolean;
+  /** Остаток на складе для лимита степпера (99 — учёт выключен). */
+  maxQty?: number;
   targetId?: string;
 }) {
   const [visible, setVisible] = useState(false);
@@ -67,7 +70,7 @@ export function StickyBuyBar({
           <div className="truncate text-xs text-ink-muted">{item.name}</div>
         </div>
         <div className="shrink-0">
-          <AddToCartButton item={item} size="md" />
+          <AddToCartButton item={item} size="md" maxQty={maxQty} />
         </div>
       </div>
     </div>

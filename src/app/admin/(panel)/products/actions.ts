@@ -22,6 +22,20 @@ const schema = z.object({
   contraindications: z.string().optional(),
   volume: z.string().optional(),
   sku: z.string().optional(),
+  // Остаток на складе: пустая строка → null (учёт выключен, продаём как раньше).
+  stockQty: z
+    .string()
+    .optional()
+    .transform((s, ctx) => {
+      const v = s?.trim();
+      if (!v) return null;
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 0) {
+        ctx.addIssue({ code: "custom", message: "Целое число от 0" });
+        return z.NEVER;
+      }
+      return n;
+    }),
   badges: z.string().optional(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
@@ -57,6 +71,7 @@ function buildData(d: z.infer<typeof schema>, flags: { inStock: boolean; isActiv
     contraindications: d.contraindications || null,
     volume: d.volume || null,
     sku: d.sku || null,
+    stockQty: d.stockQty,
     badges,
     metaTitle: d.metaTitle || null,
     metaDescription: d.metaDescription || null,

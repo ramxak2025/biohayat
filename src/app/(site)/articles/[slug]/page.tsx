@@ -5,7 +5,8 @@ import { ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Prose } from "@/components/ui/prose";
 import { SmartImage } from "@/components/ui/smart-image";
-import { getMaterialBySlug } from "@/lib/queries";
+import { ProductCard } from "@/components/product/product-card";
+import { getMaterialBySlug, getProductsForMaterial } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { materialMetadata } from "@/lib/seo";
@@ -37,7 +38,10 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const material = await getMaterialBySlug(slug);
+  const [material, products] = await Promise.all([
+    getMaterialBySlug(slug),
+    getProductsForMaterial(slug),
+  ]);
   if (!material || !material.isPublished) notFound();
 
   return (
@@ -60,6 +64,23 @@ export default async function ArticlePage({
           <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(material.content) }} />
         </Prose>
       </article>
+
+      {/* кросс-линковка: товары по теме статьи (мобайл — лента, десктоп — сетка) */}
+      {products.length > 0 ? (
+        <section className="mt-10 border-t border-line pt-8 sm:mt-12">
+          <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
+            Подойдёт для этого
+          </h2>
+          <p className="mt-1 text-sm text-ink-muted">Продукты ХАЯТ по теме статьи</p>
+          <div className="no-scrollbar -mx-4 mt-5 flex snap-x gap-3 overflow-x-auto px-4 py-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-4">
+            {products.map((p) => (
+              <div key={p.id} className="w-40 shrink-0 snap-start sm:w-auto sm:shrink">
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </Container>
   );
 }

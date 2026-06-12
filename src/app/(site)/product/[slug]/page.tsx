@@ -14,7 +14,13 @@ import {
   RecentlyViewedTracker,
 } from "@/components/product/recently-viewed";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
-import { getProductBySlug, getRelatedProducts, getApprovedReviews } from "@/lib/queries";
+import { SmartImage } from "@/components/ui/smart-image";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+  getApprovedReviews,
+  getMaterialsForProduct,
+} from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { productMetadata, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { formatMoney, discountPercent } from "@/lib/utils";
@@ -49,13 +55,18 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product || !product.isActive) notFound();
 
-  const [related, settings, reviews] = await Promise.all([
+  const [related, settings, reviews, articles] = await Promise.all([
     getRelatedProducts(product.categoryId, product.id),
     getSettings(),
     getApprovedReviews(product.id),
+    getMaterialsForProduct(product),
   ]);
   const discount = discountPercent(product.priceKopecks, product.oldPriceKopecks);
   const freeDelivery = product.priceKopecks >= settings.freeDeliveryThresholdKopecks;
+  // Учёт остатков: stockQty === null — выключен; 0 — товар закончился.
+  const available = product.inStock && product.stockQty !== 0;
+  const lowStock =
+    available && product.stockQty !== null && product.stockQty >= 1 && product.stockQty <= 5;
   const reviewStats =
     reviews.length > 0
       ? {
@@ -172,17 +183,18 @@ export default async function ProductPage({
             {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
             <span
               className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
-                product.inStock ? "text-brand-700" : "text-ink-faint"
+                available ? "text-brand-700" : "text-ink-faint"
               }`}
             >
               <span
                 aria-hidden
                 className={`h-2 w-2 rounded-full ${
-                  product.inStock ? "bg-brand-500" : "bg-line-strong"
+                  available ? "bg-brand-500" : "bg-line-strong"
                 }`}
               />
-              {product.inStock ? "В наличии" : "Нет в наличии"}
+              {available ? "В наличии" : "Нет в наличии"}
             </span>
+            {lowStock ? <Badge tone="accent">Осталось {product.stockQty} шт</Badge> : null}
           </div>
 
           {product.volume ? (
@@ -195,7 +207,13 @@ export default async function ProductPage({
           ) : null}
 
           <div id="buy-area" className="mt-5 max-w-sm">
-            <AddToCartButton full size="lg" item={cartItem} />
+            <AddToCartButton
+              full
+              size="lg"
+              item={cartItem}
+              inStock={available}
+              maxQty={product.stockQty ?? 99}
+            />
           </div>
 
           {/* компактная полоса доверия */}
@@ -254,6 +272,53 @@ export default async function ProductPage({
         <ProductReviews productId={product.id} reviews={reviews} />
       </Section>
 
+      {/* кросс-линковка: статьи по целям товара */}
+      {articles.length > 0 ? (
+        <Section className="pt-0">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <h2 className="text-xl font-extrabold tracking-tight">Полезно почитать</h2>
+            <Link
+              href="/articles"
+              className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800"
+            >
+              Все →
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+            {articles.slice(0, 3).map((m) => (
+              <Link
+                key={m.id}
+                href={`/articles/${m.slug}`}
+                className="group flex items-center gap-3 overflow-hidden rounded-2xl bg-surface p-2.5 shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md sm:block sm:p-0"
+              >
+                <SmartImage
+                  src={m.coverImage}
+                  alt={m.title}
+                  ratio="16/9"
+                  rounded="rounded-xl"
+                  label={m.title}
+                  spec="1200×675"
+                  sizes="(max-width: 640px) 40vw, 33vw"
+                  className="w-28 shrink-0 sm:w-auto sm:rounded-none"
+                />
+                <div className="min-w-0 sm:p-4">
+                  <h3 className="line-clamp-2 text-sm font-bold leading-snug group-hover:text-brand-700 sm:text-base">
+                    {m.title}
+                  </h3>
+                  {m.publishedAt ? (
+                    <time className="mt-1 block text-xs text-ink-faint">
+                      {new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(
+                        m.publishedAt,
+                      )}
+                    </time>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Section>
+      ) : null}
+
       {related.length > 0 ? (
         <Section className="pt-0">
           <div className="mb-5 flex items-center justify-between gap-4">
@@ -275,7 +340,8 @@ export default async function ProductPage({
       <StickyBuyBar
         item={cartItem}
         oldPriceKopecks={product.oldPriceKopecks}
-        inStock={product.inStock}
+        inStock={available}
+        maxQty={product.stockQty ?? 99}
       />
     </Container>
   );
