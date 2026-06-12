@@ -85,7 +85,7 @@ export async function requireCustomer(): Promise<CustomerSession> {
   return s;
 }
 
-export type AuthResult = { ok: true } | { ok: false; error: string };
+export type AuthResult = { ok: true; customerId?: string } | { ok: false; error: string };
 
 export async function registerCustomer(input: {
   name: string;
@@ -109,7 +109,7 @@ export async function registerCustomer(input: {
     },
   });
   await createCustomerSession({ sub: customer.id, phone: customer.phone, name: customer.name });
-  return { ok: true };
+  return { ok: true, customerId: customer.id };
 }
 
 export async function loginCustomer(phoneRaw: string, password: string): Promise<AuthResult> {

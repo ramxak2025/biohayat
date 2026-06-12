@@ -5,6 +5,7 @@ import { Footer } from "@/components/site/footer";
 import { FooterVisibility } from "@/components/site/footer-visibility";
 import { IOSViewportFix } from "@/components/site/ios-viewport-fix";
 import { ScrollManager } from "@/components/site/scroll-manager";
+import { ReferralCapture } from "@/components/site/referral-capture";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { MobileHeader } from "@/components/site/mobile-header";
 import { BackToTop } from "@/components/site/back-to-top";
@@ -49,6 +50,7 @@ export default async function SiteLayout({
           </FooterVisibility>
         </div>
         <ScrollManager />
+        <ReferralCapture />
         {/* Пере-привязка fixed/sticky после клавиатуры iOS */}
         <IOSViewportFix />
         <MobileNav />

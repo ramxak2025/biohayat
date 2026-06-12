@@ -65,6 +65,11 @@ export async function registerAction(_prev: AuthState, fd: FormData): Promise<Au
   if (limited) return { error: limited };
   const res = await registerCustomer({ name, phone, password, email });
   if (!res.ok) return { error: res.error };
+  // Привязка по реферальному коду из ссылки (?ref=) — без срыва регистрации
+  const ref = String(fd.get("ref") || "").trim();
+  if (ref && res.customerId) {
+    await applyReferral(res.customerId, ref).catch(() => {});
+  }
   redirect("/account");
 }
 

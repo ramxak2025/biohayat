@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import { Leaf, Package, Heart, PillBottle, MessageCircleHeart } from "lucide-react";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/account/phone-input";
 import { cn } from "@/lib/utils";
 import { loginAction, registerAction, type AuthState } from "./actions";
+import { getStoredReferral } from "@/components/site/referral-capture";
 
 const init: AuthState = {};
 
@@ -33,6 +34,11 @@ export function AuthForms() {
   const [tab, setTab] = useState<"login" | "register">("login");
   const [loginState, loginFn] = useActionState(loginAction, init);
   const [regState, regFn] = useActionState(registerAction, init);
+  // Реферальный код из ссылки (?ref=) — подставляем в скрытое поле регистрации
+  const [ref, setRef] = useState("");
+  useEffect(() => {
+    setRef(getStoredReferral());
+  }, []);
 
   return (
     <Container className="py-8 pb-[calc(var(--spacing-mobnav)+2.5rem)] sm:py-12 lg:pb-12">
@@ -97,6 +103,12 @@ export function AuthForms() {
           ) : (
             <form action={regFn} className="mt-6 space-y-4">
               {regState.error ? <Err>{regState.error}</Err> : null}
+              <input type="hidden" name="ref" value={ref} />
+              {ref ? (
+                <div className="rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-medium text-brand-700">
+                  🎁 Вы по приглашению друга — после первого заказа вы оба получите 300 ₽ бонусами.
+                </div>
+              ) : null}
               <div>
                 <Label htmlFor="rname" required>Имя</Label>
                 <Input id="rname" name="name" placeholder="Как к вам обращаться" autoComplete="name" />
