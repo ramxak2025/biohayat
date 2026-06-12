@@ -246,6 +246,21 @@ async function main() {
   }
   console.log(`🔬 Правил совместимости: ${seedCompatibility.length}`);
 
+  // 8.1 Демо-сторис на главной (управляются в админке → Сторис)
+  const stories = [
+    { id: "story-sale", title: "Распродажа", text: "Скидки до −40% на хиты — успейте до конца недели!", link: "/sale", ctaLabel: "Смотреть акции", sortOrder: 0 },
+    { id: "story-tip", title: "Совет дня", text: "Витамин D лучше усваивается с жирной пищей — принимайте после завтрака.", link: "/goal/immunity", ctaLabel: "Для иммунитета", sortOrder: 1 },
+    { id: "story-new", title: "Новинки", text: "Свежие поступления натуральных БАД уже в каталоге.", link: "/catalog", ctaLabel: "В каталог", sortOrder: 2 },
+  ];
+  for (const s of stories) {
+    await prisma.story.upsert({
+      where: { id: s.id },
+      update: {},
+      create: { ...s, isActive: true },
+    });
+  }
+  console.log(`📸 Сторис: ${stories.length}`);
+
   // 9. Демо-покупатель (для теста личного кабинета)
   await prisma.customer.upsert({
     where: { phone: "+79280000001" },
