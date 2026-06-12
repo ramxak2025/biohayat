@@ -261,24 +261,6 @@ async function main() {
   }
   console.log(`📸 Сторис: ${stories.length}`);
 
-  // 8.2 Демо-лесенка оптовых цен: −20% от 10 шт, −30% от 50, −38% от 100
-  // (правится в админке у каждого товара). Создаём только там, где её нет.
-  const allProducts = await prisma.product.findMany({ select: { id: true, priceKopecks: true } });
-  let tiersCreated = 0;
-  for (const p of allProducts) {
-    const has = await prisma.wholesaleTier.findFirst({ where: { productId: p.id } });
-    if (has) continue;
-    const mk = (pct: number) => Math.round((p.priceKopecks * (100 - pct)) / 100 / 100) * 100;
-    await prisma.wholesaleTier.createMany({
-      data: [
-        { productId: p.id, minQty: 10, priceKopecks: mk(20) },
-        { productId: p.id, minQty: 50, priceKopecks: mk(30) },
-        { productId: p.id, minQty: 100, priceKopecks: mk(38) },
-      ],
-    });
-    tiersCreated++;
-  }
-  console.log(`📦 Оптовая лесенка: товаров с новыми ценами — ${tiersCreated}`);
 
   // 9. Демо-покупатель (для теста личного кабинета)
   await prisma.customer.upsert({

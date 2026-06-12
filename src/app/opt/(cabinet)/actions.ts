@@ -62,7 +62,9 @@ export async function submitWholesaleRequest(input: {
   // ── Товары существуют, активны и продаются оптом ──
   const ids = [...qtyByProduct.keys()];
   const products = await prisma.product.findMany({
-    where: { id: { in: ids }, isActive: true, wholesaleTiers: { some: {} } },
+    // Лесенка необязательна: товары «по запросу» идут по розничной цене,
+    // менеджер согласует скидку при обработке заявки.
+    where: { id: { in: ids }, isActive: true },
     include: { wholesaleTiers: { orderBy: { minQty: "asc" } } },
   });
   if (products.length !== ids.length) {

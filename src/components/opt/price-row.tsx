@@ -53,13 +53,26 @@ export function PriceRow({
         </div>
       </td>
 
-      {/* Розница (зачёркнуто) */}
-      <td className="tnum whitespace-nowrap px-3 py-2.5 text-sm text-ink-faint line-through">
+      {/* Розница: зачёркнута только при заданной лесенке */}
+      <td
+        className={cn(
+          "tnum whitespace-nowrap px-3 py-2.5 text-sm text-ink-faint",
+          item.tiers.length > 0 && "line-through",
+        )}
+      >
         {formatMoney(item.retailKopecks)}
       </td>
 
-      {/* Лесенка: цена за шт по порогам, достигнутый порог подсвечен */}
-      {Array.from({ length: tierCols }, (_, i) => {
+      {/* Лесенка: цена за шт по порогам, достигнутый порог подсвечен.
+          Без лесенки — «спец-цена по запросу» на всю ширину колонок. */}
+      {item.tiers.length === 0 ? (
+        <td colSpan={tierCols} className="px-3 py-2.5 text-center">
+          <span className="rounded-full bg-accent-50 px-2.5 py-1 text-xs font-semibold text-accent-700 ring-1 ring-accent-200">
+            Спец-цена по запросу
+          </span>
+        </td>
+      ) : null}
+      {item.tiers.length === 0 ? null : Array.from({ length: tierCols }, (_, i) => {
         const tier = item.tiers[i];
         if (!tier) {
           return (

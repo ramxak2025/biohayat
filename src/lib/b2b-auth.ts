@@ -99,7 +99,6 @@ export async function registerWholesale(input: {
   const phone = normalizePhone(input.phone);
   if (phone.replace(/\D/g, "").length < 11) return { ok: false, error: "Некорректный номер телефона" };
   if (input.password.length < 6) return { ok: false, error: "Пароль не короче 6 символов" };
-  if (input.company.trim().length < 2) return { ok: false, error: "Укажите название компании или ИП" };
 
   const exists = await prisma.wholesaleAccount.findUnique({ where: { phone } });
   if (exists) return { ok: false, error: "Аккаунт с таким телефоном уже зарегистрирован" };

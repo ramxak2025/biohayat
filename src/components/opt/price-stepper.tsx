@@ -106,6 +106,8 @@ export function NextTierHint({
   });
 
   if (qty <= 0) return null;
+  // Без лесенки подсказки порогов не имеют смысла («по запросу»)
+  if (tiers.length === 0) return null;
 
   if (!next) {
     // Максимальный порог достигнут — фиксируем выгоду.

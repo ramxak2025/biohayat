@@ -88,7 +88,7 @@ export default async function OptLandingPage() {
         <Container className="grid grid-cols-2 divide-line lg:grid-cols-4 lg:divide-x">
           {[
             { value: "119+", label: "позиций в оптовом прайсе" },
-            { value: "до −38%", label: "скидка от розничной цены" },
+            { value: "Спец-цены", label: "партиями — выгоднее за штуку" },
             { value: "Россия", label: "собственное производство" },
             { value: "от 10 шт", label: "минимальная отгрузка" },
           ].map((item) => (

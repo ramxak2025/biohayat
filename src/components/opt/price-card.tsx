@@ -55,13 +55,22 @@ export function PriceCard({
             ) : null}
           </div>
           <div className="tnum mt-1 text-xs text-ink-faint">
-            Розница: <span className="line-through">{formatMoney(item.retailKopecks)}</span>
+            {item.tiers.length > 0 ? (
+              <>Розница: <span className="line-through">{formatMoney(item.retailKopecks)}</span></>
+            ) : (
+              <>Розница: {formatMoney(item.retailKopecks)}</>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Лесенка чипсами */}
+      {/* Лесенка чипсами; без лесенки — спец-цена по запросу */}
       <div className="no-scrollbar mt-2.5 flex gap-1.5 overflow-x-auto">
+        {item.tiers.length === 0 ? (
+          <span className="shrink-0 rounded-full bg-accent-50 px-2.5 py-1 text-xs font-semibold text-accent-700 ring-1 ring-accent-200">
+            Спец-цена по запросу — добавьте в заявку, менеджер согласует
+          </span>
+        ) : null}
         {item.tiers.map((t, i) => {
           const isCurrent =
             qty >= t.minQty && (!item.tiers[i + 1] || qty < item.tiers[i + 1].minQty);

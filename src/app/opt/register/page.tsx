@@ -33,7 +33,7 @@ export default async function OptRegisterPage() {
             {[
               {
                 icon: BadgePercent,
-                text: "119+ позиций со скидками до −38% от розничных цен",
+                text: "119+ позиций по специальным оптовым ценам — партиями выгоднее",
               },
               {
                 icon: FileText,

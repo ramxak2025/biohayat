@@ -33,10 +33,12 @@ export function maxDiscountPercent(retailKopecks: number, tiers: Tier[]): number
   return Math.max(0, Math.round((1 - min / retailKopecks) * 100));
 }
 
-/** Активные товары с лесенкой цен для оптового прайса. */
+/** Оптовый прайс = ВЕСЬ активный розничный каталог (синхронизируется сам).
+ *  Оптовые цены (лесенку) проставляет админ; товары без лесенки показываются
+ *  с пометкой «цена по запросу» и в заявке идут по розничной цене. */
 export async function getWholesaleProducts() {
   return prisma.product.findMany({
-    where: { isActive: true, wholesaleTiers: { some: {} } },
+    where: { isActive: true },
     include: {
       images: { orderBy: { sortOrder: "asc" }, take: 1 },
       category: true,

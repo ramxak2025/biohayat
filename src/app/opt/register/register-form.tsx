@@ -33,8 +33,8 @@ export function RegisterForm() {
           <Input id="name" name="name" autoComplete="name" placeholder="Имя и фамилия" required />
         </div>
         <div>
-          <Label htmlFor="company" required>Компания или ИП</Label>
-          <Input id="company" name="company" autoComplete="organization" placeholder="ООО «Здоровье» / ИП Иванов" required />
+          <Label htmlFor="company">Компания или ИП (необязательно)</Label>
+          <Input id="company" name="company" autoComplete="organization" placeholder="Если закупаете как частное лицо — оставьте пустым" />
         </div>
       </div>
 

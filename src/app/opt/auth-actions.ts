@@ -35,7 +35,6 @@ export async function registerAction(
   const consent = formData.get("consent");
 
   if (!name) return { error: "Укажите контактное лицо" };
-  if (!company) return { error: "Укажите название компании или ИП" };
   if (!phone) return { error: "Укажите телефон" };
   if (!password) return { error: "Придумайте пароль" };
   if (!consent) {
@@ -48,7 +47,8 @@ export async function registerAction(
 
   const result = await registerWholesale({
     name,
-    company,
+    // Частники закупают без юрлица: компания опциональна
+    company: company || name,
     phone,
     password,
     inn: inn || undefined,
