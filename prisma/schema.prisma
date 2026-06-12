@@ -90,6 +90,8 @@ model Product {
   nutrients String[] // ключевые компоненты для проверки совместимости БАД
 
   inStock    Boolean @default(true)
+  // Учёт остатков: null — не отслеживается (продаём всегда), число — штук на складе
+  stockQty   Int?
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)
   sortOrder  Int     @default(0)
@@ -231,6 +233,9 @@ model Order {
   // Промокод (снимок на момент заказа) и применённая скидка
   promoCode       String?
   discountKopecks Int     @default(0)
+  // Списанные бонусные баллы (копейки) и факт начисления за этот заказ
+  bonusSpentKopecks Int     @default(0)
+  bonusAccrued      Boolean @default(false)
 
   // источник / utm
   source String?
@@ -331,6 +336,13 @@ model SiteSettings {
   // Аналитика
   yandexMetrikaId String?
 
+  // Бонусная программа: процент от суммы заказа, начисляемый баллами
+  bonusPercent Int @default(5)
+
+  // Web Push (VAPID): генерируются автоматически при первом старте
+  vapidPublicKey  String?
+  vapidPrivateKey String?
+
   // Контент-настройки (юр. дисклеймер для БАД)
   badDisclaimer String @db.Text @default("БАД. НЕ ЯВЛЯЕТСЯ ЛЕКАРСТВЕННЫМ СРЕДСТВОМ. Имеются противопоказания, необходима консультация специалиста.")
 
@@ -360,6 +372,11 @@ model Customer {
   consultations ConsultationRequest[]
   addresses     CustomerAddress[]
   reviews       ProductReview[]
+  pushSubscriptions PushSubscription[]
+  bonusTxns         BonusTransaction[]
+
+  // Бонусный баланс в копейках (1 балл = 1 копейка для простоты расчётов)
+  bonusKopecks Int @default(0)
 
   @@index([createdAt])
 }
@@ -495,4 +512,35 @@ model CompatibilityRule {
   updatedAt  DateTime          @updatedAt
 
   @@index([isActive])
+}
+
+// ─────────────────────────────────────────────
+//  Web Push подписки (напоминания о приёме БАД)
+// ─────────────────────────────────────────────
+model PushSubscription {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+// ─────────────────────────────────────────────
+//  Бонусные баллы: история операций
+// ─────────────────────────────────────────────
+model BonusTransaction {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amountKopecks Int // + начисление / − списание
+  reason        String // "order" | "redeem" | "streak" | "manual"
+  orderId       String?
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([customerId, createdAt])
 }
