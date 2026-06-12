@@ -44,6 +44,27 @@ function safeNextPath(path: string | null | undefined, fallback: string): string
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // ── ОПТ: поддомен opt.* обслуживается route-группой /opt того же приложения ──
+  // На opt-хосте все витринные пути переписываются в /opt/* (rewrite, URL в
+  // браузере не меняется). Админка и /api работают на любом хосте без переписи.
+  const host = (req.headers.get("host") || "").toLowerCase();
+  const isOptHost = host === "opt.biohayat.ru" || host.startsWith("opt.");
+  if (isOptHost) {
+    if (
+      !pathname.startsWith("/opt") &&
+      !pathname.startsWith("/admin") &&
+      !pathname.startsWith("/api") &&
+      !pathname.startsWith("/_next")
+    ) {
+      const url = req.nextUrl.clone();
+      url.pathname = pathname === "/" ? "/opt" : `/opt${pathname}`;
+      return NextResponse.rewrite(url);
+    }
+    return NextResponse.next();
+  }
+  // На основном хосте прямые заходы на /opt разрешены (удобно для теста);
+  // в проде ссылку «Опт» ведём сразу на поддомен из NEXT_PUBLIC_OPT_URL.
+
   // ЛК покупателя: мостик для сессий, созданных до появления клиентского
   // флага hayat_auth — проставляем его, чтобы шапка/избранное видели вход.
   if (pathname.startsWith("/account")) {
@@ -68,27 +89,30 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get(COOKIE_NAME)?.value;
-  const valid = await isValidSession(token);
+  // Защита админки (matcher теперь широкий — скоупим по pathname явно)
+  if (pathname.startsWith("/admin")) {
+    const token = req.cookies.get(COOKIE_NAME)?.value;
+    const valid = await isValidSession(token);
 
-  // Страница входа: если уже авторизован — на дашборд.
-  if (pathname === "/admin/login") {
-    if (valid) return NextResponse.redirect(new URL("/admin", req.url));
-    return NextResponse.next();
-  }
+    // Страница входа: если уже авторизован — на дашборд.
+    if (pathname === "/admin/login") {
+      if (valid) return NextResponse.redirect(new URL("/admin", req.url));
+      return NextResponse.next();
+    }
 
-  // Остальные /admin/* требуют авторизации.
-  if (!valid) {
-    const url = new URL("/admin/login", req.url);
-    // pathname всегда внутренний, но прогоняем через safeNextPath на случай
-    // экзотических значений — открытый редирект исключён на стороне логина.
-    url.searchParams.set("next", safeNextPath(pathname, "/admin"));
-    return NextResponse.redirect(url);
+    if (!valid) {
+      const url = new URL("/admin/login", req.url);
+      url.searchParams.set("next", safeNextPath(pathname, "/admin"));
+      return NextResponse.redirect(url);
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
+  // Широкий matcher нужен для host-rewrite оптового поддомена; статика,
+  // /_next и файлы с расширением исключены. Логика admin/account внутри
+  // осталась прежней (срабатывает по pathname).
+  matcher: ["/((?!_next|.*\\.).*)"],
 };

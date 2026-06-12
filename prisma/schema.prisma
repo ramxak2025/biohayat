@@ -105,6 +105,8 @@ model Product {
   favorites   Favorite[]
   intakePlans IntakePlan[]
   reviews     ProductReview[]
+  wholesaleTiers WholesaleTier[]
+  wholesaleItems WholesaleOrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -571,4 +573,84 @@ model Story {
   updatedAt DateTime @updatedAt
 
   @@index([isActive, sortOrder])
+}
+
+// ─────────────────────────────────────────────
+//  ОПТ (opt.biohayat.ru): лесенка цен, аккаунты с модерацией, заявки
+// ─────────────────────────────────────────────
+
+// Лесенка оптовых цен: «от minQty шт — priceKopecks за шт»
+model WholesaleTier {
+  id           String  @id @default(cuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minQty       Int
+  priceKopecks Int
+
+  @@unique([productId, minQty])
+  @@index([productId])
+}
+
+enum WholesaleStatus {
+  PENDING // заявка на проверке
+  APPROVED // доступ к ценам открыт
+  REJECTED // отклонена
+}
+
+model WholesaleAccount {
+  id           String          @id @default(cuid())
+  phone        String          @unique // нормализованный +7XXXXXXXXXX
+  passwordHash String
+  name         String // контактное лицо
+  company      String // название компании / ИП
+  inn          String?
+  city         String?
+  comment      String?         @db.Text // чем торгует, объёмы — для модерации
+  status       WholesaleStatus @default(PENDING)
+  isActive     Boolean         @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  orders WholesaleOrder[]
+
+  @@index([status, createdAt])
+}
+
+enum WholesaleOrderStatus {
+  NEW // заявка отправлена
+  PROCESSING // менеджер в работе
+  CONFIRMED // согласована, выставлен счёт
+  DONE // отгружена/завершена
+  CANCELLED
+}
+
+model WholesaleOrder {
+  id           String               @id @default(cuid())
+  number       Int                  @unique @default(autoincrement())
+  accountId    String
+  account      WholesaleAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  status       WholesaleOrderStatus @default(NEW)
+  totalKopecks Int
+  comment      String?              @db.Text
+
+  items     WholesaleOrderItem[]
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@index([status, createdAt])
+  @@index([accountId])
+}
+
+model WholesaleOrderItem {
+  id           String         @id @default(cuid())
+  orderId      String
+  order        WholesaleOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name         String
+  qty          Int
+  priceKopecks Int // зафиксированная цена за шт по лесенке
+
+  @@index([orderId])
 }

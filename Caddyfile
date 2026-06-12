@@ -9,3 +9,10 @@
 www.{$DOMAIN} {
 	redir https://{$DOMAIN}{uri} permanent
 }
+
+# Оптовый поддомен (B2B): то же приложение, режим определяется по Host.
+# Перед запуском добавьте в Beget DNS A-запись opt -> IP сервера.
+{$OPT_DOMAIN:opt.biohayat.ru} {
+	encode gzip zstd
+	reverse_proxy app:3000
+}
