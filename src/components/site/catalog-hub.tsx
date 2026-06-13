@@ -5,7 +5,9 @@ import { ProductCard } from "@/components/product/product-card";
 import { AudienceCards } from "@/components/site/audience-cards";
 import { CategoryTiles } from "@/components/site/category-tiles";
 import { GoalCollections } from "@/components/site/goal-collections";
+import { BrandStrip } from "@/components/site/brand-strip";
 import type { CategoryWithCount, ProductCardData, PurchasedProduct } from "@/lib/queries";
+import type { Brand } from "@prisma/client";
 
 /**
  * Мобильный «хаб каталога» (как у Ozon/ВкусВилл): быстрая ориентация
@@ -26,11 +28,14 @@ export function CatalogHub({
   categories,
   hits,
   purchased = [],
+  featuredBrands = [],
 }: {
   categories: CategoryWithCount[];
   hits: ProductCardData[];
   /** Залогиненному — его прошлые покупки для быстрого повтора. */
   purchased?: PurchasedProduct[];
+  /** Известные бренды для витрины. */
+  featuredBrands?: Brand[];
 }) {
   return (
     <Container className="space-y-7 pb-8 pt-5">
@@ -81,6 +86,16 @@ export function CatalogHub({
         <h2 className="mb-3 text-lg font-extrabold tracking-tight">Категории</h2>
         <CategoryTiles categories={categories} />
       </section>
+
+      {/* ── Бренды: витрина известных марок ── */}
+      {featuredBrands.length > 0 ? (
+        <section aria-label="Бренды">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-extrabold tracking-tight">Известные бренды</h2>
+          </div>
+          <BrandStrip brands={featuredBrands} />
+        </section>
+      ) : null}
 
       {/* ── Хиты: горизонтальная лента ── */}
       {hits.length > 0 ? (

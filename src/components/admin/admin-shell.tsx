@@ -6,7 +6,7 @@ import { useState } from "react";
 import {
   LayoutDashboard, Package, FolderTree, Image as ImageIcon, CirclePlay,
   FileText, ClipboardList, Settings, LogOut, Menu, X, ExternalLink,
-  Users, FlaskConical, TicketPercent, Star, Building2,
+  Users, FlaskConical, TicketPercent, Star, Building2, Award,
 } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const nav = [
   { href: "/admin", label: "Дашборд", icon: LayoutDashboard, exact: true },
   { href: "/admin/products", label: "Товары", icon: Package },
   { href: "/admin/categories", label: "Категории", icon: FolderTree },
+  { href: "/admin/brands", label: "Бренды", icon: Award },
   { href: "/admin/banners", label: "Баннеры", icon: ImageIcon },
   { href: "/admin/stories", label: "Сторис", icon: CirclePlay },
   { href: "/admin/materials", label: "Материалы", icon: FileText },

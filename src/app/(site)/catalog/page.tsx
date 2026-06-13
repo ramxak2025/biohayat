@@ -3,6 +3,7 @@ import { CatalogView } from "@/components/product/catalog-view";
 import { CatalogHub } from "@/components/site/catalog-hub";
 import { GoalCollections } from "@/components/site/goal-collections";
 import { getCategoriesWithCounts, getProducts, getPurchasedProducts } from "@/lib/queries";
+import { getActiveBrands, getFeaturedBrands } from "@/lib/brands";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { audienceName, goalName } from "@/lib/taxonomy";
 import { getSettings } from "@/lib/settings";
@@ -84,15 +85,26 @@ export default async function CatalogPage({
 
   // «Чистый» /catalog: на мобильном — хаб каталога, на десктопе — как раньше
   // сетка с боковым меню.
-  const [{ items, total }, featured] = await Promise.all([
+  const [{ items, total }, featured, brands, activeBrands] = await Promise.all([
     getProducts({ take: 60 }),
     getProducts({ featured: true, take: 10 }),
+    getFeaturedBrands(),
+    getActiveBrands(),
   ]);
+  // Бренды для десктопного сайдбара-фильтра (только со своими товарами).
+  const sidebarBrands = activeBrands
+    .filter((b) => b._count.products > 0)
+    .map((b) => ({ slug: b.slug, name: b.name, count: b._count.products }));
 
   return (
     <>
       <div className="lg:hidden">
-        <CatalogHub purchased={purchased} categories={categories} hits={featured.items} />
+        <CatalogHub
+          purchased={purchased}
+          categories={categories}
+          hits={featured.items}
+          featuredBrands={brands}
+        />
       </div>
       <div className="max-lg:hidden">
         {/* Десктопное стартовое окно каталога: подборки-карточки над товарами */}
@@ -106,6 +118,7 @@ export default async function CatalogPage({
           products={items}
           total={total}
           categories={categories}
+          brands={sidebarBrands}
         />
       </div>
     </>

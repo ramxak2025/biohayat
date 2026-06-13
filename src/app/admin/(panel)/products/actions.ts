@@ -13,6 +13,8 @@ const schema = z.object({
   name: z.string().min(2, "Укажите название"),
   slug: z.string().optional(),
   categoryId: z.string().min(1, "Выберите категорию"),
+  // Бренд: пустое значение → null (собственный бренд ХАЯТ).
+  brandId: z.string().optional(),
   priceRub: z.coerce.number().min(0, "Цена не может быть отрицательной"),
   oldPriceRub: z.coerce.number().optional(),
   shortDescription: z.string().optional(),
@@ -93,6 +95,7 @@ function buildData(d: z.infer<typeof schema>, flags: { inStock: boolean; isActiv
     name: d.name.trim(),
     slug: (d.slug?.trim() ? slugify(d.slug) : slugify(d.name)) || slugify(d.name),
     categoryId: d.categoryId,
+    brandId: d.brandId?.trim() || null,
     priceKopecks: rubToKopecks(d.priceRub),
     oldPriceKopecks: d.oldPriceRub ? rubToKopecks(d.oldPriceRub) : null,
     shortDescription: d.shortDescription || null,

@@ -9,16 +9,18 @@ import { SubmitButton } from "@/components/admin/form-controls";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { kopecksToRub } from "@/lib/utils";
 import { createProduct, updateProduct, type FormState } from "./actions";
-import type { Product, ProductImage, Category, WholesaleTier } from "@prisma/client";
+import type { Product, ProductImage, Category, WholesaleTier, Brand } from "@prisma/client";
 
 const init: FormState = {};
 
 export function ProductForm({
   product,
   categories,
+  brands,
 }: {
   product?: Product & { images: ProductImage[]; wholesaleTiers?: WholesaleTier[] };
   categories: Pick<Category, "id" | "name">[];
+  brands: Pick<Brand, "id" | "name">[];
 }) {
   const action = product ? updateProduct.bind(null, product.id) : createProduct;
   const [state, formAction] = useActionState(action, init);
@@ -98,6 +100,15 @@ export function ProductForm({
                 ))}
               </Select>
               <FieldError>{state.fieldErrors?.categoryId}</FieldError>
+            </div>
+            <div>
+              <Label htmlFor="brandId">Бренд</Label>
+              <Select id="brandId" name="brandId" defaultValue={product?.brandId ?? ""}>
+                <option value="">— ХАЯТ (по умолчанию) —</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

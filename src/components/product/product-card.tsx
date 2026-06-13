@@ -55,6 +55,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         >
           {product.name}
         </Link>
+        {product.brand && !product.brand.isOwn ? (
+          <span className="block truncate text-[11px] uppercase tracking-wide text-ink-faint">
+            {product.brand.name}
+          </span>
+        ) : null}
 
         {product.reviewStats && product.reviewStats.count > 0 ? (
           <span

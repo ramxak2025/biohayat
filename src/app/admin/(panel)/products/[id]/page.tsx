@@ -11,7 +11,7 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [product, categories] = await Promise.all([
+  const [product, categories, brands] = await Promise.all([
     prisma.product.findUnique({
       where: { id },
       include: {
@@ -20,13 +20,18 @@ export default async function EditProductPage({
       },
     }),
     prisma.category.findMany({ orderBy: { sortOrder: "asc" }, select: { id: true, name: true } }),
+    prisma.brand.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, name: true },
+    }),
   ]);
   if (!product) notFound();
 
   return (
     <>
       <AdminHeader title="Редактирование товара" description={product.name} />
-      <ProductForm product={product} categories={categories} />
+      <ProductForm product={product} categories={categories} brands={brands} />
     </>
   );
 }

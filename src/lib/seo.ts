@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { Category, Material, Product, ProductImage, SiteSettings } from "@prisma/client";
+import type { Brand, Category, Material, Product, ProductImage, SiteSettings } from "@prisma/client";
 import { formatMoney, truncate } from "@/lib/utils";
 
 export function siteUrl(): string {
@@ -103,6 +103,23 @@ export function categoryMetadata(category: Category, settings: SiteSettings): Me
       description,
       path: `/category/${category.slug}`,
       image: category.ogImage || category.image,
+    },
+    settings,
+  );
+}
+
+export function brandMetadata(brand: Brand, settings: SiteSettings): Metadata {
+  const title = brand.metaTitle || `${brand.name} — каталог бренда`;
+  const description =
+    brand.metaDescription ||
+    brand.description ||
+    `${brand.name}${brand.country ? `, ${brand.country}` : ""}: товары бренда в каталоге ХАЯТ. Купить с доставкой по России.`;
+  return buildMetadata(
+    {
+      title,
+      description,
+      path: `/brand/${brand.slug}`,
+      image: brand.logo,
     },
     settings,
   );

@@ -142,6 +142,18 @@ export default async function ProductPage({
             ))}
           </div>
 
+          {product.brand && !product.brand.isOwn ? (
+            <p className="mt-2 text-sm text-ink-muted">
+              Бренд:{" "}
+              <Link
+                href={`/brand/${product.brand.slug}`}
+                className="font-semibold text-ink hover:text-brand-700 hover:underline"
+              >
+                {product.brand.name}
+              </Link>
+            </p>
+          ) : null}
+
           {/*
             line-height задан инлайном намеренно: глобальное правило
             `h1,h2{line-height:1.22; text-wrap:balance}` в globals.css не лежит

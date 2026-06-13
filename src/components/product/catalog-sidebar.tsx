@@ -16,9 +16,12 @@ import type { Category } from "@prisma/client";
 export function CatalogSidebar({
   categories,
   activeHref,
+  brands = [],
 }: {
   categories: (Pick<Category, "slug" | "name"> & { count?: number })[];
   activeHref: string;
+  /** Бренды для блока-фильтра (опционально; пусто — блок скрыт). */
+  brands?: (Pick<Category, "slug" | "name"> & { count?: number })[];
 }) {
   return (
     <aside className="hidden w-[248px] shrink-0 lg:block">
@@ -45,6 +48,24 @@ export function CatalogSidebar({
             </Item>
           ))}
         </Group>
+
+        {brands.length > 0 ? (
+          <>
+            <GroupTitle>Бренды</GroupTitle>
+            <Group>
+              {brands.map((b) => (
+                <Item
+                  key={b.slug}
+                  href={`/brand/${b.slug}`}
+                  active={activeHref === `/brand/${b.slug}`}
+                  count={b.count}
+                >
+                  {b.name}
+                </Item>
+              ))}
+            </Group>
+          </>
+        ) : null}
       </div>
     </aside>
   );

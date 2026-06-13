@@ -9,6 +9,8 @@ import { SaleBanner } from "@/components/site/sale-banner";
 import { ProductCard, ProductGrid } from "@/components/product/product-card";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { getNavCategories, getProducts, getBanners, getPublishedMaterials, getActiveStories } from "@/lib/queries";
+import { getFeaturedBrands } from "@/lib/brands";
+import { BrandStrip } from "@/components/site/brand-strip";
 import { Stories } from "@/components/site/stories";
 import type { ProductCardData } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
@@ -25,7 +27,7 @@ const LEAF_PATH =
   "M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z";
 
 export default async function HomePage() {
-  const [categories, featured, sale, heroBanners, materials, settings, stories] = await Promise.all([
+  const [categories, featured, sale, heroBanners, materials, settings, stories, brands] = await Promise.all([
     getNavCategories(),
     getProducts({ featured: true, take: 10 }),
     getProducts({ onSale: true, take: 5 }),
@@ -33,6 +35,7 @@ export default async function HomePage() {
     getPublishedMaterials(3),
     getSettings(),
     getActiveStories(),
+    getFeaturedBrands(),
   ]);
 
   const hero = heroBanners[0];
@@ -186,6 +189,20 @@ export default async function HomePage() {
           <CategoryTiles categories={categories} />
         </Container>
       </Section>
+
+      {/* ── Бренды ── */}
+      {brands.length > 0 ? (
+        <Section className="py-5 sm:py-6">
+          <Container>
+            <SectionHeader
+              title="Известные бренды"
+              subtitle="Проверенные марки витаминов и БАД"
+              action={<AllLink href="/catalog" />}
+            />
+            <BrandStrip brands={brands} />
+          </Container>
+        </Section>
+      ) : null}
 
       {/* ── Хиты продаж: на мобайле — лента, на десктопе — сетка ── */}
       <Section className="bg-surface-soft py-8 sm:py-14">

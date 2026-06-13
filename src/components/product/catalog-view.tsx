@@ -26,6 +26,7 @@ export function CatalogView({
   basePath = "/catalog",
   sort,
   sortBase,
+  brands,
 }: {
   title: string;
   description?: string | null;
@@ -38,12 +39,14 @@ export function CatalogView({
   sort?: ProductSort;
   /** Базовый путь для ссылок сортировки, напр. "/category/med" → "?sort=…". */
   sortBase?: string;
+  /** Бренды для блока-фильтра в десктопном сайдбаре (опционально). */
+  brands?: (Pick<Category, "slug" | "name"> & { count?: number })[];
 }) {
   return (
     <Container className="py-6 sm:py-8">
       <div className="lg:grid lg:grid-cols-[248px_1fr] lg:gap-8">
         {/* Десктоп: боковое меню слева */}
-        <CatalogSidebar categories={categories} activeHref={basePath} />
+        <CatalogSidebar categories={categories} activeHref={basePath} brands={brands} />
 
         <div className="min-w-0">
           <div className="mb-5">
