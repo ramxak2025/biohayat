@@ -81,6 +81,10 @@ model Product {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
+  // Бренд (ХАЯТ и сторонние известные марки). null = собственный бренд ХАЯТ.
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
   images ProductImage[]
   badges String[] // напр. ["хит", "новинка", "акция"]
 
@@ -112,6 +116,34 @@ model Product {
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
+  @@index([brandId])
+  @@index([isActive, sortOrder])
+  @@index([isFeatured])
+}
+
+// ─────────────────────────────────────────────
+//  Бренды: собственный ХАЯТ и известные сторонние марки
+// ─────────────────────────────────────────────
+model Brand {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  logo        String? // логотип бренда (прозрачный PNG/SVG)
+  description String? @db.Text
+  country     String? // страна производства, напр. «Россия», «США»
+  isOwn       Boolean @default(false) // true — собственный бренд (ХАЯТ)
+  isActive    Boolean @default(true)
+  isFeatured  Boolean @default(false) // показывать в витрине брендов
+  sortOrder   Int     @default(0)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
   @@index([isActive, sortOrder])
   @@index([isFeatured])
 }

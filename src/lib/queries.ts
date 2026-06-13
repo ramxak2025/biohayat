@@ -117,6 +117,7 @@ async function withReviewStats<T extends { id: string }>(
 
 interface ProductsOpts {
   categorySlug?: string;
+  brandSlug?: string;
   audience?: string;
   goal?: string;
   featured?: boolean;
@@ -156,6 +157,7 @@ async function loadProducts(opts: ProductsOpts) {
   const where = {
     isActive: true,
     ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
+    ...(opts.brandSlug ? { brand: { slug: opts.brandSlug } } : {}),
     AND: axisConditions(opts),
     ...(opts.featured ? { isFeatured: true } : {}),
     ...(opts.onSale ? { oldPriceKopecks: { not: null } } : {}),
@@ -166,7 +168,7 @@ async function loadProducts(opts: ProductsOpts) {
   const [items, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
       take: opts.take,
       skip: opts.skip,
@@ -196,6 +198,7 @@ const getCachedProductBySlug = unstable_cache(
       include: {
         images: { orderBy: { sortOrder: "asc" } },
         category: true,
+        brand: true,
       },
     }),
   ["product-by-slug"],
@@ -210,7 +213,7 @@ const getCachedRelatedProducts = unstable_cache(
   async (categoryId: string, excludeId: string, take: number) => {
     const items = await prisma.product.findMany({
       where: { categoryId, isActive: true, id: { not: excludeId } },
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
       take,
     });
     return withReviewStats(items);
@@ -347,7 +350,7 @@ const getCachedSortedProducts = unstable_cache(
     const [items, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+        include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
         orderBy,
         take: opts.take,
         skip: opts.skip,
@@ -377,7 +380,7 @@ export async function getPurchasedProducts(customerId: string, take = 10) {
     where: { order: { customerId }, productId: { not: null }, product: { isActive: true } },
     select: {
       order: { select: { createdAt: true } },
-      product: { include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true } },
+      product: { include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true } },
     },
     orderBy: { order: { createdAt: "desc" } },
     take: 60,
@@ -423,7 +426,7 @@ const getCachedProductsForMaterial = unstable_cache(
     };
     const items = await prisma.product.findMany({
       where,
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
       take: 4,
     });

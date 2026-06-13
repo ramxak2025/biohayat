@@ -10,7 +10,7 @@ export async function getFavoriteProducts(ids: string[]): Promise<ProductCardDat
   if (ids.length === 0) return [];
   const products = await prisma.product.findMany({
     where: { id: { in: ids }, isActive: true },
-    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
   });
   const order = new Map(ids.map((id, i) => [id, i]));
   return products.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));

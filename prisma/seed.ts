@@ -158,6 +158,30 @@ async function main() {
   }
   console.log(`🛒 Товаров: ${seedProducts.length}`);
 
+  // 4.1 Бренды: собственный ХАЯТ + примеры известных марок (правятся в админке)
+  const brands = [
+    { slug: "hayat", name: "ХАЯТ", country: "Россия", isOwn: true, isFeatured: true, sortOrder: 0,
+      description: "Собственная фитопродукция ХАЯТ — натуральные витамины и БАД от производителя ООО «Восток»." },
+    { slug: "solgar", name: "Solgar", country: "США", isFeatured: true, sortOrder: 1,
+      description: "Премиальные витамины и добавки Solgar." },
+    { slug: "now-foods", name: "NOW Foods", country: "США", isFeatured: true, sortOrder: 2,
+      description: "Широкая линейка спортивного питания и БАД NOW Foods." },
+    { slug: "evalar", name: "Эвалар", country: "Россия", isFeatured: true, sortOrder: 3,
+      description: "Российские натуральные препараты и БАД Эвалар." },
+  ];
+  let hayatBrandId = "";
+  for (const b of brands) {
+    const brand = await prisma.brand.upsert({
+      where: { slug: b.slug },
+      update: { name: b.name, country: b.country, isFeatured: b.isFeatured, sortOrder: b.sortOrder },
+      create: { ...b, metaTitle: `${b.name} — купить в интернет-магазине ХАЯТ`, metaDescription: b.description },
+    });
+    if (b.slug === "hayat") hayatBrandId = brand.id;
+  }
+  // Существующие товары без бренда — это собственная продукция ХАЯТ
+  await prisma.product.updateMany({ where: { brandId: null }, data: { brandId: hayatBrandId } });
+  console.log(`™️  Брендов: ${brands.length} (товары без бренда → ХАЯТ)`);
+
   // 5. Баннеры (рекламные блоки)
   const banners = [
     {

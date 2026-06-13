@@ -32,7 +32,7 @@ export async function smartSearchProducts(query: string, limit = 48) {
 
   const products = await prisma.product.findMany({
     where: { id: { in: ids } },
-    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true },
+    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
   });
   // сохраняем порядок ранжирования
   const order = new Map(ids.map((id, i) => [id, i]));
