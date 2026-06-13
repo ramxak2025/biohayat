@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { OptHeader } from "@/components/opt/opt-header";
 import { OptFooter } from "@/components/opt/opt-footer";
+import { OptMobileNav } from "@/components/opt/opt-mobile-nav";
+import { B2BCartProvider } from "@/components/opt/b2b-cart-provider";
 import { getB2BAccount } from "@/lib/b2b-auth";
 import { getSettings } from "@/lib/settings";
 
@@ -29,8 +31,10 @@ export default async function OptLayout({
 }) {
   const [settings, account] = await Promise.all([getSettings(), getB2BAccount()]);
 
+  const retailUrl = process.env.NEXT_PUBLIC_SITE_URL || "/";
+
   return (
-    <>
+    <B2BCartProvider>
       <OptHeader
         phone={settings.phone}
         account={
@@ -39,8 +43,15 @@ export default async function OptLayout({
             : null
         }
       />
-      <main className="flex-1 bg-bg">{children}</main>
+      {/* Нижний отступ на мобильном — под фиксированный бар */}
+      <main className="flex-1 bg-bg pb-[calc(var(--spacing-mobnav)+1rem)] lg:pb-0">{children}</main>
       <OptFooter settings={settings} />
-    </>
+      <OptMobileNav
+        loggedIn={Boolean(account)}
+        approved={account?.status === "APPROVED"}
+        phone={settings.phone}
+        retailUrl={retailUrl}
+      />
+    </B2BCartProvider>
   );
 }

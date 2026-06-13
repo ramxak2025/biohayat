@@ -1,16 +1,10 @@
-import { B2BCartProvider } from "@/components/opt/b2b-cart-provider";
-
 export const dynamic = "force-dynamic";
 
 /**
- * Route-группа кабинета опта (URL не меняет): общий клиентский провайдер
- * оптовой корзины для прайса и заявки. Гейтинг доступа — на каждой странице
- * (статус аккаунта проверяется по БД на каждый запрос).
+ * Route-группа кабинета опта (URL не меняет). Провайдер оптовой корзины
+ * смонтирован уровнем выше (src/app/opt/layout.tsx) — он нужен и нижнему
+ * бару; здесь только фон. Гейтинг доступа — на каждой странице.
  */
 export default function OptCabinetLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <B2BCartProvider>
-      <div className="min-h-screen bg-bg">{children}</div>
-    </B2BCartProvider>
-  );
+  return <div className="min-h-screen bg-bg">{children}</div>;
 }

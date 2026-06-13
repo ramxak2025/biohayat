@@ -194,7 +194,7 @@ export function PriceView({
 
       {/* STICKY-ИТОГ: экономия всегда на виду */}
       {cart.ready && totals.positions > 0 ? (
-        <div className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
+        <div className="glass fixed inset-x-0 bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom)))] z-30 border-t border-line lg:bottom-0 lg:pb-safe">
           <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
             <div className="min-w-0">
               <div className="tnum text-sm font-bold">
