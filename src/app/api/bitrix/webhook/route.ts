@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import type { OrderStatus } from "@prisma/client";
@@ -21,11 +22,20 @@ const VALID_STATUSES: OrderStatus[] = [
  * Также поддерживает прямой JSON для своих сценариев:
  *   POST { "orderNumber": 12, "status": "PAID" }  (или "leadId"/"dealId")
  */
+/** Сравнение токенов за постоянное время (защита от тайминг-атак). */
+function safeTokenEqual(a: string | null, b: string | null): boolean {
+  if (!a || !b) return false;
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
+
 export async function POST(req: NextRequest) {
   const settings = await getSettings();
   const token = req.nextUrl.searchParams.get("token");
 
-  if (!settings.bitrixWebhookToken || token !== settings.bitrixWebhookToken) {
+  if (!safeTokenEqual(token, settings.bitrixWebhookToken)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
@@ -62,7 +72,8 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const event = String(form.get("event") || "");
     const entityId = String(form.get("data[FIELDS][ID]") || form.get("data[FIELDS][id]") || "");
-    if (!entityId) return NextResponse.json({ error: "no entity id" }, { status: 400 });
+    // Только числовой ID (защита от инъекции в URL запроса к Битрикс24).
+    if (!/^\d+$/.test(entityId)) return NextResponse.json({ error: "bad entity id" }, { status: 400 });
 
     if (!settings.bitrixWebhookUrl) {
       return NextResponse.json({ error: "webhook url not set" }, { status: 400 });

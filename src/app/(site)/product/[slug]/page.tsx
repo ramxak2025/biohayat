@@ -137,7 +137,7 @@ export default async function ProductPage({
           </div>
 
           {/* дисклеймер БАД (152-ФЗ / реклама БАД) */}
-          <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-accent-200 bg-accent-50 p-4 text-sm text-accent-600">
+          <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-accent-200 bg-accent-50 p-4 text-sm text-accent-700">
             <Info className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{settings.badDisclaimer}</span>
           </div>

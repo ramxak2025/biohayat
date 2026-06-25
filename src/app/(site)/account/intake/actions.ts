@@ -41,9 +41,12 @@ export async function createIntakePlan(_prev: IntakeState, fd: FormData): Promis
     .filter(Boolean);
   if (times.length === 0) return { error: "Добавьте хотя бы одно время приёма" };
 
-  const durationRaw = String(fd.get("durationDays") || "").trim();
-  const durationDays = durationRaw ? Math.max(1, parseInt(durationRaw, 10)) : null;
-  const note = String(fd.get("note") || "").trim() || null;
+  // Длительность курса: только конечное число, ограничиваем 1..3650 дней.
+  const durationParsed = Number(String(fd.get("durationDays") || "").trim());
+  const durationDays = Number.isFinite(durationParsed)
+    ? Math.min(3650, Math.max(1, Math.round(durationParsed)))
+    : null;
+  const note = String(fd.get("note") || "").trim().slice(0, 500) || null;
 
   await prisma.intakePlan.create({
     data: {
@@ -51,7 +54,7 @@ export async function createIntakePlan(_prev: IntakeState, fd: FormData): Promis
       productId,
       title,
       times,
-      durationDays: Number.isNaN(durationDays as number) ? null : durationDays,
+      durationDays,
       note,
     },
   });

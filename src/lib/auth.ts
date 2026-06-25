@@ -53,19 +53,23 @@ export async function destroySession(): Promise<void> {
   cookieStore.delete(COOKIE_NAME);
 }
 
-/** Возвращает payload текущей сессии или null. */
+/** Возвращает payload текущей сессии или null. Сверяет статус с БД. */
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecret());
-    return {
-      sub: payload.sub as string,
-      email: payload.email as string,
-      name: payload.name as string,
-      role: payload.role as AdminRole,
-    };
+    const sub = payload.sub as string;
+    if (!sub) return null;
+    // Перепроверяем по БД: деактивированный/удалённый админ теряет доступ сразу,
+    // роль берём актуальную (на случай понижения прав).
+    const user = await prisma.adminUser.findUnique({
+      where: { id: sub },
+      select: { id: true, email: true, name: true, role: true, isActive: true },
+    });
+    if (!user || !user.isActive) return null;
+    return { sub: user.id, email: user.email, name: user.name, role: user.role };
   } catch {
     return null;
   }
@@ -97,5 +101,15 @@ export async function authenticate(email: string, password: string): Promise<boo
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) throw new Error("UNAUTHORIZED");
+  return session;
+}
+
+/**
+ * Бросает, если у админа нет требуемой роли. Использовать для опасных действий
+ * (настройки, интеграции, удаление), доступных только полному администратору.
+ */
+export async function requireRole(role: AdminRole): Promise<SessionPayload> {
+  const session = await requireSession();
+  if (session.role !== role) throw new Error("FORBIDDEN");
   return session;
 }

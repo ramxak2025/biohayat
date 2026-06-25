@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Package, Heart, PillBottle, ArrowRight } from "lucide-react";
+import { Package, Heart, PillBottle, ArrowRight, Gift, Sparkles } from "lucide-react";
 import { AuthForms } from "./auth-forms";
 import { AccountShell } from "@/components/account/account-shell";
+import { ProductGrid } from "@/components/product/product-card";
 import { getCustomerSession } from "@/lib/customer-auth";
+import { getProducts } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -17,12 +19,32 @@ export default async function AccountPage() {
   const session = await getCustomerSession();
   if (!session) return <AuthForms />;
 
-  const [ordersCount, favCount, plansCount, lastOrders] = await Promise.all([
+  const [customer, ordersCount, favCount, plansCount, lastOrders, activePlans, orderItems] = await Promise.all([
+    prisma.customer.findUnique({ where: { id: session.sub }, select: { bonusBalance: true } }),
     prisma.order.count({ where: { customerId: session.sub } }),
     prisma.favorite.count({ where: { customerId: session.sub } }),
     prisma.intakePlan.count({ where: { customerId: session.sub, isActive: true } }),
     prisma.order.findMany({ where: { customerId: session.sub }, orderBy: { createdAt: "desc" }, take: 3 }),
+    // Активные курсы с привязкой к товарам — для подбора целей рекомендаций.
+    prisma.intakePlan.findMany({
+      where: { customerId: session.sub, isActive: true, productId: { not: null } },
+      select: { product: { select: { goals: true } } },
+    }),
+    // Товары, которые клиент уже заказывал — исключаем из рекомендаций.
+    prisma.orderItem.findMany({
+      where: { order: { customerId: session.sub }, productId: { not: null } },
+      select: { productId: true },
+    }),
   ]);
+
+  // Цели из активных курсов; берём первую как ориентир для подбора.
+  const goals = Array.from(new Set(activePlans.flatMap((p) => p.product?.goals ?? [])));
+  const orderedIds = new Set(orderItems.map((i) => i.productId).filter(Boolean) as string[]);
+
+  // Подбираем рекомендации: по цели активного курса, иначе — рекомендуемые товары.
+  const recRaw = await getProducts(goals.length ? { goal: goals[0], take: 12 } : { featured: true, take: 12 });
+  const recommendations = recRaw.items.filter((p) => !orderedIds.has(p.id)).slice(0, 5);
+  const bonusBalance = customer?.bonusBalance ?? 0;
 
   return (
     <AccountShell name={session.name}>
@@ -33,6 +55,22 @@ export default async function AccountPage() {
         <Stat href="/account/orders" icon={Package} label="Заказов" value={ordersCount} />
         <Stat href="/account/favorites" icon={Heart} label="В избранном" value={favCount} />
         <Stat href="/account/intake" icon={PillBottle} label="Курсов приёма" value={plansCount} />
+      </div>
+
+      {/* Бонусы */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 p-5 text-white ring-1 ring-brand-500">
+        <div className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15">
+            <Gift className="h-6 w-6" />
+          </span>
+          <div>
+            <div className="text-sm font-medium text-white/80">Бонусный счёт</div>
+            <div className="text-2xl font-extrabold">{bonusBalance} {bonusBalance === 1 ? "балл" : bonusBalance >= 2 && bonusBalance <= 4 ? "балла" : "баллов"}</div>
+          </div>
+        </div>
+        <p className="max-w-xs text-sm text-white/80">
+          1 балл = 1 ₽. Начисляем за покупки и активность, списываем при оформлении заказа.
+        </p>
       </div>
 
       <div className="mt-6 rounded-2xl bg-surface p-5 ring-1 ring-line">
@@ -53,6 +91,17 @@ export default async function AccountPage() {
           </ul>
         )}
       </div>
+
+      {/* Рекомендации */}
+      {recommendations.length > 0 ? (
+        <div className="mt-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-accent-500" />
+            <h2 className="font-bold">Рекомендуем вам</h2>
+          </div>
+          <ProductGrid products={recommendations} />
+        </div>
+      ) : null}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Link href="/account/consultation" className="inline-flex items-center gap-2 rounded-full bg-accent-400 px-5 py-3 font-semibold text-white hover:bg-accent-500">

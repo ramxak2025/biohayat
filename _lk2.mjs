@@ -1,0 +1,18 @@
+import { chromium } from "playwright";
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const c = await b.newContext({ viewport: { width: 1280, height: 1100 } });
+const p = await c.newPage();
+await p.goto("http://localhost:3000/account", { waitUntil: "domcontentloaded" });
+await p.waitForTimeout(700);
+await p.fill('input[name="phone"]', "+79280000001");
+await p.fill('input[name="password"]', "demo1234");
+await p.click('button[type="submit"]');
+await p.waitForFunction(() => document.body.innerText.includes("Здравствуйте") || document.body.innerText.includes("Рекомендуем") || document.body.innerText.includes("Бонус"), { timeout: 12000 }).catch(()=>{});
+await p.waitForTimeout(1200);
+await p.screenshot({ path: "shots/lk-overview.png", fullPage: true });
+console.log("overview", p.url());
+await p.goto("http://localhost:3000/account/addresses", { waitUntil: "domcontentloaded" });
+await p.waitForTimeout(1000);
+await p.screenshot({ path: "shots/lk-addresses.png", fullPage: true });
+console.log("addresses");
+await b.close();

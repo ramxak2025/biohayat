@@ -58,22 +58,25 @@ export async function submitOrder(
   }
 
   const data = parsed.data;
-  // Перепроверяем цены по БД (защита от подмены на клиенте).
+  // Цены и наличие берём ТОЛЬКО из БД (защита от подмены цены/состава на клиенте).
+  // Принимаем лишь активные товары в наличии; цену клиента никогда не доверяем.
   const products = await prisma.product.findMany({
-    where: { id: { in: data.items.map((i) => i.id) } },
+    where: { id: { in: data.items.map((i) => i.id) }, isActive: true, inStock: true },
     select: { id: true, name: true, priceKopecks: true },
   });
   const priceById = new Map(products.map((p) => [p.id, p]));
 
-  const items = data.items.map((i) => {
-    const p = priceById.get(i.id);
-    return {
-      productId: p ? i.id : null,
-      name: p?.name ?? i.name,
-      priceKopecks: p?.priceKopecks ?? i.priceKopecks,
-      qty: i.qty,
-    };
-  });
+  const items = data.items
+    .map((i) => {
+      const p = priceById.get(i.id);
+      if (!p) return null; // неизвестный/неактивный/нет в наличии — отбрасываем
+      return { productId: p.id, name: p.name, priceKopecks: p.priceKopecks, qty: i.qty };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  if (items.length === 0) {
+    return { ok: false, error: "Товары недоступны для заказа. Обновите корзину." };
+  }
   const totalKopecks = items.reduce((s, i) => s + i.priceKopecks * i.qty, 0);
 
   const referer = (await headers()).get("referer") || undefined;

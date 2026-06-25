@@ -342,6 +342,10 @@ model Customer {
   name         String
   email        String?
   city         String?
+  birthDate    DateTime?
+  gender       String? // "male" | "female" | null
+  bonusBalance Int       @default(0) // бонусные баллы (программа лояльности)
+  notifyPrefs  Json? // настройки уведомлений { email, sms, marketing }
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -351,8 +355,45 @@ model Customer {
   favorites     Favorite[]
   intakePlans   IntakePlan[]
   consultations ConsultationRequest[]
+  addresses     Address[]
+  devices       Device[]
 
   @@index([createdAt])
+}
+
+// Сохранённые адреса доставки (для быстрого оформления и повторных заказов)
+model Address {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String? // «Дом», «Работа»
+  recipient  String?
+  phone      String?
+  city       String
+  street     String
+  house      String?
+  apartment  String?
+  comment    String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+// Устройства для push-уведомлений (мобильное приложение на React Native)
+model Device {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  platform   String // "ios" | "android"
+  pushToken  String
+  appVersion String?
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, pushToken])
+  @@index([customerId])
 }
 
 model Favorite {

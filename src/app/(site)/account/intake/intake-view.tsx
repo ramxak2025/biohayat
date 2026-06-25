@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import {
-  PillBottle, Check, Plus, Trash2, Power, Clock, X, CalendarDays,
+  PillBottle, Check, Plus, Trash2, Power, Clock, X, CalendarDays, Flame, TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Select, Label } from "@/components/ui/field";
@@ -21,11 +21,60 @@ interface PlanData {
   note: string | null;
   startDate: string;
   takenSlots: string[];
+  /** День (YYYY-MM-DD) → отмеченные слоты за окно наблюдения (30 дней). */
+  logsByDay: Record<string, string[]>;
 }
 
 interface ProductLite {
   id: string;
   name: string;
+}
+
+/**
+ * Считает приверженность по всем активным курсам за окно дней.
+ * День «полностью пройден», если по каждому активному курсу отмечены все слоты.
+ * Учитываются только дни, когда курс уже начался (startDate <= день).
+ */
+function computeAdherence(plans: PlanData[], windowDays: string[]): {
+  streak: number;
+  adherence: number;
+  trackedDays: number;
+  doneDays: number;
+} {
+  // windowDays отсортированы по убыванию: [сегодня, вчера, ...].
+  let trackedDays = 0;
+  let doneDays = 0;
+  let streak = 0;
+  let streakActive = true;
+
+  for (let i = 0; i < windowDays.length; i++) {
+    const day = windowDays[i];
+    // Курсы, которые уже начались к этому дню и требуют приёмов.
+    const active = plans.filter((p) => p.times.length > 0 && p.startDate.slice(0, 10) <= day);
+    if (active.length === 0) {
+      // День не учитывается; стрик не прерываем, но и не наращиваем.
+      continue;
+    }
+    trackedDays++;
+    const allDone = active.every((p) => {
+      const taken = p.logsByDay[day] ?? [];
+      return p.times.every((t) => taken.includes(t));
+    });
+    if (allDone) {
+      doneDays++;
+      if (streakActive) streak++;
+    } else {
+      // Прерываем стрик на первом неполном дне (исключение — сегодня ещё может быть не завершён).
+      if (i === 0) {
+        // Сегодня: не считаем в стрик и не обрываем — стрик считается со вчера.
+      } else {
+        streakActive = false;
+      }
+    }
+  }
+
+  const adherence = trackedDays > 0 ? Math.round((doneDays / trackedDays) * 100) : 0;
+  return { streak, adherence, trackedDays, doneDays };
 }
 
 /** Кнопка-чекбокс «Принял» для одного слота времени. */
@@ -285,9 +334,10 @@ function AddPlanForm({
 }
 
 export function IntakeView({
-  today, plans, products,
+  today, windowDays, plans, products,
 }: {
   today: string;
+  windowDays: string[];
   plans: PlanData[];
   products: ProductLite[];
 }) {
@@ -299,6 +349,9 @@ export function IntakeView({
     (s, p) => s + p.times.filter((t) => p.takenSlots.includes(t)).length,
     0,
   );
+
+  // Стрик и приверженность за окно наблюдения.
+  const { streak, adherence, trackedDays } = computeAdherence(plans, windowDays);
 
   const todayLabel = new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(
     new Date(today + "T00:00:00"),
@@ -330,6 +383,48 @@ export function IntakeView({
               className="h-full rounded-full bg-white transition-all"
               style={{ width: totalSlots ? `${(takenSlots / totalSlots) * 100}%` : "0%" }}
             />
+          </div>
+        </div>
+      ) : null}
+
+      {/* Стрик и приверженность за 30 дней */}
+      {plans.length > 0 && trackedDays > 0 ? (
+        <div className="mb-6 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl bg-surface p-5 ring-1 ring-line">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-ink-muted">Серия без пропусков</div>
+                <div className="mt-0.5 text-2xl font-extrabold">
+                  {streak} {streak === 1 ? "день" : streak >= 2 && streak <= 4 ? "дня" : "дней"}
+                </div>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-50 text-accent-500">
+                <Flame className="h-6 w-6" />
+              </span>
+            </div>
+            {streak > 0 ? (
+              <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-accent-50 px-2.5 py-1 text-xs font-bold text-accent-600">
+                <Flame className="h-3.5 w-3.5" /> {streak} дней подряд 🔥
+              </span>
+            ) : (
+              <p className="mt-3 text-xs text-ink-faint">Отметьте все приёмы сегодня, чтобы начать серию.</p>
+            )}
+          </div>
+
+          <div className="rounded-2xl bg-surface p-5 ring-1 ring-line">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-ink-muted">Приверженность за период</div>
+                <div className="mt-0.5 text-2xl font-extrabold">{adherence}%</div>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                <TrendingUp className="h-6 w-6" />
+              </span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-sunken">
+              <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${adherence}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-ink-faint">Дней с полным приёмом за последние {trackedDays} активных дн.</p>
           </div>
         </div>
       ) : null}

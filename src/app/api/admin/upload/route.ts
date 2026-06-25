@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir } from "fs/promises";
 import path from "path";
 import sharp from "sharp";
 import { getSession } from "@/lib/auth";
@@ -33,15 +33,23 @@ export async function POST(req: NextRequest) {
   const outPath = path.join(UPLOAD_DIR, name);
 
   try {
-    // Конвертация в WebP с сохранением размеров (ограничение по ширине 2000px).
+    // Проверяем, что это реальное растровое изображение, и конвертируем в WebP.
+    // НЕ доверяем заявленному client-у типу файла — полагаемся на разбор sharp.
+    const meta = await sharp(buffer).metadata();
+    if (!meta.width || !meta.height) {
+      return NextResponse.json({ error: "Файл не является изображением" }, { status: 400 });
+    }
     await sharp(buffer)
       .rotate()
       .resize({ width: 2000, withoutEnlargement: true })
       .webp({ quality: 82 })
       .toFile(outPath);
   } catch {
-    // если не изображение, поддерживаемое sharp (напр. SVG) — сохраняем как есть
-    await writeFile(outPath, buffer);
+    // Не сохраняем сырой/неизвестный буфер (защита от загрузки произвольных файлов).
+    return NextResponse.json(
+      { error: "Не удалось обработать изображение. Загрузите JPG, PNG или WebP." },
+      { status: 400 },
+    );
   }
 
   return NextResponse.json({ url: `/uploads/${name}` });

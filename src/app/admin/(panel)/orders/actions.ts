@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireRole } from "@/lib/auth";
 import { syncOrderToBitrix } from "@/lib/bitrix";
 import type { OrderStatus } from "@prisma/client";
 
@@ -33,7 +33,7 @@ export async function setOrderTracking(id: string, trackingNumber: string, carri
 }
 
 export async function deleteOrder(id: string): Promise<void> {
-  await requireSession();
+  await requireRole("ADMIN"); // удаление заявок — только полному администратору
   await prisma.order.delete({ where: { id } });
   revalidatePath("/admin/orders");
 }

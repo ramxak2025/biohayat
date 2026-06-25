@@ -29,11 +29,12 @@
   --color-accent-400: #e7a124;
   --color-accent-500: #d98a12;
   --color-accent-600: #b86e0e;
+  --color-accent-700: #8f5409; /* текст на светлом акцентном фоне (WCAG AA) */
 
   /* ── Нейтральные (тёплый серо-зелёный) ── */
   --color-ink: #1a1d1a; /* основной текст */
   --color-ink-muted: #5b635b; /* вторичный текст */
-  --color-ink-faint: #8b918a; /* подписи, плейсхолдеры */
+  --color-ink-faint: #6b716a; /* подписи, плейсхолдеры (контраст ≥4.5:1) */
   --color-line: #e7ebe4; /* границы */
   --color-line-strong: #d6dbd2;
   --color-surface: #ffffff; /* карточки */
@@ -90,9 +91,18 @@ body {
   background: var(--color-surface);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-size: 0.9375rem; /* 15px — базовый размер текста */
+  line-height: 1.6;
   font-feature-settings: "ss01", "cv01";
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Единый ритм заголовков: плотный трекинг для крупных кеглей */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }
 
 /* iOS safe-area helpers (нижнее меню) */

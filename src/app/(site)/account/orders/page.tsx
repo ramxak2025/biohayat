@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Package, Truck, ExternalLink } from "lucide-react";
+import { Package, Truck, ExternalLink, ChevronRight } from "lucide-react";
 import { AccountShell } from "@/components/account/account-shell";
 import { Button } from "@/components/ui/button";
+import { ReorderButton, type ReorderItem } from "@/components/account/reorder-button";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/utils";
@@ -19,7 +20,9 @@ export default async function AccountOrdersPage() {
   const orders = await prisma.order.findMany({
     where: { customerId: session.sub },
     orderBy: { createdAt: "desc" },
-    include: { items: true },
+    include: {
+      items: { include: { product: { include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } } } } },
+    },
   });
 
   return (
@@ -37,15 +40,24 @@ export default async function AccountOrdersPage() {
           {orders.map((o) => {
             const idx = statusIndex(o.status);
             const cancelled = o.status === "CANCELLED";
+            const reorderItems: ReorderItem[] = o.items.map((it) => ({
+              productId: it.productId,
+              slug: it.product?.slug ?? null,
+              name: it.name,
+              priceKopecks: it.priceKopecks,
+              image: it.product?.images[0]?.url ?? null,
+              qty: it.qty,
+            }));
             return (
               <div key={o.id} className="rounded-2xl bg-surface p-5 ring-1 ring-line">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <span className="font-extrabold">Заказ №{o.number}</span>
-                    <span className="ml-2 text-sm text-ink-faint">
+                  <Link href={`/account/orders/${o.number}`} className="group inline-flex items-center gap-1">
+                    <span className="font-extrabold group-hover:text-brand-700">Заказ №{o.number}</span>
+                    <span className="ml-1 text-sm text-ink-faint">
                       {new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(o.createdAt)}
                     </span>
-                  </div>
+                    <ChevronRight className="h-4 w-4 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-brand-700" />
+                  </Link>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${cancelled ? "bg-danger/10 text-danger" : "bg-brand-50 text-brand-700"}`}>
                     {ORDER_STATUS_LABELS[o.status]}
                   </span>
@@ -73,16 +85,19 @@ export default async function AccountOrdersPage() {
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
                   <span className="font-bold">Итого: {formatMoney(o.totalKopecks)}</span>
-                  {o.trackingNumber ? (
-                    <a
-                      href={trackingUrl(o.trackingCarrier, o.trackingNumber)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
-                    >
-                      <Truck className="h-4 w-4" /> Отследить ({o.trackingNumber}) <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  ) : null}
+                  <div className="flex flex-wrap items-center gap-3">
+                    {o.trackingNumber ? (
+                      <a
+                        href={trackingUrl(o.trackingCarrier, o.trackingNumber)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
+                      >
+                        <Truck className="h-4 w-4" /> Отследить ({o.trackingNumber}) <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : null}
+                    <ReorderButton items={reorderItems} />
+                  </div>
                 </div>
               </div>
             );

@@ -15,11 +15,12 @@ export async function submitConsultation(
 ): Promise<ConsultationState> {
   const session = await requireCustomer();
 
-  const name = String(fd.get("name") || "").trim() || session.name;
+  // Ограничиваем длину полей (защита от раздувания лида/спама).
+  const name = (String(fd.get("name") || "").trim() || session.name).slice(0, 120);
   const phoneRaw = String(fd.get("phone") || "").trim() || session.phone;
   const phone = normalizePhone(phoneRaw);
-  const topic = String(fd.get("topic") || "").trim() || null;
-  const message = String(fd.get("message") || "").trim() || null;
+  const topic = String(fd.get("topic") || "").trim().slice(0, 120) || null;
+  const message = String(fd.get("message") || "").trim().slice(0, 2000) || null;
 
   if (name.length < 2) return { error: "Укажите имя" };
   if (phone.replace(/\D/g, "").length < 11) return { error: "Укажите корректный телефон" };
