@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { SearchTrigger, SearchOverlay } from "@/components/site/mobile-search";
 import { useAuthFlag, useAuthName } from "@/lib/use-auth-flag";
@@ -67,11 +68,14 @@ export function MobileHeader() {
             aria-label="ХАЯТ — на главную"
             className="flex shrink-0 items-center gap-1.5 active:scale-95"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-brand">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-                <path d="M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z" />
-              </svg>
-            </span>
+            <Image
+              src="/brand/logo-mark.png"
+              alt="ХАЯТ"
+              width={36}
+              height={36}
+              className="h-9 w-9 shrink-0"
+              priority
+            />
             <span className="text-lg font-extrabold tracking-tight text-ink">ХАЯТ</span>
           </Link>
 
