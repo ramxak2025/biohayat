@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, X, ArrowUpRight, Loader2 } from "lucide-react";
 import { getSearchSuggestions } from "@/app/actions/search";
@@ -27,13 +29,16 @@ export function MobileSearch() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-line bg-surface/85 px-3 pb-2.5 pt-[max(10px,env(safe-area-inset-top))] backdrop-blur-xl lg:hidden">
+      <div className="sticky top-0 z-30 flex items-center gap-2.5 border-b border-line bg-surface/85 px-3 pb-2.5 pt-[max(10px,env(safe-area-inset-top))] backdrop-blur-xl lg:hidden">
+        <Link href="/" aria-label="ХАЯТ — на главную" className="shrink-0">
+          <Image src="/brand/logo-mark.png" alt="ХАЯТ" width={36} height={36} className="h-9 w-9" priority />
+        </Link>
         <button
           onClick={() => setOpen(true)}
-          className="flex h-11 w-full items-center gap-2.5 rounded-full bg-surface-soft px-4 text-left text-[15px] text-ink-faint ring-1 ring-line transition active:scale-[0.99]"
+          className="flex h-11 flex-1 items-center gap-2.5 rounded-full bg-surface-soft px-4 text-left text-[15px] text-ink-faint ring-1 ring-line transition active:scale-[0.99]"
         >
           <Search className="h-5 w-5 text-brand-500" />
-          Поиск: витамин D3, коллаген, мёд…
+          <span className="truncate">Поиск: витамин D3, коллаген…</span>
         </button>
       </div>
 

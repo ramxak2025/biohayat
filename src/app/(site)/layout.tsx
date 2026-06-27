@@ -39,8 +39,12 @@ export default async function SiteLayout({
           <Header phone={settings.phone} loggedIn={!!session} />
         </div>
         <MobileSearch />
-        <main className="flex-1">{children}</main>
-        <Footer settings={settings} categories={navCats} />
+        {/* На мобильном снизу отступ под плавающее меню (футера на мобильном нет — app-style) */}
+        <main className="flex-1 pb-28 lg:pb-0">{children}</main>
+        {/* Футер — только на десктопе; на мобильном интерфейс как в приложении */}
+        <div className="hidden lg:block">
+          <Footer settings={settings} categories={navCats} />
+        </div>
         <MobileNav />
         <CookieConsent />
         {settings.bitrixEnabled && settings.bitrixChatCode ? (
