@@ -18,12 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(siteUrl()),
     ...buildMetadata({ path: "/" }, settings),
-    icons: { icon: "/favicon.ico" },
+    applicationName: "ХАЯТ",
+    appleWebApp: { capable: true, title: "ХАЯТ", statusBarStyle: "default" },
     verification: {
       yandex: settings.yandexVerification || undefined,
       google: settings.googleVerification || undefined,
     },
   };
+  // Иконки (favicon, apple-icon, icon) и манифест Next определяет автоматически
+  // из файлов src/app/icon.png, apple-icon.png, favicon.ico и manifest.ts.
 }
 
 export const viewport: Viewport = {

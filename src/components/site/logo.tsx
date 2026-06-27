@@ -1,20 +1,41 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Логотип ХАЯТ — текстовый знак с листом.
- * Заглушка до получения фирменного логотипа (SVG/PNG, прозрачный фон, ~160×40).
+ * Логотип ХАЯТ — фирменный знак (дерево с качелями в круге) + текстовый
+ * вордмарк. Знак — растровый PNG из брендбука; «ХАЯТ» рендерится текстом,
+ * чтобы оставаться идеально чётким на любом размере.
+ *
+ * variant="white" — для тёмных подложек (текст белый, знак белый).
  */
-export function Logo({ className }: { className?: string }) {
+export function Logo({
+  className,
+  variant = "default",
+}: {
+  className?: string;
+  variant?: "default" | "white";
+}) {
+  const white = variant === "white";
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-brand">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-          <path d="M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z" />
-        </svg>
-      </span>
+    <span className={cn("inline-flex items-center gap-2.5", className)}>
+      <Image
+        src={white ? "/brand/logo-mark-white.png" : "/brand/logo-mark.png"}
+        alt="ХАЯТ"
+        width={40}
+        height={40}
+        className="h-9 w-9 shrink-0"
+        priority
+      />
       <span className="flex flex-col leading-none">
-        <span className="text-xl font-extrabold tracking-tight text-ink">ХАЯТ</span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-600">
+        <span className={cn("text-xl font-bold tracking-tight", white ? "text-white" : "text-ink")}>
+          ХАЯТ
+        </span>
+        <span
+          className={cn(
+            "text-[10px] font-semibold uppercase tracking-[0.22em]",
+            white ? "text-white/70" : "text-brand-600",
+          )}
+        >
           biohayat
         </span>
       </span>
