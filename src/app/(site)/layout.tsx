@@ -4,6 +4,7 @@ import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { MobileSearch } from "@/components/site/mobile-search";
+import { ScrollToTop } from "@/components/site/scroll-to-top";
 import { ChatWidget } from "@/components/site/chat-widget";
 import { CookieConsent } from "@/components/site/cookie-consent";
 import { getNavCategories } from "@/lib/queries";
@@ -34,6 +35,7 @@ export default async function SiteLayout({
   return (
     <CartProvider>
       <FavoritesProvider loggedIn={!!session} initialIds={initialFavorites}>
+        <ScrollToTop />
         {/* Шапка только на десктопе — на мобильном навигация снизу */}
         <div className="hidden lg:block">
           <Header phone={settings.phone} loggedIn={!!session} />
