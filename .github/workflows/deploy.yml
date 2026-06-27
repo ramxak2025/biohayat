@@ -30,7 +30,7 @@ jobs:
             set -e
             cd ~/biohayat
             git fetch origin
-            git checkout claude/supplements-ecommerce-bitrix24-6psN0
+            git checkout -f claude/supplements-ecommerce-bitrix24-6psN0
             git reset --hard origin/claude/supplements-ecommerce-bitrix24-6psN0
             docker compose up -d --build
             docker compose exec -T app pnpm db:push
