@@ -1,0 +1,37 @@
+name: Деплой на сервер (Beget)
+
+# Автоматический деплой нашей версии сайта на сервер по SSH при каждом пуше.
+# Один раз добавьте секреты в GitHub: Settings → Secrets and variables → Actions:
+#   DEPLOY_HOST     — IP сервера (например 155.212.211.210)
+#   DEPLOY_USER     — пользователь SSH (например root)
+#   DEPLOY_SSH_KEY  — приватный SSH-ключ (содержимое файла id_ed25519/id_rsa)
+#   DEPLOY_PORT     — порт SSH (необязательно, по умолчанию 22)
+# После этого каждое изменение в этой ветке само разворачивается на new.biohayat.ru.
+
+on:
+  push:
+    branches: [claude/supplements-ecommerce-bitrix24-6psN0]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Развернуть по SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script_stop: true
+          command_timeout: 30m
+          script: |
+            set -e
+            cd ~/biohayat
+            git fetch origin
+            git checkout claude/supplements-ecommerce-bitrix24-6psN0
+            git reset --hard origin/claude/supplements-ecommerce-bitrix24-6psN0
+            docker compose up -d --build
+            docker compose exec -T app pnpm db:push
+            echo "Деплой завершён."
