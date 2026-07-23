@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Flame, ArrowRight } from "lucide-react";
 import { CountUp } from "@/components/motion/count-up";
+import { SALE } from "@/lib/promo";
 
 /**
  * Яркий анимированный блок «Распродажа» — с бегущим бликом (shine) и
@@ -27,11 +28,11 @@ export function SaleBanner() {
             <Flame className="h-3.5 w-3.5" /> Распродажа
           </span>
           <h2 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl lg:text-4xl">
-            Скидки до <CountUp to={40} prefix="−" suffix="%" /> на хиты
+            Скидки до <CountUp to={SALE.maxDiscount} prefix="−" suffix="%" /> на хиты
           </h2>
           <p className="mt-1.5 text-white/90">
-            И ещё <CountUp to={25} prefix="−" suffix="%" className="font-bold" /> на первый заказ по промокоду{" "}
-            <span className="font-bold">FREE25Hayat</span>
+            И ещё <CountUp to={SALE.firstOrderDiscount} prefix="−" suffix="%" className="font-bold" /> на первый заказ по промокоду{" "}
+            <span className="font-bold">{SALE.promoCode}</span>
           </p>
         </div>
         <span className="inline-flex h-12 shrink-0 items-center gap-2 self-start rounded-full bg-white px-6 font-bold text-[#c1352a] shadow-sm transition group-hover:gap-3 sm:self-auto">

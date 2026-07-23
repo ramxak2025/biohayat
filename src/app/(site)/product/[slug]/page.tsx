@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductGrid } from "@/components/product/product-card";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
+import { Reveal, Stagger } from "@/components/motion/reveal";
 import { getProductBySlug, getRelatedProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { productMetadata, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
@@ -74,10 +75,12 @@ export default async function ProductPage({
         <span className="text-ink-muted">{product.name}</span>
       </nav>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
-        <ProductGallery images={product.images} name={product.name} />
+      <div className="grid gap-6 lg:grid-cols-2 lg:gap-10 lg:items-start">
+        <div className="lg:sticky lg:top-24">
+          <ProductGallery images={product.images} name={product.name} />
+        </div>
 
-        <div>
+        <Reveal as="div" stagger y={18} step={0.06}>
           <div className="flex flex-wrap gap-1.5">
             {discount ? <Badge tone="sale">−{discount}%</Badge> : null}
             {product.badges.map((b) => (
@@ -141,12 +144,12 @@ export default async function ProductPage({
             <Info className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{settings.badDisclaimer}</span>
           </div>
-        </div>
+        </Reveal>
       </div>
 
       {/* характеристики / табы */}
       {tabs.length > 0 ? (
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <Stagger className="mt-10 grid gap-6 lg:grid-cols-2" y={20} step={0.08}>
           {tabs.map((t) => (
             <div key={t.title} className="rounded-2xl bg-surface p-5 ring-1 ring-line">
               <h2 className="mb-2 text-lg font-bold">{t.title}</h2>
@@ -155,7 +158,7 @@ export default async function ProductPage({
               </div>
             </div>
           ))}
-        </div>
+        </Stagger>
       ) : null}
 
       {related.length > 0 ? (

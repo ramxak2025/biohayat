@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Phone, Search, ShoppingCart, User, Heart, LayoutGrid, Flame } from "lucide-react";
+import { Phone, ShoppingCart, User, Heart, LayoutGrid, Flame } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
 import { Bump } from "@/components/motion/bump";
+import { HeaderSearch } from "./header-search";
 import { Logo } from "./logo";
 
 export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }) {
@@ -30,15 +31,7 @@ export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }
           <Logo />
         </Link>
 
-        <form action="/search" className="relative flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
-          <input
-            name="q"
-            aria-label="Поиск товаров"
-            placeholder="Поиск товаров: витамин D3, коллаген, мёд…"
-            className="h-11 w-full rounded-full border border-line bg-surface-soft pl-11 pr-4 text-[15px] placeholder:text-ink-faint focus:border-brand-300 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-100"
-          />
-        </form>
+        <HeaderSearch />
 
         <a
           href={`tel:${phone.replace(/[^\d+]/g, "")}`}

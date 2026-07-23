@@ -15,6 +15,7 @@ import { Reveal, Stagger } from "@/components/motion/reveal";
 import { Magnetic } from "@/components/motion/magnetic";
 import { Parallax } from "@/components/motion/parallax";
 import { CountUp } from "@/components/motion/count-up";
+import { SALE } from "@/lib/promo";
 
 export default async function HomePage() {
   const [categories, featured, sale, heroBanners, materials, settings] = await Promise.all([
@@ -110,10 +111,10 @@ export default async function HomePage() {
               <Reveal className="relative" stagger y={14} step={0.08}>
                 <BadgePercent className="mb-2 h-8 w-8" />
                 <h2 className="text-2xl font-extrabold leading-tight tracking-tight">
-                  {heroSecondary?.title || "−25% на первый заказ"}
+                  {heroSecondary?.title || `−${SALE.firstOrderDiscount}% на первый заказ`}
                 </h2>
                 <p className="mt-1 text-white/90">
-                  {heroSecondary?.subtitle || "Промокод FREE25Hayat"}
+                  {heroSecondary?.subtitle || `Промокод ${SALE.promoCode}`}
                 </p>
                 <div>
                   <Button asChild variant="secondary" className="mt-4 bg-white text-accent-700 hover:bg-white/90">
