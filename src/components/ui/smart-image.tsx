@@ -1,6 +1,10 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+/** Фирменный светло-зелёный blur-плейсхолдер (1×1), чтобы фото «проявлялись» мягко. */
+const BLUR_DATA_URL =
+  "data:image/gif;base64,R0lGODlhAQABAPAAAPD5878A/yH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
+
 interface SmartImageProps {
   src?: string | null;
   alt: string;
@@ -50,6 +54,8 @@ export function SmartImage({
           fill
           sizes={sizes}
           priority={priority}
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
           className={cn("object-cover", imgClassName)}
         />
       ) : (

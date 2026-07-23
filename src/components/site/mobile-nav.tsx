@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Heart, LayoutGrid, ShoppingBag, User } from "lucide-react";
 import { useFavorites } from "@/components/favorites/favorites-provider";
 import { useCart } from "@/components/cart/cart-provider";
+import { Bump } from "@/components/motion/bump";
 import { cn } from "@/lib/utils";
 
 /**
@@ -68,14 +69,15 @@ function Tab({
       <span className="relative">
         <Icon className="h-[21px] w-[21px]" strokeWidth={active ? 2.4 : 1.9} />
         {badge > 0 ? (
-          <span
+          <Bump
+            value={badge}
             className={cn(
-              "absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white ring-2 ring-surface",
-              badgeTone === "accent" ? "bg-accent-400" : "bg-sale",
+              "absolute -right-2 -top-1.5 h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white ring-2 ring-surface",
+              badgeTone === "accent" ? "bg-accent-500" : "bg-sale",
             )}
           >
             {badge}
-          </span>
+          </Bump>
         ) : null}
       </span>
       <span className="text-[10px] font-semibold leading-none">{label}</span>

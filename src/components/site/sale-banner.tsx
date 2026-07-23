@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Flame, ArrowRight } from "lucide-react";
+import { CountUp } from "@/components/motion/count-up";
 
 /**
  * Яркий анимированный блок «Распродажа» — с бегущим бликом (shine) и
@@ -25,15 +26,15 @@ export function SaleBanner() {
           <span className="sale-pulse inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wide backdrop-blur">
             <Flame className="h-3.5 w-3.5" /> Распродажа
           </span>
-          <h2 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">
-            Скидки до −40% на хиты
+          <h2 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl lg:text-4xl">
+            Скидки до <CountUp to={40} prefix="−" suffix="%" /> на хиты
           </h2>
           <p className="mt-1.5 text-white/90">
-            И ещё −25% на первый заказ по промокоду{" "}
+            И ещё <CountUp to={25} prefix="−" suffix="%" className="font-bold" /> на первый заказ по промокоду{" "}
             <span className="font-bold">FREE25Hayat</span>
           </p>
         </div>
-        <span className="inline-flex h-12 shrink-0 items-center gap-2 self-start rounded-full bg-white px-6 font-bold text-[#d23a2e] shadow-sm transition group-hover:gap-3 sm:self-auto">
+        <span className="inline-flex h-12 shrink-0 items-center gap-2 self-start rounded-full bg-white px-6 font-bold text-[#c1352a] shadow-sm transition group-hover:gap-3 sm:self-auto">
           Смотреть <ArrowRight className="h-5 w-5" />
         </span>
       </div>

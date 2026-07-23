@@ -5,14 +5,15 @@ import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { formatMoney, discountPercent } from "@/lib/utils";
 import type { ProductCardData } from "@/lib/queries";
+import { Stagger } from "@/components/motion/reveal";
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const discount = discountPercent(product.priceKopecks, product.oldPriceKopecks);
   const image = product.images[0]?.url;
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/product/${product.slug}`} className="relative block">
+    <div className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:ring-brand-200">
+      <Link href={`/product/${product.slug}`} className="relative block overflow-hidden">
         <SmartImage
           src={image}
           alt={product.name}
@@ -21,7 +22,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           label={product.name}
           spec="1000×1000"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
-          className="transition-transform duration-500 group-hover:scale-[1.03]"
+          className="transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.06]"
         />
         <div className="absolute left-2.5 top-2.5 flex flex-col gap-1.5">
           {discount ? <Badge tone="sale">−{discount}%</Badge> : null}
@@ -77,10 +78,10 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
 export function ProductGrid({ products }: { products: ProductCardData[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+    <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5" step={0.06} y={20}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}
-    </div>
+    </Stagger>
   );
 }

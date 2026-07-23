@@ -2,6 +2,7 @@ import { CartProvider } from "@/components/cart/cart-provider";
 import { FavoritesProvider } from "@/components/favorites/favorites-provider";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
+import { MobileLegal } from "@/components/site/mobile-legal";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { MobileSearch } from "@/components/site/mobile-search";
 import { ScrollToTop } from "@/components/site/scroll-to-top";
@@ -42,7 +43,15 @@ export default async function SiteLayout({
         </div>
         <MobileSearch />
         {/* На мобильном снизу отступ под плавающее меню (футера на мобильном нет — app-style) */}
-        <main className="flex-1 pb-28 lg:pb-0">{children}</main>
+        <main className="flex-1">{children}</main>
+        {/* Мобильный юр-блок: дисклеймер БАД + ключевые ссылки (обязательно доступны) */}
+        <div className="pb-28 lg:hidden">
+          <MobileLegal
+            disclaimer={settings.badDisclaimer}
+            legalName={settings.legalName}
+            inn={settings.inn}
+          />
+        </div>
         {/* Футер — только на десктопе; на мобильном интерфейс как в приложении */}
         <div className="hidden lg:block">
           <Footer settings={settings} categories={navCats} />

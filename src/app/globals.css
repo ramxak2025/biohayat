@@ -87,6 +87,12 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   background: var(--color-surface);
   color: var(--color-ink);
@@ -264,7 +270,8 @@ h3 {
   .shine::after,
   .sale-pulse,
   .loader-logo,
-  .loader-ring {
+  .loader-ring,
+  .animate-fade-up {
     animation: none;
   }
 }

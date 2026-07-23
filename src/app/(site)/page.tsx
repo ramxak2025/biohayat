@@ -11,6 +11,10 @@ import { getNavCategories, getProducts, getBanners, getPublishedMaterials } from
 import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
+import { Reveal, Stagger } from "@/components/motion/reveal";
+import { Magnetic } from "@/components/motion/magnetic";
+import { Parallax } from "@/components/motion/parallax";
+import { CountUp } from "@/components/motion/count-up";
 
 export default async function HomePage() {
   const [categories, featured, sale, heroBanners, materials, settings] = await Promise.all([
@@ -32,77 +36,102 @@ export default async function HomePage() {
         <Container>
           <div className="grid gap-4 lg:grid-cols-3">
             <div
-              className="relative flex min-h-[340px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white sm:min-h-[420px] lg:col-span-2 lg:min-h-[460px] lg:p-12"
-              style={{ backgroundColor: hero?.bgColor || "#2f8f4e" }}
+              className="group relative flex min-h-[340px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white sm:min-h-[420px] lg:col-span-2 lg:min-h-[460px] lg:p-12"
+              style={{ backgroundColor: hero?.bgColor || "#2c7838" }}
             >
-              {hero?.image ? (
-                <SmartImage
-                  src={hero.image}
-                  alt={hero.title}
-                  ratio="16/9"
-                  rounded="rounded-none"
-                  className="absolute inset-0 h-full w-full"
-                  priority
+              {/* фирменный mesh-градиент как дефолт — «дорогая» глубина вместо плоской заливки */}
+              {!hero?.image ? (
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(120% 90% at 12% 8%, #5cae69 0%, transparent 55%), radial-gradient(110% 80% at 92% 100%, #1c3f24 0%, transparent 60%), radial-gradient(90% 70% at 80% 10%, #8ecb97 0%, transparent 45%)",
+                  }}
                 />
-              ) : null}
+              ) : (
+                <Parallax className="absolute left-0 top-[-6%] h-[112%] w-full">
+                  <SmartImage
+                    src={hero.image}
+                    alt={hero.title || "Натуральные витамины ХАЯТ"}
+                    ratio="16/9"
+                    rounded="rounded-none"
+                    className="absolute inset-0 h-full w-full"
+                    priority
+                  />
+                </Parallax>
+              )}
               {/* мягкий объём/градиент для глубины и читаемости текста */}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/15 via-transparent to-white/10" />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-              <div className="relative max-w-lg">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+              <Reveal className="relative max-w-lg" stagger trigger="load" y={18} step={0.09}>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
                   <Leaf className="h-3.5 w-3.5" /> Натурально · Проверено временем
                 </span>
-                <h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
+                <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   {hero?.title || "Натуральные витамины для всей семьи"}
                 </h1>
                 <p className="mt-2 text-base text-white/90 sm:text-lg">
                   {hero?.subtitle || "Фитопродукция ХАЯТ"}
                 </p>
-                <Button asChild variant="secondary" size="lg" className="mt-5 bg-white text-brand-700 hover:bg-white/90">
-                  <Link href={hero?.link || "/catalog"}>
-                    {hero?.ctaLabel || "В каталог"} <ArrowRight className="h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
+                <div>
+                  <Magnetic className="mt-5 inline-block">
+                    <Button asChild variant="secondary" size="lg" className="bg-white text-brand-700 shadow-lg hover:bg-white/90">
+                      <Link href={hero?.link || "/catalog"}>
+                        {hero?.ctaLabel || "В каталог"} <ArrowRight className="h-5 w-5" />
+                      </Link>
+                    </Button>
+                  </Magnetic>
+                </div>
+              </Reveal>
             </div>
 
             <div
               className="relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white lg:min-h-0"
-              style={{ backgroundColor: heroSecondary?.bgColor || "#d98a12" }}
+              style={{ backgroundColor: heroSecondary?.bgColor || "#b86e0e" }}
             >
               {heroSecondary?.image ? (
                 <SmartImage
                   src={heroSecondary.image}
-                  alt={heroSecondary.title}
+                  alt={heroSecondary.title || "Акция ХАЯТ"}
                   ratio="4/5"
                   rounded="rounded-none"
                   className="absolute inset-0 h-full w-full"
                 />
-              ) : null}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10" />
-              <div className="relative">
+              ) : (
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(120% 100% at 10% 0%, #e7a124 0%, transparent 55%), radial-gradient(120% 100% at 100% 100%, #8f5409 0%, transparent 60%)",
+                  }}
+                />
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/10" />
+              <Reveal className="relative" stagger y={14} step={0.08}>
                 <BadgePercent className="mb-2 h-8 w-8" />
-                <h2 className="text-2xl font-extrabold leading-tight">
+                <h2 className="text-2xl font-extrabold leading-tight tracking-tight">
                   {heroSecondary?.title || "−25% на первый заказ"}
                 </h2>
                 <p className="mt-1 text-white/90">
                   {heroSecondary?.subtitle || "Промокод FREE25Hayat"}
                 </p>
-                <Button asChild variant="secondary" className="mt-4 bg-white text-accent-600 hover:bg-white/90">
-                  <Link href={heroSecondary?.link || "/sale"}>
-                    {heroSecondary?.ctaLabel || "К акциям"}
-                  </Link>
-                </Button>
-              </div>
+                <div>
+                  <Button asChild variant="secondary" className="mt-4 bg-white text-accent-700 hover:bg-white/90">
+                    <Link href={heroSecondary?.link || "/sale"}>
+                      {heroSecondary?.ctaLabel || "К акциям"}
+                    </Link>
+                  </Button>
+                </div>
+              </Reveal>
             </div>
           </div>
 
           {/* trust strip */}
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Reveal className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3" stagger y={16}>
             <TrustItem icon={Truck} title="Бесплатная доставка" text={`от ${formatMoney(settings.freeDeliveryThresholdKopecks)} по России`} />
             <TrustItem icon={ShieldCheck} title="Сертифицировано" text="Соответствует требованиям ЕАЭС" />
             <TrustItem icon={Leaf} title="Натуральный состав" text="Производство ООО «Восток», Россия" />
-          </div>
+          </Reveal>
         </Container>
       </Section>
 
@@ -174,21 +203,23 @@ export default async function HomePage() {
         <Section className="bg-surface-soft">
           <Container>
             <SectionHeader title="Полезные статьи" subtitle="О здоровье, витаминах и нутрициологии" />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" step={0.09} y={22}>
               {materials.map((m) => (
                 <Link
                   key={m.id}
                   href={`/articles/${m.slug}`}
-                  className="group overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line transition hover:shadow-md"
+                  className="group overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:ring-brand-200"
                 >
-                  <SmartImage src={m.coverImage} alt={m.title} ratio="16/9" rounded="rounded-none" label="Обложка статьи" spec="1200×675" />
+                  <div className="overflow-hidden">
+                    <SmartImage src={m.coverImage} alt={m.title} ratio="16/9" rounded="rounded-none" label="Обложка статьи" spec="1200×675" imgClassName="transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.05]" />
+                  </div>
                   <div className="p-4">
                     <h3 className="font-bold leading-tight group-hover:text-brand-700">{m.title}</h3>
                     {m.excerpt ? <p className="mt-1.5 line-clamp-2 text-sm text-ink-muted">{m.excerpt}</p> : null}
                   </div>
                 </Link>
               ))}
-            </div>
+            </Stagger>
           </Container>
         </Section>
       ) : null}
@@ -196,32 +227,56 @@ export default async function HomePage() {
       {/* ── О компании ── */}
       <Section>
         <Container>
-          <div className="overflow-hidden rounded-3xl bg-brand-500 text-white">
-            <div className="grid items-center gap-6 p-8 lg:grid-cols-2 lg:p-12">
+          <Reveal className="relative overflow-hidden rounded-3xl bg-brand-600 text-white" y={28}>
+            {/* фирменный градиентный арт вместо пустой заглушки */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage:
+                  "radial-gradient(90% 120% at 100% 0%, #3a9447 0%, transparent 55%), radial-gradient(80% 120% at 0% 100%, #1c3f24 0%, transparent 60%)",
+              }}
+            />
+            <div className="relative grid items-center gap-6 p-8 lg:grid-cols-2 lg:p-12">
               <div>
-                <h2 className="text-2xl font-extrabold sm:text-3xl">Компания «ХАЯТ»</h2>
-                <p className="mt-3 text-white/90">
+                <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Компания «ХАЯТ»</h2>
+                <p className="mt-3 max-w-prose text-white/90">
                   Мы производим и продаём натуральную фитопродукцию и биологически активные
                   добавки, основанные на знаниях, рецептах и принципах, проверенных временем.
                   Продукция изготавливается из натурального сырья.
                 </p>
-                <Button asChild variant="secondary" className="mt-5 bg-white text-brand-700 hover:bg-white/90">
-                  <Link href="/about">Подробнее о нас</Link>
-                </Button>
+                <div className="mt-5 grid max-w-md grid-cols-3 gap-3">
+                  <Stat value={30} suffix="+" label="лет рецептам" />
+                  <Stat value={119} label="товаров в каталоге" />
+                  <Stat value={100} suffix="%" label="натуральный состав" />
+                </div>
+                <Magnetic className="mt-6 inline-block">
+                  <Button asChild variant="secondary" className="bg-white text-brand-700 shadow-lg hover:bg-white/90">
+                    <Link href="/about">Подробнее о нас</Link>
+                  </Button>
+                </Magnetic>
               </div>
-              <SmartImage
-                src={null}
-                alt="О компании ХАЯТ"
-                ratio="16/9"
-                label="Фото производства / команды"
-                spec="1200×675"
-                rounded="rounded-2xl"
-              />
+              <div className="relative flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur-sm lg:min-h-[280px]">
+                <Leaf className="h-24 w-24 text-white/70" strokeWidth={1.2} />
+                <span className="absolute bottom-4 left-4 text-sm font-semibold text-white/80">
+                  Производство ООО «Восток», Россия
+                </span>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </Container>
       </Section>
     </>
+  );
+}
+
+function Stat({ value, suffix, label }: { value: number; suffix?: string; label: string }) {
+  return (
+    <div>
+      <div className="text-2xl font-extrabold leading-none tracking-tight sm:text-3xl">
+        <CountUp to={value} suffix={suffix} />
+      </div>
+      <div className="mt-1 text-xs leading-tight text-white/75">{label}</div>
+    </div>
   );
 }
 

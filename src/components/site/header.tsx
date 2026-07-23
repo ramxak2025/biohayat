@@ -5,6 +5,7 @@ import { Phone, Search, ShoppingCart, User, Heart, LayoutGrid, Flame } from "luc
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
+import { Bump } from "@/components/motion/bump";
 import { Logo } from "./logo";
 
 export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }) {
@@ -33,6 +34,7 @@ export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
           <input
             name="q"
+            aria-label="Поиск товаров"
             placeholder="Поиск товаров: витамин D3, коллаген, мёд…"
             className="h-11 w-full rounded-full border border-line bg-surface-soft pl-11 pr-4 text-[15px] placeholder:text-ink-faint focus:border-brand-300 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
@@ -49,7 +51,7 @@ export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }
         <Link href="/account/favorites" className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-surface-soft" aria-label="Избранное">
           <Heart className="h-5 w-5" />
           {favCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-sale px-1 text-xs font-bold text-white ring-2 ring-surface">{favCount}</span>
+            <Bump value={favCount} className="absolute -right-0.5 -top-0.5 h-5 min-w-5 items-center justify-center rounded-full bg-sale px-1 text-xs font-bold text-white ring-2 ring-surface">{favCount}</Bump>
           ) : null}
         </Link>
 
@@ -61,7 +63,7 @@ export function Header({ phone, loggedIn }: { phone: string; loggedIn: boolean }
           <ShoppingCart className="h-5 w-5" />
           <span>Корзина</span>
           {count > 0 ? (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-white ring-2 ring-surface">{count}</span>
+            <Bump value={count} className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-accent-500 px-1 text-xs font-bold text-white ring-2 ring-surface">{count}</Bump>
           ) : null}
         </Link>
       </Container>
