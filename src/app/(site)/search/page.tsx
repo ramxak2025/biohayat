@@ -52,7 +52,7 @@ export default async function SearchPage({
       ) : (
         <>
           <p className="mb-4 text-sm text-ink-faint">Найдено: {total}</p>
-          <ProductGrid products={items} />
+          <ProductGrid products={items} reveal={false} />
         </>
       )}
     </Container>

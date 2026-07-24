@@ -76,9 +76,28 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   );
 }
 
-export function ProductGrid({ products }: { products: ProductCardData[] }) {
+export function ProductGrid({
+  products,
+  reveal = true,
+}: {
+  products: ProductCardData[];
+  /** Каскадное появление при скролле. Отключайте в плотных браузинг-сетках
+   *  (каталог/категория/поиск), где важен мгновенный тап по карточке. */
+  reveal?: boolean;
+}) {
+  const gridClass =
+    "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5";
+  if (!reveal) {
+    return (
+      <div className={gridClass}>
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} />
+        ))}
+      </div>
+    );
+  }
   return (
-    <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5" step={0.06} y={20}>
+    <Stagger className={gridClass} step={0.06} y={20}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}

@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local env
 .env
+
+# загруженные/импортированные изображения (в проде — том Docker `uploads`)
+/public/uploads/

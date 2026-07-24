@@ -99,7 +99,7 @@ export default async function AccountPage() {
             <Sparkles className="h-5 w-5 text-accent-500" />
             <h2 className="font-bold">Рекомендуем вам</h2>
           </div>
-          <ProductGrid products={recommendations} />
+          <ProductGrid products={recommendations} reveal={false} />
         </div>
       ) : null}
 

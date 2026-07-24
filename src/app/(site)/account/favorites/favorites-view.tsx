@@ -46,7 +46,7 @@ export function FavoritesView() {
       ) : loading ? (
         <p className="text-ink-muted">Загрузка…</p>
       ) : (
-        <ProductGrid products={products} />
+        <ProductGrid products={products} reveal={false} />
       )}
     </Container>
   );

@@ -52,7 +52,7 @@ export function CatalogView({
           </div>
 
           {products.length > 0 ? (
-            <ProductGrid products={products} />
+            <ProductGrid products={products} reveal={false} />
           ) : (
             <div className="rounded-2xl bg-surface-soft py-16 text-center text-ink-muted">
               Ничего не найдено. Попробуйте изменить запрос или категорию.

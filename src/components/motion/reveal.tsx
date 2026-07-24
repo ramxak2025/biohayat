@@ -51,16 +51,21 @@ export function Reveal({
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const targets = stagger ? Array.from(el.children) : el;
+        // Ограничиваем суммарную длительность каскада: даже в большой сетке
+        // элементы становятся видимыми/кликабельными быстро (важно для тапа).
+        const count = Array.isArray(targets) ? targets.length : 1;
+        const staggerCfg =
+          stagger && count > 1 ? { amount: Math.min(count * step, 0.5) } : 0;
         gsap.set(targets, { autoAlpha: 0, y });
         gsap.to(targets, {
           autoAlpha: 1,
           y: 0,
-          duration: 0.7,
+          duration: 0.6,
           ease: "power3.out",
           delay: trigger === "load" ? delay : 0,
-          stagger: stagger ? step : 0,
+          stagger: staggerCfg,
           ...(trigger === "scroll"
-            ? { scrollTrigger: { trigger: el, start: "top 86%", once: true } }
+            ? { scrollTrigger: { trigger: el, start: "top 92%", once: true } }
             : {}),
         });
       });
