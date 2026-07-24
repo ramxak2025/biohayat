@@ -34,5 +34,7 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/tsconfig.json ./tsconfig.json
 # src нужен для сид-скрипта (импортирует src/lib/taxonomy)
 COPY --from=build /app/src ./src
+# scripts нужны для разовых задач (импорт фото товаров со старого сайта)
+COPY --from=build /app/scripts ./scripts
 EXPOSE 3000
 CMD ["pnpm", "start"]
