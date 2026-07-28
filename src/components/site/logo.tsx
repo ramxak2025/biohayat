@@ -19,15 +19,15 @@ export function Logo({
       <Image
         src={inverted ? "/brand/logo-mark-white.png" : "/brand/logo-mark.png"}
         alt="ХАЯТ"
-        width={40}
-        height={40}
-        className="h-9 w-9 shrink-0"
+        width={56}
+        height={56}
+        className="h-11 w-11 shrink-0"
         priority
       />
       <span className="flex flex-col leading-none">
         <span
           className={cn(
-            "text-lg font-extrabold tracking-tight",
+            "text-xl font-extrabold tracking-tight",
             inverted ? "text-white" : "text-ink",
           )}
         >
