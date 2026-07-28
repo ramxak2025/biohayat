@@ -15,9 +15,20 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getCustomerSession();
-  if (!session) return <AuthForms />;
+  if (!session) {
+    // Обработчики /account/login и /account/register возвращают сюда код ошибки.
+    const sp = await searchParams;
+    const one = (k: string) => (Array.isArray(sp[k]) ? sp[k][0] : sp[k]);
+    return (
+      <AuthForms defaultTab={one("tab") === "register" ? "register" : "login"} error={one("error")} />
+    );
+  }
 
   const [customer, ordersCount, favCount, plansCount, lastOrders, activePlans, orderItems] = await Promise.all([
     prisma.customer.findUnique({ where: { id: session.sub }, select: { bonusBalance: true } }),
