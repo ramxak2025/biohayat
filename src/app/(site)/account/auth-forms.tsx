@@ -15,6 +15,7 @@ const ERRORS: Record<string, string> = {
   phone_taken: "Пользователь с таким телефоном уже зарегистрирован",
   no_name: "Укажите имя",
   no_consent: "Необходимо согласие на обработку персональных данных",
+  server: "Сейчас не получается войти — на сервере ошибка. Попробуйте позже.",
 };
 
 export interface AuthFormsProps {
