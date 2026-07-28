@@ -1,4 +1,4 @@
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getSettings } from "@/lib/settings";
 import { serializeSettings } from "@/lib/api/serializers";
 
@@ -14,7 +14,7 @@ export async function GET() {
   try {
     const settings = await getSettings();
     return apiOk(serializeSettings(settings));
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/settings", e);
   }
 }

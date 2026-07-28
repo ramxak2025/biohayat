@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { apiLogin, serializeCustomer } from "@/lib/api/customer";
 
 export const runtime = "nodejs";
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       expiresInSec: result.expiresInSec,
       customer: serializeCustomer(result.customer),
     });
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/auth/login", e);
   }
 }

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { shouldSetSecureCookie } from "@/lib/cookie-security";
 import { normalizePhone } from "@/lib/utils";
 
 const COOKIE_NAME = "hayat_customer";
@@ -29,7 +30,7 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: await shouldSetSecureCookie(),
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,
@@ -59,7 +60,14 @@ export async function requireCustomer(): Promise<CustomerSession> {
   return s;
 }
 
-export type AuthResult = { ok: true } | { ok: false; error: string };
+/** Коды ошибок входа/регистрации — передаются в адресной строке, текст берётся на странице. */
+export type AuthErrorCode =
+  | "invalid_credentials"
+  | "invalid_phone"
+  | "weak_password"
+  | "phone_taken";
+
+export type AuthResult = { ok: true } | { ok: false; code: AuthErrorCode };
 
 export async function registerCustomer(input: {
   name: string;
@@ -68,11 +76,11 @@ export async function registerCustomer(input: {
   email?: string;
 }): Promise<AuthResult> {
   const phone = normalizePhone(input.phone);
-  if (phone.replace(/\D/g, "").length < 11) return { ok: false, error: "Некорректный номер телефона" };
-  if (input.password.length < 6) return { ok: false, error: "Пароль не короче 6 символов" };
+  if (phone.replace(/\D/g, "").length < 11) return { ok: false, code: "invalid_phone" };
+  if (input.password.length < 6) return { ok: false, code: "weak_password" };
 
   const exists = await prisma.customer.findUnique({ where: { phone } });
-  if (exists) return { ok: false, error: "Пользователь с таким телефоном уже зарегистрирован" };
+  if (exists) return { ok: false, code: "phone_taken" };
 
   const customer = await prisma.customer.create({
     data: {
@@ -89,9 +97,9 @@ export async function registerCustomer(input: {
 export async function loginCustomer(phoneRaw: string, password: string): Promise<AuthResult> {
   const phone = normalizePhone(phoneRaw);
   const customer = await prisma.customer.findUnique({ where: { phone } });
-  if (!customer || !customer.isActive) return { ok: false, error: "Неверный телефон или пароль" };
+  if (!customer || !customer.isActive) return { ok: false, code: "invalid_credentials" };
   const ok = await bcrypt.compare(password, customer.passwordHash);
-  if (!ok) return { ok: false, error: "Неверный телефон или пароль" };
+  if (!ok) return { ok: false, code: "invalid_credentials" };
 
   await prisma.customer.update({ where: { id: customer.id }, data: { lastLoginAt: new Date() } });
   await createCustomerSession({ sub: customer.id, phone: customer.phone, name: customer.name });

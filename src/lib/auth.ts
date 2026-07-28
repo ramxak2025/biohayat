@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { shouldSetSecureCookie } from "@/lib/cookie-security";
 import type { AdminRole } from "@prisma/client";
 
 const COOKIE_NAME = "hayat_session";
@@ -41,7 +42,7 @@ export async function createSession(payload: SessionPayload): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: await shouldSetSecureCookie(),
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,

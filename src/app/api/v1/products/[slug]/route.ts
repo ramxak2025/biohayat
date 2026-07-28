@@ -1,4 +1,4 @@
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getProductBySlug } from "@/lib/queries";
 import { serializeProduct } from "@/lib/api/serializers";
 
@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       return apiError("Товар не найден", 404, "NOT_FOUND");
     }
     return apiOk(serializeProduct(product));
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/products/[slug]", e);
   }
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { apiRegister, serializeCustomer } from "@/lib/api/customer";
 
 export const runtime = "nodejs";
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       },
       { status: 201 },
     );
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/auth/register", e);
   }
 }

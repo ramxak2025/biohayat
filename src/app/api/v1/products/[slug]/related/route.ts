@@ -1,4 +1,4 @@
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getProductBySlug, getRelatedProducts } from "@/lib/queries";
 import { serializeProduct } from "@/lib/api/serializers";
 
@@ -23,7 +23,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
 
     const related = await getRelatedProducts(product.categoryId, product.id, take);
     return apiOk(related.map(serializeProduct));
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/products/[slug]/related", e);
   }
 }

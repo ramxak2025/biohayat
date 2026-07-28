@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { smartSearchProducts } from "@/lib/search";
 import { serializeProduct } from "@/lib/api/serializers";
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { items, total, query } = await smartSearchProducts(q, limit);
     return apiOk({ items: items.map(serializeProduct), total, query });
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/search", e);
   }
 }
