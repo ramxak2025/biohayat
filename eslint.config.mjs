@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Скрипты установленного скила impeccable — сторонний код, не наш стиль.
+    ".claude/**",
   ]),
   {
     rules: {
