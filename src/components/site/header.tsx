@@ -15,6 +15,7 @@ import {
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
+import { Bump } from "@/components/motion/bump";
 import { useAuthFlag, useAuthName } from "@/lib/use-auth-flag";
 import { formatMoney } from "@/lib/utils";
 import { Logo } from "./logo";
@@ -118,9 +119,12 @@ export function Header({
             >
               <Heart className="h-5 w-5" />
               {favCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-sale px-1 text-xs font-bold text-white ring-2 ring-surface">
+                <Bump
+                  value={favCount}
+                  className="absolute -right-0.5 -top-0.5 h-5 min-w-5 items-center justify-center rounded-full bg-sale px-1 text-xs font-bold text-white ring-2 ring-surface"
+                >
                   {favCount}
-                </span>
+                </Bump>
               ) : null}
             </Link>
 
@@ -151,9 +155,12 @@ export function Header({
               <ShoppingCart className="h-5 w-5" aria-hidden="true" />
               <span className="text-sm">{count > 0 ? formatMoney(totalKopecks) : "Корзина"}</span>
               {count > 0 ? (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-white ring-2 ring-surface">
+                <Bump
+                  value={count}
+                  className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-white ring-2 ring-surface"
+                >
                   {count}
-                </span>
+                </Bump>
               ) : null}
             </Link>
           </div>
