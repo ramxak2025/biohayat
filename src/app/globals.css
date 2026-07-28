@@ -15,7 +15,8 @@
   --color-brand-200: #b9e1bf;
   --color-brand-300: #8ecb97;
   --color-brand-400: #5cae69;
-  --color-brand-500: #3a9447; /* основной акцент */
+  --color-brand-500: #348540; /* основной акцент; светлота подобрана так,
+                                 чтобы белый текст давал 4.57:1 — WCAG AA */
   --color-brand-600: #2c7838;
   --color-brand-700: #245f2f;
   --color-brand-800: #214c29;
@@ -47,7 +48,7 @@
   --color-warning: #d98a12;
   --color-danger: #d64545;
   --color-info: #2f6fb0;
-  --color-sale: #d9534f; /* цена со скидкой (смягчённый) */
+  --color-sale: #ce312c; /* цена со скидкой (смягчённый) */
   --color-sale-soft: #fcefee; /* фон чипа скидки */
 
   /* ── Шрифты ── */

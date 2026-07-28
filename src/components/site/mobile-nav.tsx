@@ -106,7 +106,7 @@ function CenterButton({
       className="flex min-h-[50px] flex-1 flex-col items-center justify-end transition-transform duration-100 active:scale-95"
     >
       <CenterIcon icon={icon} active={active} />
-      <span className="mt-1 pb-1.5 text-[10px] font-medium leading-none text-brand-700">{label}</span>
+      <span className="mt-1 pb-1.5 text-[11px] font-medium leading-none text-brand-700">{label}</span>
     </Link>
   );
 }
@@ -163,7 +163,7 @@ function Tab({
       >
         <TabIcon icon={Icon} active={active} badge={badge} badgeTone={badgeTone} />
       </span>
-      <span className="text-[10px] font-medium leading-none">{label}</span>
+      <span className="text-[11px] font-medium leading-none">{label}</span>
     </Link>
   );
 }

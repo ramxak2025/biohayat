@@ -9,7 +9,7 @@ const variants: Record<Variant, string> = {
   primary:
     "bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-200",
   accent:
-    "bg-accent-400 text-white shadow-sm hover:bg-accent-500 active:bg-accent-600",
+    "bg-accent-400 text-ink shadow-sm hover:bg-accent-500 active:bg-accent-600",
   secondary: "bg-surface-sunken text-ink hover:bg-line-strong",
   outline: "border border-line-strong bg-surface text-ink hover:bg-surface-soft",
   ghost: "text-ink hover:bg-surface-soft",
