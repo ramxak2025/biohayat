@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { loginCustomer } from "@/lib/customer-auth";
-import { redirectAfterPost } from "@/lib/http";
+import { handleFormPost, redirectAfterPost } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +16,16 @@ export const dynamic = "force-dynamic";
  * браузер делает полноценный переход и получает страницу, отрисованную с сессией.
  */
 export async function POST(req: NextRequest) {
-  const fd = await req.formData();
-  const phone = String(fd.get("phone") || "");
-  const password = String(fd.get("password") || "");
+  return handleFormPost("account/login", "/account?error=server", async () => {
+    const fd = await req.formData();
+    const phone = String(fd.get("phone") || "");
+    const password = String(fd.get("password") || "");
 
-  const res = await loginCustomer(phone, password);
-  if (res.ok) return redirectAfterPost("/account");
+    const res = await loginCustomer(phone, password);
+    if (res.ok) return redirectAfterPost("/account");
 
-  // В адрес попадает только код ошибки: телефон — персональные данные, им не
-  // место в истории браузера и логах веб-сервера.
-  return redirectAfterPost(`/account?error=${res.code}`);
+    // В адрес попадает только код ошибки: телефон — персональные данные, им не
+    // место в истории браузера и логах веб-сервера.
+    return redirectAfterPost(`/account?error=${res.code}`);
+  });
 }

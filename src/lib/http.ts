@@ -18,3 +18,27 @@ import "server-only";
 export function redirectAfterPost(path: string): Response {
   return new Response(null, { status: 303, headers: { Location: path } });
 }
+
+/**
+ * Оборачивает обработчик формы так, чтобы непредвиденная ошибка не превращалась
+ * в пустой 500.
+ *
+ * Ответ 500 без тела и без Content-Type браузеру нечем показать (плюс стоит
+ * заголовок nosniff), поэтому он предлагает *скачать файл* с именем маршрута —
+ * пользователь видит загрузку файла «login» вместо входа. Вместо этого пишем
+ * причину в лог сервера и возвращаем человека на форму с понятным сообщением.
+ */
+export async function handleFormPost(
+  where: string,
+  backPath: string,
+  run: () => Promise<Response>,
+): Promise<Response> {
+  try {
+    return await run();
+  } catch (e) {
+    // console.error — единственный вызов console, переживающий прод-сборку
+    // (см. compiler.removeConsole в next.config.ts).
+    console.error(`[form] ${where}:`, e);
+    return redirectAfterPost(backPath);
+  }
+}

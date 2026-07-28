@@ -1,7 +1,9 @@
 import { destroyCustomerSession } from "@/lib/customer-auth";
-import { redirectAfterPost } from "@/lib/http";
+import { handleFormPost, redirectAfterPost } from "@/lib/http";
 
 export async function POST() {
-  await destroyCustomerSession();
-  return redirectAfterPost("/account");
+  return handleFormPost("account/logout", "/account", async () => {
+    await destroyCustomerSession();
+    return redirectAfterPost("/account");
+  });
 }
