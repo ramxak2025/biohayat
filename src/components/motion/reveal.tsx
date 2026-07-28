@@ -56,17 +56,26 @@ export function Reveal({
         const count = Array.isArray(targets) ? targets.length : 1;
         const staggerCfg =
           stagger && count > 1 ? { amount: Math.min(count * step, 0.5) } : 0;
+
+        // Блок, который уже виден (или почти доехал) на момент загрузки, проявляем
+        // сразу, не дожидаясь прокрутки: иначе на первом экране висят пустые места.
+        const nearViewport = el.getBoundingClientRect().top < window.innerHeight * 1.15;
+        const onLoad = trigger === "load" || nearViewport;
+
         gsap.set(targets, { autoAlpha: 0, y });
         gsap.to(targets, {
           autoAlpha: 1,
           y: 0,
           duration: 0.6,
           ease: "power3.out",
-          delay: trigger === "load" ? delay : 0,
+          delay: onLoad && trigger === "load" ? delay : 0,
           stagger: staggerCfg,
-          ...(trigger === "scroll"
-            ? { scrollTrigger: { trigger: el, start: "top 92%", once: true } }
-            : {}),
+          // Старт «top bottom»: блок начинает проявляться, едва коснувшись нижнего
+          // края экрана. При прежнем «top 92%» он ждал, пока почти целиком въедет,
+          // и под заголовком секции какое-то время зияла пустота.
+          ...(onLoad
+            ? {}
+            : { scrollTrigger: { trigger: el, start: "top bottom", once: true } }),
         });
       });
       ctx = mm;
