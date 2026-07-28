@@ -1,18 +1,34 @@
 "use client";
 
-import { useActionState, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useFormStatus } from "react-dom";
 import { Leaf, Package, Heart, PillBottle, MessageCircleHeart } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Input, Label, Checkbox } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/account/phone-input";
 import { cn } from "@/lib/utils";
-import { loginAction, registerAction, type AuthState } from "./actions";
 import { getStoredReferral } from "@/components/site/referral-capture";
 
-const init: AuthState = {};
+/** Тексты ошибок входа/регистрации по кодам из адресной строки. */
+const ERRORS: Record<string, string> = {
+  invalid_credentials: "Неверный телефон или пароль",
+  invalid_phone: "Некорректный номер телефона",
+  weak_password: "Пароль не короче 6 символов",
+  phone_taken: "Пользователь с таким телефоном уже зарегистрирован",
+  no_name: "Укажите имя",
+  no_consent: "Необходимо согласие на обработку персональных данных",
+  server: "Сейчас не получается войти — на сервере ошибка. Попробуйте позже.",
+};
+
+export interface AuthFormsProps {
+  /** Какая вкладка открыта изначально (после ошибки регистрации — «Регистрация»). */
+  defaultTab?: "login" | "register";
+  /** Код ошибки предыдущей попытки. */
+  error?: string;
+  /** Через сколько минут можно повторить попытку (для error=rate_limit). */
+  retryMin?: string;
+}
 
 const BENEFITS = [
   { icon: Package, text: "Заказы и трекинг доставки в одном месте" },
@@ -21,24 +37,55 @@ const BENEFITS = [
   { icon: MessageCircleHeart, text: "Личная консультация нутрициолога" },
 ];
 
-function Submit({ children }: { children: React.ReactNode }) {
-  const { pending } = useFormStatus();
+/**
+ * Обычная форма с защитой от двойной отправки.
+ *
+ * Блокировать кнопку нужно именно в onSubmit: если снимать её по onClick,
+ * браузер отменяет отправку — кнопка становится disabled ещё до того, как
+ * событие submit доходит до формы, и «Войти» вообще перестаёт работать.
+ */
+function AuthForm({
+  action, submitLabel, children,
+}: {
+  action: string;
+  submitLabel: string;
+  children: React.ReactNode;
+}) {
+  const [sending, setSending] = useState(false);
   return (
-    <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? "Подождите…" : children}
-    </Button>
+    <form
+      action={action}
+      method="post"
+      className="mt-6 space-y-4"
+      onSubmit={(e) => {
+        if (sending) {
+          e.preventDefault();
+          return;
+        }
+        setSending(true);
+      }}
+    >
+      {children}
+      <Button type="submit" size="lg" className="w-full" disabled={sending}>
+        {sending ? "Подождите…" : submitLabel}
+      </Button>
+    </form>
   );
 }
 
-export function AuthForms() {
-  const [tab, setTab] = useState<"login" | "register">("login");
-  const [loginState, loginFn] = useActionState(loginAction, init);
-  const [regState, regFn] = useActionState(registerAction, init);
+export function AuthForms({ defaultTab = "login", error, retryMin }: AuthFormsProps) {
+  const [tab, setTab] = useState<"login" | "register">(defaultTab);
   // Реферальный код из ссылки (?ref=) — подставляем в скрытое поле регистрации
   const [ref, setRef] = useState("");
   useEffect(() => {
     setRef(getStoredReferral());
   }, []);
+
+  const message = error === "rate_limit"
+    ? `Слишком много попыток, попробуйте через ${retryMin || "15"} мин`
+    : error ? (ERRORS[error] ?? "Не удалось выполнить вход") : null;
+  // Ошибку показываем только на той вкладке, с которой её вернули.
+  const showError = message && tab === defaultTab;
 
   return (
     <Container className="py-8 pb-[calc(var(--spacing-mobnav)+2.5rem)] sm:py-12 lg:pb-12">
@@ -88,8 +135,8 @@ export function AuthForms() {
           </div>
 
           {tab === "login" ? (
-            <form action={loginFn} className="mt-6 space-y-4">
-              {loginState.error ? <Err>{loginState.error}</Err> : null}
+            <AuthForm action="/account/login" submitLabel="Войти">
+              {showError ? <Err>{message}</Err> : null}
               <div>
                 <Label htmlFor="lphone" required>Телефон</Label>
                 <PhoneInput id="lphone" name="phone" autoComplete="tel" />
@@ -98,11 +145,10 @@ export function AuthForms() {
                 <Label htmlFor="lpass" required>Пароль</Label>
                 <Input id="lpass" name="password" type="password" autoComplete="current-password" />
               </div>
-              <Submit>Войти</Submit>
-            </form>
+            </AuthForm>
           ) : (
-            <form action={regFn} className="mt-6 space-y-4">
-              {regState.error ? <Err>{regState.error}</Err> : null}
+            <AuthForm action="/account/register" submitLabel="Зарегистрироваться">
+              {showError ? <Err>{message}</Err> : null}
               <input type="hidden" name="ref" value={ref} />
               {ref ? (
                 <div className="rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-medium text-brand-700">
@@ -132,8 +178,7 @@ export function AuthForms() {
                   <Link href="/privacy-policy" target="_blank" className="text-brand-700 underline">Политике</Link>.
                 </span>
               </label>
-              <Submit>Зарегистрироваться</Submit>
-            </form>
+            </AuthForm>
           )}
         </div>
       </div>

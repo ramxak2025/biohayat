@@ -85,7 +85,16 @@ export async function requireCustomer(): Promise<CustomerSession> {
   return s;
 }
 
-export type AuthResult = { ok: true; customerId?: string } | { ok: false; error: string };
+/** Коды ошибок входа/регистрации — передаются в адресной строке, текст берётся на странице. */
+export type AuthErrorCode =
+  | "invalid_credentials"
+  | "invalid_phone"
+  | "weak_password"
+  | "phone_taken";
+
+export type AuthResult =
+  | { ok: true; customerId?: string }
+  | { ok: false; code: AuthErrorCode };
 
 export async function registerCustomer(input: {
   name: string;
@@ -94,11 +103,11 @@ export async function registerCustomer(input: {
   email?: string;
 }): Promise<AuthResult> {
   const phone = normalizePhone(input.phone);
-  if (phone.replace(/\D/g, "").length < 11) return { ok: false, error: "Некорректный номер телефона" };
-  if (input.password.length < 6) return { ok: false, error: "Пароль не короче 6 символов" };
+  if (phone.replace(/\D/g, "").length < 11) return { ok: false, code: "invalid_phone" };
+  if (input.password.length < 6) return { ok: false, code: "weak_password" };
 
   const exists = await prisma.customer.findUnique({ where: { phone } });
-  if (exists) return { ok: false, error: "Пользователь с таким телефоном уже зарегистрирован" };
+  if (exists) return { ok: false, code: "phone_taken" };
 
   const customer = await prisma.customer.create({
     data: {
@@ -117,10 +126,10 @@ export async function loginCustomer(phoneRaw: string, password: string): Promise
   const customer = await prisma.customer.findUnique({ where: { phone } });
   // deletedAt — аккаунт удалён по запросу покупателя (152-ФЗ), вход запрещён.
   if (!customer || !customer.isActive || customer.deletedAt) {
-    return { ok: false, error: "Неверный телефон или пароль" };
+    return { ok: false, code: "invalid_credentials" };
   }
   const ok = await bcrypt.compare(password, customer.passwordHash);
-  if (!ok) return { ok: false, error: "Неверный телефон или пароль" };
+  if (!ok) return { ok: false, code: "invalid_credentials" };
 
   await prisma.customer.update({ where: { id: customer.id }, data: { lastLoginAt: new Date() } });
   await createCustomerSession({ sub: customer.id, phone: customer.phone, name: customer.name });

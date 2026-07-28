@@ -1,10 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server";
 import { destroyCustomerSession } from "@/lib/customer-auth";
+import { handleFormPost, redirectAfterPost } from "@/lib/http";
 
-export async function POST(req: NextRequest) {
-  await destroyCustomerSession();
-  // База редиректа — из NEXT_PUBLIC_SITE_URL: за реверс-прокси req.url
-  // указывает на localhost:3000, и выход «скидывал» на localhost.
-  const base = process.env.NEXT_PUBLIC_SITE_URL || req.url;
-  return NextResponse.redirect(new URL("/account", base));
+export async function POST() {
+  return handleFormPost("account/logout", "/account", async () => {
+    await destroyCustomerSession();
+    // Относительный Location + 303: за обратным прокси req.url указывает на
+    // localhost, а 307 по умолчанию заставил бы браузер повторить POST.
+    return redirectAfterPost("/account");
+  });
 }
