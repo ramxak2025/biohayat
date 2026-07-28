@@ -18,6 +18,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # Без секретов ssh-action падает невнятным "Error: missing server host",
+      # и это легко принять за случайный сбой: так деплой молча не работал
+      # четыре запуска подряд, а сервер всё это время оставался на старом коде.
+      - name: Проверить, что секреты деплоя заданы
+        run: |
+          missing=""
+          [ -z "${{ secrets.DEPLOY_HOST }}" ] && missing="$missing DEPLOY_HOST"
+          [ -z "${{ secrets.DEPLOY_USER }}" ] && missing="$missing DEPLOY_USER"
+          if [ -z "${{ secrets.DEPLOY_PASSWORD }}" ] && [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            missing="$missing DEPLOY_PASSWORD-или-DEPLOY_SSH_KEY"
+          fi
+          if [ -n "$missing" ]; then
+            echo "::error::Деплой не настроен. Не заданы секреты:$missing"
+            echo "Добавьте их в Settings → Secrets and variables → Actions."
+            echo "Пока секретов нет, сайт на сервере не обновляется — выкатывайте вручную (см. DEPLOY.md)."
+            exit 1
+          fi
+          echo "Секреты на месте."
+
       - name: Развернуть по SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -30,7 +49,10 @@ jobs:
           command_timeout: 30m
           script: |
             set -e
-            cd ~/biohayat
+            # DEPLOY.md ставит проект в /opt/biohayat, но встречается и ~/biohayat —
+            # берём тот каталог, который реально существует.
+            cd /opt/biohayat 2>/dev/null || cd ~/biohayat
+            echo "Каталог проекта: $(pwd)"
             git fetch origin
             git checkout -f claude/supplements-ecommerce-bitrix24-6psN0
             git reset --hard origin/claude/supplements-ecommerce-bitrix24-6psN0

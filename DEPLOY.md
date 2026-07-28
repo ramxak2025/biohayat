@@ -49,6 +49,22 @@ docker compose up -d --build
 docker compose exec app pnpm db:push   # если менялась схема
 ```
 
+`db:push` не пропускать: если схема БД отстала от кода, страницы, которым нужна
+недостающая колонка, отвечают 500. Например, при отсутствии `Customer.bonusBalance`
+перестаёт работать вход в личный кабинет, хотя каталог продолжает открываться.
+Настоящая причина видна в `docker compose logs app` строкой вида
+`[api] api/v1/auth/login: ... column ... does not exist`.
+
+## Автодеплой из GitHub
+Workflow `.github/workflows/deploy.yml` разворачивает ветку
+`claude/supplements-ecommerce-bitrix24-6psN0` на сервер при каждом пуше, но
+только если в GitHub заданы секреты (Settings → Secrets and variables → Actions):
+`DEPLOY_HOST`, `DEPLOY_USER` и `DEPLOY_PASSWORD` либо `DEPLOY_SSH_KEY`.
+
+Без них запуск падает на первом шаге с явным сообщением о том, каких секретов не
+хватает, — и сайт на сервере остаётся на прежней версии. В этом случае
+выкатывайте вручную командами из раздела «Обновление версии» выше.
+
 ## Проверка входа после деплоя
 ```bash
 # телефон и пароль — от существующего тестового покупателя
