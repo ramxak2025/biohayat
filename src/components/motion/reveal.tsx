@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { useIsomorphicLayoutEffect, ensureScrollTrigger } from "./gsap-core";
+import { useIsomorphicLayoutEffect, gsap } from "./gsap-core";
 
 type As = "div" | "section" | "ul" | "ol";
 
@@ -17,17 +17,25 @@ interface RevealProps {
   step?: number;
   /** Сдвиг по Y на старте, px. */
   y?: number;
-  /** Когда запускать: при въезде во вьюпорт ("scroll") или сразу при монтировании ("load"). */
+  /** Оставлен для совместимости вызовов; сейчас всегда запуск при монтировании. */
   trigger?: "scroll" | "load";
-  /** Задержка перед стартом, сек (для "load"). */
+  /** Задержка перед стартом, сек. */
   delay?: number;
 }
 
 /**
- * GSAP-ревил: плавное появление секции/сетки при скролле (или при загрузке).
- * Полностью уважает prefers-reduced-motion — при reduce анимация не навешивается,
- * контент виден сразу (gsap.set внутри matchMedia не выполняется).
- * MOTION_INTENSITY: 4 — сдержанно, только transform+opacity.
+ * Плавное появление секции или каскад по её детям.
+ *
+ * Запускается при монтировании и НЕ зависит от прокрутки. Так сделано намеренно:
+ * в мобильной вёрстке страницу прокручивает не окно, а внутренний контейнер
+ * (`overflow-y: auto`; на десктопе тот же контейнер становится `display: contents`).
+ * ScrollTrigger слушает окно, событий прокрутки на телефоне не получал — и секции
+ * ниже первого экрана оставались скрытыми навсегда: посетитель видел заголовок
+ * «Категории» и пустоту под ним. Скрытый контент в магазине хуже, чем отсутствие
+ * эффекта, поэтому зависимость от прокрутки убрана совсем.
+ *
+ * Уважает prefers-reduced-motion: при reduce анимация не навешивается и контент
+ * виден сразу. Скрытие ставится только на клиенте, поэтому без JS тоже всё видно.
  */
 export function Reveal({
   children,
@@ -36,7 +44,6 @@ export function Reveal({
   stagger = false,
   step = 0.08,
   y = 24,
-  trigger = "scroll",
   delay = 0,
 }: RevealProps) {
   const ref = React.useRef<HTMLElement>(null);
@@ -44,45 +51,27 @@ export function Reveal({
   useIsomorphicLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let ctx: { revert: () => void } | undefined;
 
-    ensureScrollTrigger().then(({ gsap }) => {
-      if (!ref.current) return;
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const targets = stagger ? Array.from(el.children) : el;
-        // Ограничиваем суммарную длительность каскада: даже в большой сетке
-        // элементы становятся видимыми/кликабельными быстро (важно для тапа).
-        const count = Array.isArray(targets) ? targets.length : 1;
-        const staggerCfg =
-          stagger && count > 1 ? { amount: Math.min(count * step, 0.5) } : 0;
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      const targets = stagger ? Array.from(el.children) : el;
+      // Ограничиваем суммарную длительность каскада: даже в большой сетке
+      // элементы становятся видимыми/кликабельными быстро (важно для тапа).
+      const count = Array.isArray(targets) ? targets.length : 1;
+      const staggerCfg = stagger && count > 1 ? { amount: Math.min(count * step, 0.5) } : 0;
 
-        // Блок, который уже виден (или почти доехал) на момент загрузки, проявляем
-        // сразу, не дожидаясь прокрутки: иначе на первом экране висят пустые места.
-        const nearViewport = el.getBoundingClientRect().top < window.innerHeight * 1.15;
-        const onLoad = trigger === "load" || nearViewport;
-
-        gsap.set(targets, { autoAlpha: 0, y });
-        gsap.to(targets, {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power3.out",
-          delay: onLoad && trigger === "load" ? delay : 0,
-          stagger: staggerCfg,
-          // Старт «top bottom»: блок начинает проявляться, едва коснувшись нижнего
-          // края экрана. При прежнем «top 92%» он ждал, пока почти целиком въедет,
-          // и под заголовком секции какое-то время зияла пустота.
-          ...(onLoad
-            ? {}
-            : { scrollTrigger: { trigger: el, start: "top bottom", once: true } }),
-        });
+      gsap.set(targets, { autoAlpha: 0, y });
+      gsap.to(targets, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power3.out",
+        delay,
+        stagger: staggerCfg,
       });
-      ctx = mm;
     });
-
-    return () => ctx?.revert();
-  }, [stagger, step, y, trigger, delay]);
+    return () => mm.revert();
+  }, [stagger, step, y, delay]);
 
   const Tag = as as React.ElementType;
   return (
