@@ -23,10 +23,14 @@ import { Logo } from "./logo";
 /**
  * Десктопная шапка (мобильная — отдельный компонент). Три строки:
  *   1) utility-полоса на brand-900 (28px): телефон, часы работы, сервисные ссылки;
- *   2) основная строка (var(--spacing-header) = 72px): лого · поисковая капсула · действия;
- *   3) навигация (44px): «Каталог» · категории · аудитории · «Распродажа».
- * Суммарная высота с нижней границей: 28 + 72 + 44 + 1 = 145px — sticky-офсеты
+ *   2) основная строка (var(--spacing-header) = 80px): лого · поисковая капсула · действия;
+ *   3) навигация (48px): «Каталог» · категории · аудитории · «Распродажа».
+ * Суммарная высота с нижней границей: 28 + 80 + 48 + 1 = 157px — sticky-офсеты
  * (например, сайдбар каталога) должны отсчитываться от этой величины.
+ *
+ * Категорий в каталоге больше, чем влезает в строку: показываем те, что
+ * помещаются без переноса, остальные доступны из «Каталога». Горизонтальный
+ * скролл в шапке рвал названия посреди слова и читался как шаблон.
  */
 export function Header({
   phone,
@@ -93,7 +97,7 @@ export function Header({
             className="relative mx-auto w-full max-w-[640px] flex-1"
           >
             <Search
-              className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brand-600"
+              className="pointer-events-none absolute left-4 top-1/2 h-[22px] w-[22px] -translate-y-1/2 text-brand-600"
               aria-hidden="true"
             />
             <input
@@ -101,11 +105,11 @@ export function Header({
               type="search"
               aria-label="Поиск товаров"
               placeholder="Поиск: витамин D3, коллаген, мёд…"
-              className="h-12 w-full rounded-full border border-line bg-surface-soft/80 pl-11 pr-24 text-[15px] text-ink transition placeholder:text-ink-faint hover:border-brand-300 hover:ring-1 hover:ring-brand-300 focus:border-brand-300 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="h-[52px] w-full rounded-full border border-line-strong bg-surface pl-12 pr-28 text-base text-ink shadow-xs transition placeholder:text-ink-faint hover:border-brand-300 hover:shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
             />
             <button
               type="submit"
-              className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-white transition hover:bg-brand-600"
+              className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full bg-brand-500 px-5 text-[15px] font-bold text-white transition hover:bg-brand-600 active:scale-[0.98]"
             >
               Найти
             </button>
@@ -157,7 +161,7 @@ export function Header({
               {count > 0 ? (
                 <Bump
                   value={count}
-                  className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-white ring-2 ring-surface"
+                  className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-ink ring-2 ring-surface"
                 >
                   {count}
                 </Bump>
@@ -170,7 +174,7 @@ export function Header({
       {/* 3. Навигация: «Каталог» · категории · аудитории · «Распродажа» */}
       <div className="glass border-t border-line/70">
         <Container>
-          <nav className="flex h-11 items-center gap-2 text-sm" aria-label="Основная навигация">
+          <nav className="flex h-12 items-center gap-2" aria-label="Основная навигация">
             <Link
               href="/catalog"
               aria-current={current("/catalog")}
@@ -181,15 +185,15 @@ export function Header({
             </Link>
 
             {categories.length > 0 ? (
-              <div className="no-scrollbar flex h-full min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1">
-                {categories.map((c) => {
+              <div className="flex h-full min-w-0 flex-1 items-center gap-1 overflow-hidden px-1">
+                {categories.slice(0, 3).map((c) => {
                   const href = `/category/${c.slug}`;
                   return (
                     <Link
                       key={c.slug}
                       href={href}
                       aria-current={current(href)}
-                      className="flex h-full shrink-0 items-center border-b-2 border-transparent px-2.5 font-medium text-ink-muted transition hover:border-brand-400 hover:text-brand-700 aria-[current=page]:border-brand-500 aria-[current=page]:font-bold aria-[current=page]:text-brand-700"
+                      className="flex h-full shrink-0 items-center whitespace-nowrap border-b-2 border-transparent px-3 text-[15px] font-semibold text-ink-muted transition hover:border-brand-400 hover:text-brand-700 aria-[current=page]:border-brand-500 aria-[current=page]:text-brand-700"
                     >
                       {c.name}
                     </Link>
