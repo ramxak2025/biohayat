@@ -15,7 +15,7 @@ import type { SiteSettings, Category } from "@prisma/client";
 
 /**
  * Футер на фирменном тёмно-зелёном (brand-900) — выразительный контраст
- * к кремовому фону страницы. На мобильных — компактно: соцсети-кружки,
+ * к светлому фону страницы. На мобильных — компактно: соцсети-кружки,
  * нативные <details>-аккордеоны со ссылками, контакты и мелкий юр-блок.
  * На десктопе — привычная сетка из четырёх колонок с чёткой иерархией.
  */
@@ -160,10 +160,15 @@ export function Footer({
 
         {/* ── Юр-блок: дисклеймер БАД, реквизиты, копирайт ── */}
         <div className="mt-8 border-t border-white/10 pt-5 lg:mt-12 lg:pt-6">
-          <p className="text-[10px] font-semibold uppercase leading-relaxed tracking-wide text-white/45 lg:text-center lg:text-xs">
+          {/* Предупреждение о БАД обязано быть читаемым — это требование к
+              рекламе, а не мелкий шрифт для галочки. Было: 10px, капс на всю
+              фразу, 45% белого, строка в 203 знака. Стало: 13px, мера ~75
+              знаков, 70% белого (6.6:1). Капс остался только там, где его
+              задал владелец в тексте настройки. */}
+          <p className="mx-auto max-w-[60ch] text-[13px] font-medium leading-relaxed text-white/70 lg:text-center">
             {settings.badDisclaimer}
           </p>
-          <div className="mt-4 flex flex-col gap-1.5 text-[10px] leading-relaxed text-white/40 sm:flex-row sm:items-center sm:justify-between lg:text-xs">
+          <div className="mt-4 flex flex-col gap-1.5 text-xs leading-relaxed text-white/55 sm:flex-row sm:items-center sm:justify-between">
             <span>
               © {new Date().getFullYear()} {settings.legalName || "Компания ХАЯТ"}
               {settings.inn ? ` · ИНН ${settings.inn}` : ""}
@@ -177,12 +182,18 @@ export function Footer({
   );
 }
 
-/** Заголовок колонки на десктопе. */
+/**
+ * Заголовок колонки на десктопе.
+ *
+ * Уровень h2, а не h3: колонки футера — разделы того же уровня, что и секции
+ * страницы. С h3 после h1 страницы получался разрыв в уровнях (h1 → h3), по
+ * которому скринридер строит навигацию.
+ */
 function ColumnHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/45">
+    <h2 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/55">
       {children}
-    </h3>
+    </h2>
   );
 }
 

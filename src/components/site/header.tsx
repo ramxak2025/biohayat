@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Phone, Search, ShoppingCart, User, Heart, Sparkles } from "lucide-react";
+import { Phone, Search, ShoppingCart, User, Heart, ListChecks } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
@@ -125,7 +125,7 @@ export function Header({
             aria-current={current("/quiz")}
             className="hidden h-12 items-center gap-2 rounded-full px-3.5 text-[15px] font-semibold text-ink-muted transition hover:bg-brand-50 hover:text-brand-700 xl:flex"
           >
-            <Sparkles className="h-[18px] w-[18px] text-brand-600" aria-hidden="true" />
+            <ListChecks className="h-[18px] w-[18px] text-brand-600" aria-hidden="true" />
             Подобрать
           </Link>
 

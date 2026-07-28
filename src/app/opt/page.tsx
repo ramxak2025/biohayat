@@ -64,7 +64,7 @@ export default async function OptLandingPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/opt/register"
-                className="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 px-7 text-base font-bold text-white shadow-sm transition hover:bg-accent-500 active:bg-accent-600"
+                className="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
               >
                 Получить оптовый прайс
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
@@ -263,7 +263,7 @@ export default async function OptLandingPage() {
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/opt/register"
-                  className="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 px-7 text-base font-bold text-white shadow-sm transition hover:bg-accent-500 active:bg-accent-600"
+                  className="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
                 >
                   <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
                   Получить оптовый прайс

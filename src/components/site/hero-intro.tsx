@@ -51,7 +51,7 @@ export function HeroIntro({
     <div ref={ref} className="max-w-xl">
       <span
         data-hero-item
-        className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold backdrop-blur sm:text-xs"
+        className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur"
       >
         <Leaf className="h-3.5 w-3.5" aria-hidden /> Натурально · Проверено временем
       </span>
@@ -63,7 +63,10 @@ export function HeroIntro({
         {title || "Витамины и фитопродукция для всей семьи"}
       </h1>
 
-      <p data-hero-item className="mt-2.5 max-w-md text-sm text-white/85 sm:text-base lg:text-lg">
+      {/* Подзаголовок сплошным белым, без прозрачности: за текстом лежит
+          светлый лист-водяной знак, и на его светлых участках white/85 падал
+          до 1.4:1. Сплошной белый держит 6.4:1 на всей площади. */}
+      <p data-hero-item className="mt-2.5 max-w-md text-sm text-white sm:text-base lg:text-lg">
         {subtitle || "Свой состав, свои стандарты, своё производство в России — с 2005 года"}
       </p>
 

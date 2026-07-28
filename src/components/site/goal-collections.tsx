@@ -3,14 +3,19 @@ import { Tag } from "lucide-react";
 import { GOALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
-/* Палитра карточек-подборок: мягкие природные дуэты, по кругу */
+/*
+ * Палитра карточек-подборок — зелень бренда и янтарь акцента, по кругу.
+ * Раньше в наборе были сирень и персик: сетка подборок уезжала в цвета,
+ * которых у марки нет, и «Распродажа» в красном переставала выделяться —
+ * она была просто ещё одним цветом среди шести. Теперь красный на странице
+ * ровно один, и он значит скидку.
+ */
 const CARD_DUOS = [
-  ["#E7F0E4", "#CFE4C9"],
-  ["#F8EFD9", "#EFDDB4"],
-  ["#ECEAF6", "#D9D4EE"],
-  ["#FBEEE4", "#F2D9C2"],
-  ["#E4F2EF", "#C7E4DD"],
-  ["#F4F1E8", "#E5DFCC"],
+  ["#E7F0E4", "#CFE4C9"], // шалфей
+  ["#F8EFD9", "#EFDDB4"], // мёд
+  ["#E4F2EF", "#C7E4DD"], // мята
+  ["#DFEBDD", "#C2DABF"], // хвоя
+  ["#F1F3EA", "#DFE5D2"], // лён
 ];
 
 /**
@@ -36,14 +41,14 @@ export function GoalCollections({ variant = "rail" }: { variant?: "rail" | "grid
           "group relative flex flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-white shadow-xs transition active:scale-[0.98]",
           rail ? "h-28 w-36 shrink-0 snap-start" : "h-28",
         )}
-        style={{ background: "linear-gradient(135deg, #D9534F, #B23B38)" }}
+        style={{ background: "linear-gradient(135deg, var(--color-sale), #a3241f)" }}
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
           <Tag className="h-4 w-4" aria-hidden />
         </span>
         <span className="text-sm font-extrabold leading-tight">
           Распродажа
-          <span className="block text-[11px] font-semibold text-white/80">до −40%</span>
+          <span className="block text-xs font-semibold text-white/85">до −40%</span>
         </span>
       </Link>
 

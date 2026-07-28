@@ -92,7 +92,7 @@ export function OptHeader({
             </Link>
             <Link
               href="/opt/register"
-              className="flex h-10 items-center rounded-full bg-accent-400 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-accent-500 active:bg-accent-600 sm:h-11 sm:px-5 sm:text-[15px]"
+              className="flex h-10 items-center rounded-full bg-accent-400 px-4 text-sm font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500 sm:h-11 sm:px-5 sm:text-[15px]"
             >
               Получить прайс
             </Link>

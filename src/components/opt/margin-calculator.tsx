@@ -196,7 +196,7 @@ export function MarginCalculator() {
             </p>
             <p className="mt-2 flex flex-wrap items-baseline gap-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
               <Rub value={savings} />
-              <span className="rounded-full bg-accent-400 px-2 py-0.5 text-sm font-bold text-white">
+              <span className="rounded-full bg-accent-400 px-2 py-0.5 text-sm font-bold text-ink">
                 −{discountPct}%
               </span>
             </p>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Truck, ShieldCheck, Leaf, Sparkles, MessageCircleHeart } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, Leaf, ListChecks, MessageCircleHeart } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Reveal, Stagger } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
@@ -44,9 +44,16 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ── Сторис: кружки над hero (мобайл и десктоп) ── */}
+      {/*
+        ── Сторис: только на мобильных ──
+        Кружки-сторис — приём мобильных приложений, и на телефоне он читается
+        сразу. На десктопе три маленьких кружка занимали верх страницы —
+        самое дорогое место — и заполняли четверть ширины, а остальное
+        оставляли пустым: сайт начинался с виджета, а не с предложения.
+        Теперь десктоп открывается героем.
+      */}
       {stories.length > 0 ? (
-        <Section className="pb-0 pt-3 sm:pt-5">
+        <Section className="pb-0 pt-3 sm:pt-5 lg:hidden">
           <Container>
             <Stories stories={stories} />
           </Container>
@@ -129,13 +136,6 @@ export default async function HomePage() {
         </Container>
       </Section>
 
-      {/* ── Распродажа ── */}
-      <Section className="py-6 sm:py-8 lg:py-10">
-        <Container>
-          <SaleBanner />
-        </Container>
-      </Section>
-
       {/* ── Навигация по покупателю: Для кого / Зачем ── */}
       <Section className="py-8 sm:py-10 lg:py-12">
         <Container className="space-y-7 sm:space-y-8">
@@ -162,7 +162,7 @@ export default async function HomePage() {
             </svg>
             <span className="relative flex items-center gap-3 sm:gap-4">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15">
-                <Sparkles className="h-5 w-5" aria-hidden />
+                <ListChecks className="h-5 w-5" aria-hidden />
               </span>
               <span className="min-w-0">
                 <span className="block text-base font-extrabold leading-tight sm:text-lg">
@@ -218,19 +218,29 @@ export default async function HomePage() {
         </Container>
       </Section>
 
-      {/* ── Акции ── */}
-      {sale.items.length > 0 ? (
-        <Section className="py-10 sm:py-14 lg:py-16">
-          <Container>
-            <SectionHeader
-              title="Сейчас выгоднее"
-              subtitle="Та же продукция и те же сроки годности — просто дешевле"
-              action={<AllLink href="/sale" />}
-            />
-            <ProductRail products={sale.items} />
-          </Container>
-        </Section>
-      ) : null}
+      {/*
+        ── Акции: баннер и товары со скидкой рядом ──
+        Раньше баннер «−40%» стоял сразу под героем. Два тёмно-зелёных блока
+        подряд гасили друг друга, а разговор о цене начинался до того, как
+        покупатель увидел, что вообще продаётся: скидка — это довод в конце,
+        а не приветствие. Теперь тема скидок собрана в одном месте, ниже
+        каталога и хитов, и баннер ведёт прямо в раздел под ним.
+      */}
+      <Section className="py-10 sm:py-14 lg:py-16">
+        <Container>
+          <SaleBanner />
+          {sale.items.length > 0 ? (
+            <div className="mt-8 sm:mt-10">
+              <SectionHeader
+                title="Сейчас выгоднее"
+                subtitle="Та же продукция и те же сроки годности — просто дешевле"
+                action={<AllLink href="/sale" />}
+              />
+              <ProductRail products={sale.items} />
+            </div>
+          ) : null}
+        </Container>
+      </Section>
 
       {/* ── Недавно смотрели (если есть история просмотров) ── */}
       <Container>
@@ -370,7 +380,7 @@ function TrustItem({
       </span>
       <span className="min-w-0">
         <span className="block text-xs font-bold leading-tight">{title}</span>
-        <span className="mt-0.5 block text-[11px] leading-tight text-ink-muted">{text}</span>
+        <span className="mt-0.5 block text-xs leading-tight text-ink-muted">{text}</span>
       </span>
     </div>
   );

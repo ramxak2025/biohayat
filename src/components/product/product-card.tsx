@@ -44,23 +44,29 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       </Link>
 
       <div className="flex flex-1 flex-col gap-1.5 px-1.5 pb-1.5 pt-2.5">
-        <Link
-          href={`/category/${product.category.slug}`}
-          className="block truncate text-[11px] font-semibold uppercase tracking-wide text-brand-600 hover:underline"
-        >
-          {product.category.name}
-        </Link>
+        {/* Название товара идёт первым: карточка в сетке продаёт названием и
+            ценой, а не таксономией. Категория ушла вниз, набором обычным, а не
+            капсом — она подсказка «что это вообще», а не заголовок. */}
         <Link
           href={`/product/${product.slug}`}
           className="line-clamp-2 min-h-[2.5em] text-[15px] font-semibold leading-snug text-ink hover:text-brand-700"
         >
           {product.name}
         </Link>
-        {product.brand && !product.brand.isOwn ? (
-          <span className="block truncate text-[11px] uppercase tracking-wide text-ink-faint">
-            {product.brand.name}
-          </span>
-        ) : null}
+        <span className="flex min-w-0 items-center gap-1.5 text-xs text-ink-faint">
+          <Link
+            href={`/category/${product.category.slug}`}
+            className="truncate font-medium text-brand-700 hover:underline"
+          >
+            {product.category.name}
+          </Link>
+          {product.brand && !product.brand.isOwn ? (
+            <>
+              <span aria-hidden>·</span>
+              <span className="truncate">{product.brand.name}</span>
+            </>
+          ) : null}
+        </span>
 
         {product.reviewStats && product.reviewStats.count > 0 ? (
           <span

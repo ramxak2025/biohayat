@@ -40,7 +40,7 @@ export function Stories({ stories }: { stories: StoryData[] }) {
                 />
               </span>
             </span>
-            <span className="line-clamp-1 max-w-[72px] text-[11px] font-medium text-ink-muted">
+            <span className="line-clamp-1 max-w-[72px] text-xs font-medium text-ink-muted">
               {s.title}
             </span>
           </button>

@@ -141,7 +141,7 @@ function Center({
       >
         <Icon className="h-6 w-6" strokeWidth={2.2} />
         {badge > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-400 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-400 px-1 text-[10px] font-bold text-ink">
             {badge}
           </span>
         ) : null}

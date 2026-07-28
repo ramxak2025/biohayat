@@ -181,7 +181,7 @@ function OptionCard({
       </span>
       <span className="text-sm font-bold leading-tight text-ink">{title}</span>
       {hint ? (
-        <span className="line-clamp-1 max-w-full text-[11px] leading-tight text-ink-muted">
+        <span className="line-clamp-1 max-w-full text-xs leading-tight text-ink-muted">
           {hint}
         </span>
       ) : null}

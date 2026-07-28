@@ -48,7 +48,7 @@ export function BrandStrip({ brands }: { brands: BrandStripItem[] }) {
               {b.name}
             </span>
             {typeof count === "number" ? (
-              <span className="text-[11px] text-ink-faint">
+              <span className="text-xs text-ink-faint">
                 {count} {pluralProducts(count)}
               </span>
             ) : null}
