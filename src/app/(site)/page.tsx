@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Truck, ShieldCheck, Leaf, Sparkles } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, Leaf, Sparkles, MessageCircleHeart } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Reveal, Stagger } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { getNavCategories, getProducts, getBanners, getPublishedMaterials, getAc
 import { getFeaturedBrands } from "@/lib/brands";
 import { BrandStrip } from "@/components/site/brand-strip";
 import { Stories } from "@/components/site/stories";
+import { HeroIntro } from "@/components/site/hero-intro";
 import type { ProductCardData } from "@/lib/queries";
 import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
@@ -53,7 +54,7 @@ export default async function HomePage() {
       ) : null}
 
       {/* ── Hero: компактная премиальная карточка ── */}
-      <Section className="pb-4 pt-4 sm:pb-6 sm:pt-8">
+      <Section className="pb-6 pt-4 sm:pb-8 sm:pt-8">
         <Container>
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 to-brand-500 text-white shadow-md">
             {hero?.image ? (
@@ -81,40 +82,40 @@ export default async function HomePage() {
               <path d={LEAF_PATH} />
             </svg>
 
-            <div className="relative p-6 sm:flex sm:min-h-[320px] sm:items-center sm:p-10 lg:min-h-[380px] lg:p-14">
-              <div className="max-w-xl">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold backdrop-blur sm:text-xs">
-                  <Leaf className="h-3.5 w-3.5" aria-hidden /> Натурально · Проверено временем
-                </span>
-                <h1 className="mt-3 text-[28px] font-extrabold leading-tight sm:text-4xl lg:text-5xl">
-                  {hero?.title || "Натуральные витамины для всей семьи"}
-                </h1>
-                <p className="mt-2 max-w-md text-sm text-white/85 sm:text-base lg:text-lg">
-                  {hero?.subtitle || "Фитопродукция ХАЯТ — из натурального сырья"}
-                </p>
-                <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-7 sm:gap-3">
-                  <Button
-                    asChild
-                    variant="secondary"
-                    className="bg-white text-brand-700 shadow-sm hover:bg-white/90"
-                  >
-                    <Link href={hero?.link || "/catalog"}>
-                      {hero?.ctaLabel || "В каталог"} <ArrowRight className="h-4 w-4" aria-hidden />
-                    </Link>
-                  </Button>
-                  <Link
-                    href="/sale"
-                    className="inline-flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold text-white/90 ring-1 ring-white/30 transition hover:bg-white/10 hover:text-white"
-                  >
-                    Распродажа <ArrowRight className="h-4 w-4" aria-hidden />
-                  </Link>
-                </div>
+            {/*
+              На десктопе герой раскладывается в две колонки. Раньше текст жил в
+              левой половине, а правая оставалась пустой — широкий экран выглядел
+              незаполненным. Справа теперь короткий блок «почему нам доверяют»:
+              он закрывает пустоту и снимает возражения там, где решение и
+              принимается, — рядом с кнопкой.
+            */}
+            <div className="relative p-6 sm:min-h-[320px] sm:p-10 lg:min-h-[380px] lg:p-14">
+              <div className="lg:flex lg:items-center lg:gap-12">
+                <HeroIntro title={hero?.title} subtitle={hero?.subtitle} ctaLabel={hero?.ctaLabel} link={hero?.link} />
+
+                <ul className="mt-8 hidden shrink-0 gap-3 lg:mt-0 lg:grid lg:w-[300px]">
+                  {[
+                    { icon: Truck, t: "Бесплатная доставка", d: `при заказе от ${formatMoney(settings.freeDeliveryThresholdKopecks)}` },
+                    { icon: ShieldCheck, t: "Сертификаты ЕАЭС", d: "на каждую партию продукции" },
+                    { icon: MessageCircleHeart, t: "Совет нутрициолога", d: "бесплатно, до покупки" },
+                  ].map(({ icon: Icon, t, d }) => (
+                    <li key={t} className="flex items-start gap-3 rounded-2xl bg-white/10 p-3.5 ring-1 ring-white/15 backdrop-blur-sm">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                        <Icon className="h-[18px] w-[18px]" aria-hidden />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold leading-tight">{t}</span>
+                        <span className="mt-0.5 block text-xs text-white/75">{d}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
 
           {/* ── Полоса преимуществ: 3 компактных пункта в один ряд ── */}
-          <div className="mt-3 overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line sm:mt-4">
+          <div className="mt-3 overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line sm:mt-4 lg:hidden">
             <Stagger className="grid grid-cols-3 divide-x divide-line" step={0.08} y={14}>
               <TrustItem
                 icon={Truck}
@@ -129,21 +130,21 @@ export default async function HomePage() {
       </Section>
 
       {/* ── Распродажа ── */}
-      <Section className="py-4 sm:py-5">
+      <Section className="py-6 sm:py-8 lg:py-10">
         <Container>
           <SaleBanner />
         </Container>
       </Section>
 
       {/* ── Навигация по покупателю: Для кого / Зачем ── */}
-      <Section className="py-5 sm:py-6">
+      <Section className="py-8 sm:py-10 lg:py-12">
         <Container className="space-y-7 sm:space-y-8">
           <div>
-            <SectionHeader title="Для кого" subtitle="Подберём под вас и вашу семью" />
+            <SectionHeader title="Кому подбираем" subtitle="Разный возраст — разные нормы. Начните со своей группы" />
             <AudienceCards />
           </div>
           <div>
-            <SectionHeader title="Зачем" subtitle="Выберите по своей цели — мы подскажем" />
+            <SectionHeader title="С какой задачей пришли" subtitle="Выберите цель — покажем, что помогает именно при ней" />
             <CollectionTiles variant="goal" />
           </div>
 
@@ -180,11 +181,11 @@ export default async function HomePage() {
       </Section>
 
       {/* ── Категории ── */}
-      <Section className="py-5 sm:py-6">
+      <Section className="py-8 sm:py-10 lg:py-12">
         <Container>
           <SectionHeader
-            title="Категории"
-            subtitle="Весь каталог по типам продукции"
+            title="Что у нас есть"
+            subtitle="Витамины, фитосборы, масла и мёд — по типам продукции"
             action={<AllLink href="/catalog" />}
           />
           <CategoryTiles categories={categories} />
@@ -193,11 +194,11 @@ export default async function HomePage() {
 
       {/* ── Бренды ── */}
       {brands.length > 0 ? (
-        <Section className="py-5 sm:py-6">
+        <Section className="py-8 sm:py-10 lg:py-12">
           <Container>
             <SectionHeader
-              title="Известные бренды"
-              subtitle="Проверенные марки витаминов и БАД"
+              title="Бренды, которым доверяют"
+              subtitle="Собственное производство ХАЯТ и проверенные марки"
               action={<AllLink href="/catalog" />}
             />
             <Reveal><BrandStrip brands={brands} /></Reveal>
@@ -206,11 +207,11 @@ export default async function HomePage() {
       ) : null}
 
       {/* ── Хиты продаж: на мобайле — лента, на десктопе — сетка ── */}
-      <Section className="bg-surface-soft py-8 sm:py-14">
+      <Section className="bg-surface-soft py-10 sm:py-14 lg:py-16">
         <Container>
           <SectionHeader
-            title="Хиты продаж"
-            subtitle="Чаще всего выбирают наши покупатели"
+            title="Берут чаще всего"
+            subtitle="Товары, которые покупатели заказывают повторно"
             action={<AllLink href="/catalog" />}
           />
           <ProductRail products={featured.items} />
@@ -219,11 +220,11 @@ export default async function HomePage() {
 
       {/* ── Акции ── */}
       {sale.items.length > 0 ? (
-        <Section className="py-8 sm:py-14">
+        <Section className="py-10 sm:py-14 lg:py-16">
           <Container>
             <SectionHeader
-              title="Товары по акции"
-              subtitle="Успейте купить выгодно"
+              title="Сейчас выгоднее"
+              subtitle="Та же продукция и те же сроки годности — просто дешевле"
               action={<AllLink href="/sale" />}
             />
             <ProductRail products={sale.items} />
@@ -238,11 +239,11 @@ export default async function HomePage() {
 
       {/* ── Статьи: на мобайле — лента из ~2.2 карточек ── */}
       {materials.length > 0 ? (
-        <Section className="bg-surface-soft py-8 sm:py-14">
+        <Section className="bg-surface-soft py-10 sm:py-14 lg:py-16">
           <Container>
             <SectionHeader
-              title="Полезные статьи"
-              subtitle="О здоровье, витаминах и нутрициологии"
+              title="Разобраться перед покупкой"
+              subtitle="Как выбирать, с чем сочетать и когда ждать результата"
               action={<AllLink href="/articles" />}
             />
             <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 py-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3">
