@@ -46,9 +46,24 @@ function addDays(base: Date, delta: number): Date {
   return d;
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getCustomerSession();
-  if (!session) return <AuthForms />;
+  if (!session) {
+    // Обработчики /account/login и /account/register возвращают сюда код ошибки.
+    const sp = await searchParams;
+    const one = (k: string) => (Array.isArray(sp[k]) ? sp[k][0] : sp[k]);
+    return (
+      <AuthForms
+        defaultTab={one("tab") === "register" ? "register" : "login"}
+        error={one("error")}
+        retryMin={one("min")}
+      />
+    );
+  }
 
   const today = toDayStr(new Date());
 

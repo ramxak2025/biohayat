@@ -2,76 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
-  destroyCustomerSession, loginCustomer, registerCustomer, requireCustomer,
+  destroyCustomerSession, requireCustomer,
 } from "@/lib/customer-auth";
-import { rateLimit, rateLimitRetryAfter } from "@/lib/rate-limit";
-import { normalizePhone } from "@/lib/utils";
 import { applyReferral } from "@/lib/referral";
-
-export type AuthState = { error?: string };
-
-const AUTH_LIMIT = 5;
-const AUTH_WINDOW_MS = 15 * 60 * 1000; // 15 минут
-
-/** IP клиента для rate limiting (за обратным прокси). */
-async function clientIp(): Promise<string> {
-  const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
-}
-
-/**
- * Проверяет лимит попыток по телефону и IP.
- * Возвращает текст ошибки, если лимит исчерпан, иначе null.
- */
-async function checkAuthRateLimit(action: "login" | "register", phone: string): Promise<string | null> {
-  const ip = await clientIp();
-  const phoneKey = `${action}:${normalizePhone(phone)}`;
-  const ipKey = `${action}-ip:${ip}`;
-  // Обе попытки регистрируем всегда (без короткого замыкания).
-  const phoneOk = rateLimit(phoneKey, AUTH_LIMIT, AUTH_WINDOW_MS);
-  const ipOk = rateLimit(ipKey, AUTH_LIMIT, AUTH_WINDOW_MS);
-  if (phoneOk && ipOk) return null;
-  const retrySec = Math.max(
-    rateLimitRetryAfter(phoneKey, AUTH_WINDOW_MS),
-    rateLimitRetryAfter(ipKey, AUTH_WINDOW_MS),
-  );
-  const min = Math.max(1, Math.ceil(retrySec / 60));
-  return `Слишком много попыток, попробуйте через ${min} мин`;
-}
-
-export async function loginAction(_prev: AuthState, fd: FormData): Promise<AuthState> {
-  const phone = String(fd.get("phone") || "");
-  const password = String(fd.get("password") || "");
-  const limited = await checkAuthRateLimit("login", phone);
-  if (limited) return { error: limited };
-  const res = await loginCustomer(phone, password);
-  if (!res.ok) return { error: res.error };
-  redirect("/account");
-}
-
-export async function registerAction(_prev: AuthState, fd: FormData): Promise<AuthState> {
-  const name = String(fd.get("name") || "").trim();
-  const phone = String(fd.get("phone") || "");
-  const password = String(fd.get("password") || "");
-  const email = String(fd.get("email") || "");
-  const consent = fd.get("consent") === "on";
-  if (name.length < 2) return { error: "Укажите имя" };
-  if (!consent) return { error: "Необходимо согласие на обработку персональных данных" };
-  const limited = await checkAuthRateLimit("register", phone);
-  if (limited) return { error: limited };
-  const res = await registerCustomer({ name, phone, password, email });
-  if (!res.ok) return { error: res.error };
-  // Привязка по реферальному коду из ссылки (?ref=) — без срыва регистрации
-  const ref = String(fd.get("ref") || "").trim();
-  if (ref && res.customerId) {
-    await applyReferral(res.customerId, ref).catch(() => {});
-  }
-  redirect("/account");
-}
 
 export type ProfileState = { ok?: boolean; error?: string };
 
