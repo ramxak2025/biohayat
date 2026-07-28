@@ -6,6 +6,7 @@ import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { formatMoney, discountPercent } from "@/lib/utils";
 import type { ProductCardData } from "@/lib/queries";
+import { Stagger } from "@/components/motion/reveal";
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const discount = discountPercent(product.priceKopecks, product.oldPriceKopecks);
@@ -108,10 +109,10 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
 export function ProductGrid({ products }: { products: ProductCardData[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+    <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5" step={0.06} y={20}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}
-    </div>
+    </Stagger>
   );
 }

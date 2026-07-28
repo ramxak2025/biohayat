@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { CountUp } from "@/components/motion/count-up";
 
 /** Фирменный лист — тот же path, что в логотипе (src/components/site/logo.tsx). */
 const LEAF_PATH =
@@ -36,10 +37,10 @@ export function SaleBanner() {
             </span>
           </span>
           <h2 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">
-            Скидки до −40% на хиты
+            Скидки до <CountUp to={40} prefix="−" suffix="%" /> на хиты
           </h2>
           <p className="mt-1.5 text-sm text-white/80 sm:text-base">
-            И ещё −25% на первый заказ по промокоду{" "}
+            И ещё <CountUp to={25} prefix="−" suffix="%" className="font-bold" /> на первый заказ по промокоду{" "}
             <span className="font-bold text-accent-200">FREE25Hayat</span>
           </p>
         </div>

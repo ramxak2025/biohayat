@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SmartImage } from "@/components/ui/smart-image";
+import { useIsomorphicLayoutEffect, gsap } from "@/components/motion/gsap-core";
 import { cn } from "@/lib/utils";
 
 export function ProductGallery({
@@ -13,6 +14,22 @@ export function ProductGallery({
 }) {
   const [active, setActive] = useState(0);
   const current = images[active];
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // Мягкое проявление главного фото при переключении миниатюры.
+  useIsomorphicLayoutEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(
+        el,
+        { autoAlpha: 0.35, scale: 1.02 },
+        { autoAlpha: 1, scale: 1, duration: 0.45, ease: "power2.out" },
+      );
+    });
+    return () => mm.revert();
+  }, [active]);
 
   return (
     <div className="flex flex-col-reverse gap-3 sm:flex-row">
@@ -36,7 +53,7 @@ export function ProductGallery({
           ))}
         </div>
       ) : null}
-      <div className="min-w-0 flex-1">
+      <div ref={mainRef} className="min-w-0 flex-1">
         <SmartImage
           src={current?.url}
           alt={current?.alt || name}

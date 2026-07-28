@@ -8,6 +8,7 @@ import { Home, Heart, LayoutGrid, ShoppingBag, User, Store, Package, Pill } from
 import { useAuthFlag } from "@/lib/use-auth-flag";
 import { useFavorites } from "@/components/favorites/favorites-provider";
 import { useCart } from "@/components/cart/cart-provider";
+import { Bump } from "@/components/motion/bump";
 import { cn } from "@/lib/utils";
 
 /**
@@ -181,14 +182,15 @@ function TabIcon({
     <span className={cn("relative", pending && "animate-pulse")}>
       <Icon className="h-[21px] w-[21px]" strokeWidth={active ? 2.4 : 1.9} />
       {badge > 0 ? (
-        <span
+        <Bump
+          value={badge}
           className={cn(
-            "absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white",
+            "absolute -right-2 -top-1.5 h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white",
             badgeTone === "accent" ? "bg-accent-400" : "bg-sale",
           )}
         >
           {badge}
-        </span>
+        </Bump>
       ) : null}
     </span>
   );

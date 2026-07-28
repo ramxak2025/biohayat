@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mars, Venus, Baby, type LucideIcon } from "lucide-react";
+import { Stagger } from "@/components/motion/reveal";
 
 /**
  * Блок «Для кого» — три компактные мини-плитки в ряд: клиент сразу узнаёт
@@ -19,7 +20,7 @@ export const AUDIENCE_CARDS: ReadonlyArray<{
 
 export function AudienceCards() {
   return (
-    <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+    <Stagger className="grid grid-cols-3 gap-2.5 sm:gap-4" step={0.09} y={22}>
       {AUDIENCE_CARDS.map((a) => {
         const Icon = a.icon;
         return (
@@ -38,6 +39,6 @@ export function AudienceCards() {
           </Link>
         );
       })}
-    </div>
+    </Stagger>
   );
 }

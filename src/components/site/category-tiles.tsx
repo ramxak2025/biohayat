@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SmartImage } from "@/components/ui/smart-image";
+import { Stagger } from "@/components/motion/reveal";
 
 /**
  * Структурный тип плитки: подходит и Category (главная), и
@@ -29,7 +30,7 @@ export function productsLabel(n: number): string {
  */
 export function CategoryTiles({ categories }: { categories: CategoryTileData[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+    <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" step={0.05} y={18}>
       {categories.map((c) => (
         <Link
           key={c.id}
@@ -63,6 +64,6 @@ export function CategoryTiles({ categories }: { categories: CategoryTileData[] }
           </span>
         </Link>
       ))}
-    </div>
+    </Stagger>
   );
 }

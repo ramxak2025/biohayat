@@ -1,7 +1,9 @@
 "use client";
 
+import * as React from "react";
 import { Heart } from "lucide-react";
 import { useFavorites } from "./favorites-provider";
+import { useIsomorphicLayoutEffect, gsap } from "@/components/motion/gsap-core";
 import { cn } from "@/lib/utils";
 
 export function FavoriteButton({
@@ -17,6 +19,24 @@ export function FavoriteButton({
   const active = ready && has(productId);
   const box = size === "sm" ? "h-8 w-8" : "h-9 w-9";
   const icon = size === "sm" ? "h-4 w-4" : "h-[18px] w-[18px]";
+
+  const heartRef = React.useRef<SVGSVGElement>(null);
+  const prevActive = React.useRef(active);
+
+  // «Поп» при добавлении в избранное — эмоциональная обратная связь.
+  useIsomorphicLayoutEffect(() => {
+    const el = heartRef.current;
+    if (!el) return;
+    const justAdded = active && !prevActive.current;
+    prevActive.current = active;
+    if (!justAdded) return;
+
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(el, { scale: 0.6 }, { scale: 1, duration: 0.5, ease: "elastic.out(1.1, 0.5)" });
+    });
+    return () => mm.revert();
+  }, [active]);
 
   return (
     <button
@@ -35,7 +55,7 @@ export function FavoriteButton({
         className,
       )}
     >
-      <Heart className={cn(icon, active && "fill-sale")} strokeWidth={2.2} />
+      <Heart ref={heartRef} className={cn(icon, active && "fill-sale")} strokeWidth={2.2} />
     </button>
   );
 }

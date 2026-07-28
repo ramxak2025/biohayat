@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Truck, ShieldCheck, Leaf, Sparkles } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/ui/container";
+import { Reveal, Stagger } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { CategoryTiles } from "@/components/site/category-tiles";
 import { CollectionTiles } from "@/components/site/collection-tiles";
@@ -114,7 +115,7 @@ export default async function HomePage() {
 
           {/* ── Полоса преимуществ: 3 компактных пункта в один ряд ── */}
           <div className="mt-3 overflow-hidden rounded-2xl bg-surface shadow-xs ring-1 ring-line sm:mt-4">
-            <div className="grid grid-cols-3 divide-x divide-line">
+            <Stagger className="grid grid-cols-3 divide-x divide-line" step={0.08} y={14}>
               <TrustItem
                 icon={Truck}
                 title="Бесплатная доставка"
@@ -122,7 +123,7 @@ export default async function HomePage() {
               />
               <TrustItem icon={ShieldCheck} title="Сертифицировано" text="стандарты ЕАЭС" />
               <TrustItem icon={Leaf} title="Натуральный состав" text="производство в России" />
-            </div>
+            </Stagger>
           </div>
         </Container>
       </Section>
@@ -199,7 +200,7 @@ export default async function HomePage() {
               subtitle="Проверенные марки витаминов и БАД"
               action={<AllLink href="/catalog" />}
             />
-            <BrandStrip brands={brands} />
+            <Reveal><BrandStrip brands={brands} /></Reveal>
           </Container>
         </Section>
       ) : null}
