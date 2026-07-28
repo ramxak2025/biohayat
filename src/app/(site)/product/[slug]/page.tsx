@@ -244,8 +244,10 @@ export default async function ProductPage({
             </div>
           </div>
 
-          {/* дисклеймер БАД (152-ФЗ / реклама БАД) — мелкая сноска */}
-          <p className="mt-5 border-t border-line pt-3 text-[11px] leading-relaxed text-ink-faint">
+          {/* Дисклеймер БАД (реклама БАД). Не «мелкая сноска»: это ровно то
+              место, где покупатель принимает решение, и предупреждение здесь
+              обязано читаться — 13px и мера по ширине колонки. */}
+          <p className="mt-5 max-w-[60ch] border-t border-line pt-3 text-[13px] leading-relaxed text-ink-muted">
             {settings.badDisclaimer}
           </p>
         </div>
@@ -264,7 +266,10 @@ export default async function ProductPage({
                     className="h-5 w-5 shrink-0 text-ink-faint transition-transform group-open:rotate-180"
                   />
                 </summary>
-                <div className="max-w-3xl whitespace-pre-line pb-4 leading-relaxed text-ink-muted">
+                {/* Мера 68 символов вместо max-w-3xl: на десктопе строка
+                    описания доходила до 96 знаков, глаз терял начало
+                    следующей строки. */}
+                <div className="max-w-[68ch] whitespace-pre-line pb-4 leading-relaxed text-ink-muted">
                   {t.content}
                 </div>
               </details>

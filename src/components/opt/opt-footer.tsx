@@ -30,9 +30,9 @@ export function OptFooter({ settings }: { settings: SiteSettings }) {
 
           {/* Партнёрам */}
           <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/45">
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/55">
               Партнёрам
-            </h3>
+            </h2>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/opt/register" className="text-white/70 transition hover:text-white">
@@ -62,9 +62,9 @@ export function OptFooter({ settings }: { settings: SiteSettings }) {
 
           {/* Контакты отдела опта */}
           <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/45">
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/55">
               Отдел оптовых продаж
-            </h3>
+            </h2>
             <ul className="space-y-3 text-sm">
               <li>
                 <a
@@ -95,10 +95,10 @@ export function OptFooter({ settings }: { settings: SiteSettings }) {
 
         {/* Юр-блок */}
         <div className="mt-10 border-t border-white/10 pt-5">
-          <p className="text-[10px] font-semibold uppercase leading-relaxed tracking-wide text-white/45 md:text-center md:text-xs">
+          <p className="mx-auto max-w-[60ch] text-[13px] font-medium leading-relaxed text-white/70 md:text-center">
             {settings.badDisclaimer}
           </p>
-          <div className="mt-4 flex flex-col gap-1.5 text-[10px] leading-relaxed text-white/40 sm:flex-row sm:items-center sm:justify-between md:text-xs">
+          <div className="mt-4 flex flex-col gap-1.5 text-xs leading-relaxed text-white/55 sm:flex-row sm:items-center sm:justify-between">
             <span>
               © {new Date().getFullYear()} {settings.legalName || "ООО «Восток»"}
               {settings.inn ? ` · ИНН ${settings.inn}` : ""}

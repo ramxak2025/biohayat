@@ -7,9 +7,12 @@ const LEAF_PATH =
   "M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z";
 
 /**
- * Блок «Распродажа» — благородный тёмно-зелёный (brand-800) с крупным
- * листом-декором. Внимание притягивает пульсирующий чип «−40%» в sale-цвете
- * и тёплая accent-кнопка — без кричащих градиентов, в фирменной гамме.
+ * Блок «Распродажа» — тёмно-зелёный (brand-800) с крупным листом-декором.
+ *
+ * Пульсации у чипа «−40%» больше нет. Мигающая красная точка — сигнал
+ * дискаунтера: она подгоняет, а производителю БАД покупатель должен доверять,
+ * а не спешить. Размер скидки и так самый крупный элемент блока — этого
+ * достаточно, чтобы её заметили.
  */
 export function SaleBanner() {
   return (
@@ -29,10 +32,10 @@ export function SaleBanner() {
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">
           <span className="flex flex-wrap items-center gap-2">
-            <span className="sale-pulse tnum inline-flex items-center rounded-full bg-sale px-3 py-1 text-sm font-extrabold leading-none">
+            <span className="tnum inline-flex items-center rounded-full bg-sale px-3 py-1 text-sm font-extrabold leading-none">
               −40%
             </span>
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/65">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-white/80">
               Распродажа
             </span>
           </span>
@@ -44,7 +47,9 @@ export function SaleBanner() {
             <span className="font-bold text-accent-200">FREE25Hayat</span>
           </p>
         </div>
-        <span className="inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-full bg-accent-400 px-6 text-sm font-bold text-white shadow-sm transition group-hover:gap-3 group-hover:bg-accent-500 sm:h-12 sm:self-auto sm:text-base">
+        {/* Тёмный текст на янтаре, а не белый: белый на #e7a124 даёт 2.2:1 —
+            вдвое ниже порога AA. Тёмный — 6.8:1. */}
+        <span className="inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-full bg-accent-400 px-6 text-sm font-bold text-ink shadow-sm transition group-hover:gap-3 group-hover:bg-accent-300 sm:h-12 sm:self-auto sm:text-base">
           Смотреть <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
         </span>
       </div>

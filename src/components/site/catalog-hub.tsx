@@ -71,7 +71,7 @@ export function CatalogHub({
           <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
             {purchased.map(({ product, lastOrderedAt }) => (
               <div key={product.id} className="w-40 shrink-0 snap-start">
-                <div className="mb-1.5 inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700">
+                <div className="mb-1.5 inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
                   {daysAgoLabel(lastOrderedAt)}
                 </div>
                 <ProductCard product={product} />

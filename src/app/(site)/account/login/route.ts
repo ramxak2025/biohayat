@@ -16,6 +16,14 @@ export const dynamic = "force-dynamic";
  * «ничего не произошло». Обычный POST с ответом 303 таких гонок не имеет:
  * браузер делает полноценный переход и получает страницу, отрисованную с сессией.
  */
+/**
+ * Прямой заход по адресу (закладка, «назад», ссылка из письма) — не ошибка.
+ * Без этого GET отдавал 405 с системной страницей браузера вместо формы.
+ */
+export function GET() {
+  return redirectAfterPost("/account");
+}
+
 export async function POST(req: NextRequest) {
   return handleFormPost("account/login", "/account?error=server", async () => {
     const fd = await req.formData();

@@ -57,7 +57,7 @@ export function CategoryTiles({ categories }: { categories: CategoryTileData[] }
               {c.name}
             </span>
             {c._count ? (
-              <span className="tnum mt-0.5 block text-[11px] font-medium text-white/75">
+              <span className="tnum mt-0.5 block text-xs font-medium text-white/85">
                 {productsLabel(c._count.products)}
               </span>
             ) : null}

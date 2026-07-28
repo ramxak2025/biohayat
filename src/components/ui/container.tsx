@@ -42,7 +42,7 @@ export function SectionHeader({
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h2>
+        <h2 className="font-display text-2xl font-bold sm:text-3xl">{title}</h2>
         {subtitle ? <p className="mt-1 text-ink-muted">{subtitle}</p> : null}
       </div>
       {action}

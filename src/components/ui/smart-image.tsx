@@ -21,14 +21,18 @@ interface SmartImageProps {
   rounded?: string;
 }
 
-/** Мягкие природные дуэты фона заглушки (gradient 135deg). */
+/**
+ * Дуэты фона заглушки (gradient 135deg) — только зелёная гамма бренда и
+ * янтарь акцента. Раньше в наборе были лаванда и персик: сетка категорий без
+ * фотографий получалась сиренево-розовой и к марке отношения не имела.
+ * Заглушка не должна вводить в палитру цвета, которых у марки нет.
+ */
 const PLACEHOLDER_DUOS: ReadonlyArray<readonly [string, string]> = [
   ["#E7F0E4", "#D3E5CE"], // шалфей
   ["#F8EFD9", "#F0E0B8"], // мёд
-  ["#ECEAF6", "#DCD8EE"], // лаванда
-  ["#FBEEE4", "#F4DCC8"], // персик
   ["#E4F2EF", "#CBE6E0"], // мята
-  ["#F4F1E8", "#E7E1D0"], // песок
+  ["#DFEBDD", "#C6DCC3"], // хвоя
+  ["#F1F3EA", "#E1E7D6"], // лён
 ];
 
 /** Фирменный лист — тот же path, что в логотипе (src/components/site/logo.tsx). */
@@ -113,7 +117,7 @@ export function SmartImage({
             </span>
           ) : null}
           {showLabel && label ? (
-            <span className="relative max-w-full truncate text-[11px] font-semibold text-ink/45">
+            <span className="relative max-w-full truncate text-xs font-semibold text-ink/55">
               {label}
             </span>
           ) : null}

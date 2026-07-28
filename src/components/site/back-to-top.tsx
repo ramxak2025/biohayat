@@ -34,7 +34,7 @@ export function BackToTop() {
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
       className={cn(
-        "back-to-top fixed right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-surface text-ink shadow-md ring-1 ring-line backdrop-blur transition-all duration-300 hover:text-brand-700 hover:shadow-lg active:scale-95 lg:right-6",
+        "back-to-top fixed right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-surface text-ink shadow-md ring-1 ring-line backdrop-blur transition duration-300 hover:text-brand-700 hover:shadow-lg active:scale-95 lg:right-6",
         "bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom))+10px)] lg:bottom-6",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0",
       )}

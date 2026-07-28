@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { LayoutGrid, ChevronDown, Mars, Venus, Baby, Sparkles } from "lucide-react";
+import { LayoutGrid, ChevronDown, Mars, Venus, Baby, ListChecks } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { useIsomorphicLayoutEffect, gsap } from "@/components/motion/gsap-core";
 import { cn } from "@/lib/utils";
@@ -142,7 +142,7 @@ export function CatalogMenu({ categories }: { categories: CatalogMenuCategory[] 
                     className="mt-6 flex items-start gap-3 rounded-2xl bg-brand-50 p-4 transition hover:bg-brand-100"
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white">
-                      <Sparkles className="h-5 w-5" aria-hidden />
+                      <ListChecks className="h-5 w-5" aria-hidden />
                     </span>
                     <span>
                       <span className="block text-[15px] font-bold text-ink">Не знаете, что выбрать?</span>

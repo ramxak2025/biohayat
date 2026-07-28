@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import { Manrope, Lora } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -10,6 +10,15 @@ const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+// Дисплейный шрифт заголовков. Пара «сериф + гротеск» даёт иерархию не только
+// весом и кеглем; для производителя фитопродукции сериф добавляет вес истории.
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin", "cyrillic"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -52,7 +61,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const settings = await getSettings();
   return (
-    <html lang="ru" className={`${manrope.variable} h-full antialiased`}>
+    <html lang="ru" className={`${manrope.variable} ${lora.variable} h-full antialiased`}>
       <head>
         <script
           type="application/ld+json"

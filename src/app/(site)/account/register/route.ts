@@ -6,6 +6,11 @@ import { handleFormPost, redirectAfterPost } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
+/** Прямой заход по адресу — на форму регистрации, а не 405. */
+export function GET() {
+  return redirectAfterPost("/account?tab=register");
+}
+
 /** Регистрация обычной отправкой формы — см. пояснение в ../login/route.ts. */
 export async function POST(req: NextRequest) {
   return handleFormPost("account/register", "/account?tab=register&error=server", async () => {
