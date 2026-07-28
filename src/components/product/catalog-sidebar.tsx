@@ -9,8 +9,8 @@ import type { Category } from "@prisma/client";
  *
  * Sticky-офсет учитывает суммарную высоту десктопной шапки
  * (см. src/components/site/header.tsx): 28px utility-полоса +
- * var(--spacing-header) (80px) основная строка + 48px навигация + 1px граница
- * = 157px, плюс 16px воздуха → top = var(--spacing-header) + 93px = 173px.
+ * var(--spacing-header) (72px) основная строка + 36px полоса доверия + 1px
+ * граница = 109px, плюс 16px воздуха → top = var(--spacing-header) + 53px = 125px.
  * max-h оставляет ещё 16px снизу, чтобы длинный список скроллился внутри.
  */
 export function CatalogSidebar({
@@ -25,7 +25,7 @@ export function CatalogSidebar({
 }) {
   return (
     <aside className="hidden w-[248px] shrink-0 lg:block">
-      <div className="sticky top-[calc(var(--spacing-header)+93px)] max-h-[calc(100dvh-var(--spacing-header)-109px)] overflow-y-auto pr-1">
+      <div className="sticky top-[calc(var(--spacing-header)+53px)] max-h-[calc(100dvh-var(--spacing-header)-69px)] overflow-y-auto pr-1">
         <Group>
           <Item href="/catalog" active={activeHref === "/catalog"} icon={<LayoutGrid className="h-4 w-4" />}>
             Все товары

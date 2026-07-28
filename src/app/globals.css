@@ -71,7 +71,7 @@
   --shadow-brand: 0 8px 24px rgba(58, 148, 71, 0.28);
 
   /* ── Контейнер / тайминги ── */
-  --spacing-header: 80px;
+  --spacing-header: 72px;
   --spacing-mobnav: 64px;
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
