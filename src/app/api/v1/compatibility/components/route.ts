@@ -1,4 +1,4 @@
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { prisma } from "@/lib/prisma";
 import { NUTRIENT_KEYWORDS } from "@/lib/taxonomy";
 
@@ -28,7 +28,7 @@ export async function GET() {
 
     const components = [...set].sort((a, b) => a.localeCompare(b, "ru"));
     return apiOk(components);
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/compatibility/components", e);
   }
 }

@@ -1,4 +1,4 @@
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { prisma } from "@/lib/prisma";
 import { serializeCompatibility } from "@/lib/api/serializers";
 
@@ -17,7 +17,7 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     });
     return apiOk(rules.map(serializeCompatibility));
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/compatibility/rules", e);
   }
 }

@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getPublishedMaterials } from "@/lib/queries";
 import { serializeMaterial } from "@/lib/api/serializers";
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     const materials = await getPublishedMaterials(take);
     return apiOk(materials.map((m) => serializeMaterial(m)));
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/materials", e);
   }
 }

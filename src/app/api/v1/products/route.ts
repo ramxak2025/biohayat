@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { apiOk, apiError, apiPreflight, parsePaging } from "@/lib/api/response";
+import { apiOk, apiPreflight, parsePaging, apiInternal } from "@/lib/api/response";
 import { getProducts } from "@/lib/queries";
 import { serializeProduct } from "@/lib/api/serializers";
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     });
 
     return apiOk({ items: items.map(serializeProduct), total, take, skip });
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/products", e);
   }
 }

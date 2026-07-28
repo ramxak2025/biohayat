@@ -1,4 +1,4 @@
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { AUDIENCES, GOALS } from "@/lib/taxonomy";
 
 export const runtime = "nodejs";
@@ -45,7 +45,7 @@ export async function GET() {
         icon: g.icon.displayName || g.icon.name || GOAL_ICON[g.slug] || null,
       })),
     });
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/taxonomy", e);
   }
 }

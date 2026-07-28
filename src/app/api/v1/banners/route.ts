@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { apiOk, apiError, apiPreflight } from "@/lib/api/response";
+import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getBanners } from "@/lib/queries";
 import { serializeBanner } from "@/lib/api/serializers";
 
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const banners = await getBanners(placement);
     return apiOk(banners.map(serializeBanner));
-  } catch {
-    return apiError("Внутренняя ошибка", 500, "INTERNAL");
+  } catch (e) {
+    return apiInternal("api/v1/banners", e);
   }
 }
