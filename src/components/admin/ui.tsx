@@ -13,9 +13,7 @@ export function AdminHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        {/* Админка остаётся на гротеске: дисплейный сериф — голос витрины,
-            в рабочем инструменте он только мешает быстрому сканированию. */}
-        <h1 className="font-sans text-2xl font-extrabold tracking-tight">{title}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
         {description ? <p className="mt-1 text-sm text-ink-muted">{description}</p> : null}
       </div>
       {action}
