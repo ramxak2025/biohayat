@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Package, Coins, Heart, PillBottle, FlaskConical, MessageCircleHeart, UserCog, LogOut, MapPin, ChevronLeft, Gift,

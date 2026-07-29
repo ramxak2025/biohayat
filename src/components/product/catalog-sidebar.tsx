@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Tag, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Category } from "@prisma/client";

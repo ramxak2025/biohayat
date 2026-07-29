@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import {
   Package, Heart, PillBottle, MapPin, FlaskConical, MessageCircleHeart, UserCog, LogOut, ChevronRight, Pencil, Sparkles, Coins, Gift,
 } from "lucide-react";

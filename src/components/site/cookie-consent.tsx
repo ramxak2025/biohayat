@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Button } from "@/components/ui/button";
 
 const KEY = "hayat_cookie_consent";

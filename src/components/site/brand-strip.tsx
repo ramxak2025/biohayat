@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { SmartImage } from "@/components/ui/smart-image";
 import type { Brand } from "@prisma/client";
 

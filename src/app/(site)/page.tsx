@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { ArrowRight, Truck, ShieldCheck, Leaf, ListChecks, MessageCircleHeart } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/ui/container";
 import { Reveal, Stagger } from "@/components/motion/reveal";
@@ -19,9 +19,16 @@ import { SmartImage } from "@/components/ui/smart-image";
 import { formatMoney } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
 
-// ISR: главная отдаётся статически, перегенерация не чаще раза в 2 минуты.
-// Без параметров: рендер на каждый запрос (данные берутся из Data Cache,
-// поэтому это дёшево). Статический пререндер потребовал бы БД на сборке.
+/*
+ * Рендер на запрос — данные при этом берутся из Data Cache, поэтому это
+ * дёшево (см. unstable_cache в lib/queries.ts).
+ *
+ * ISR (revalidate) здесь не подходит: главная — статический маршрут, Next
+ * пререндерит такие на сборке, а в Docker-образе БД недоступна — сборка
+ * падает на `prisma.banner.findMany()`. Проверено: `pnpm build` без БД с
+ * revalidate=120 завершается с ошибкой Export encountered an error on "/".
+ * Кэшируемость ответа даёт заголовок в next.config.ts.
+ */
 export const dynamic = "force-dynamic";
 
 /** Фирменный лист — тот же path, что в логотипе (src/components/site/logo.tsx). */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Leaf, Package, Heart, PillBottle, MessageCircleHeart } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Input, Label, Checkbox } from "@/components/ui/field";

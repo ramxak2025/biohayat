@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 import { ChevronRight, ChevronDown, Truck, ShieldCheck } from "lucide-react";

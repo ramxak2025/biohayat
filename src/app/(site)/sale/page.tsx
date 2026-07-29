@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CatalogView } from "@/components/product/catalog-view";
+import { CatalogView, CATALOG_PAGE_SIZE, pageNumber } from "@/components/product/catalog-view";
 import { getNavCategories, getProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { buildMetadata } from "@/lib/seo";
@@ -21,9 +21,18 @@ export async function generateMetadata(): Promise<Metadata> {
   );
 }
 
-export default async function SalePage() {
+export default async function SalePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = pageNumber((await searchParams).page);
   const [{ items, total }, categories] = await Promise.all([
-    getProducts({ onSale: true, take: 60 }),
+    getProducts({
+      onSale: true,
+      take: CATALOG_PAGE_SIZE,
+      skip: (page - 1) * CATALOG_PAGE_SIZE,
+    }),
     getNavCategories(),
   ]);
 
@@ -35,6 +44,8 @@ export default async function SalePage() {
       total={total}
       categories={categories}
       basePath="/sale"
+      page={page}
+      pageQuery={(p) => (p > 1 ? `/sale?page=${p}` : "/sale")}
     />
   );
 }

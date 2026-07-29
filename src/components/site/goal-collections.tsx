@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Tag } from "lucide-react";
 import { GOALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";

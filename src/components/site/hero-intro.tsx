@@ -1,19 +1,20 @@
-"use client";
-
-import * as React from "react";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { ArrowRight, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/motion/magnetic";
-import { useIsomorphicLayoutEffect, gsap } from "@/components/motion/gsap-core";
 
 /**
- * Текстовая часть героя с входной анимацией.
+ * Текстовая часть героя.
  *
- * Анимация запускается при монтировании и не зависит от прокрутки — герой и так
- * на первом экране. Уважает prefers-reduced-motion: при reduce ничего не
- * скрывается и не двигается. Разметка отрисовывается сервером, поэтому без JS
- * текст виден сразу (важно для поиска и медленных сетей).
+ * Появление сделано на CSS (keyframes hero-in в globals.css), а не на GSAP, и
+ * без изменения прозрачности — только сдвиг. Причина конкретная: заголовок
+ * героя — самый крупный элемент первого экрана, по нему браузер считает LCP.
+ * Скрытый элемент в LCP не засчитывается, поэтому прежний вариант с
+ * opacity: 0 из JS откладывал метрику до загрузки и выполнения 72 КБ GSAP —
+ * на медленной сети это около 700 мс пустого ожидания.
+ *
+ * Заодно компонент перестал быть клиентским: анимация не требует JS,
+ * «магнитная» кнопка живёт в собственном клиентском компоненте.
  */
 export function HeroIntro({
   title,
@@ -26,29 +27,8 @@ export function HeroIntro({
   ctaLabel?: string | null;
   link?: string | null;
 }) {
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  useIsomorphicLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const items = el.querySelectorAll("[data-hero-item]");
-      gsap.set(items, { autoAlpha: 0, y: 18 });
-      gsap.to(items, {
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.7,
-        ease: "power3.out",
-        stagger: 0.09,
-        delay: 0.05,
-      });
-    });
-    return () => mm.revert();
-  }, []);
-
   return (
-    <div ref={ref} className="max-w-xl">
+    <div className="max-w-xl">
       <span
         data-hero-item
         className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur"

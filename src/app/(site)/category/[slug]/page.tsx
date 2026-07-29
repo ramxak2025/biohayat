@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
-import { CatalogView } from "@/components/product/catalog-view";
+import { CatalogView, CATALOG_PAGE_SIZE, pageNumber } from "@/components/product/catalog-view";
 import {
   getCategoryBySlug,
   getNavCategories,
@@ -33,15 +33,26 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; page?: string }>;
 }) {
-  const [{ slug }, { sort: sortParam }] = await Promise.all([params, searchParams]);
+  const [{ slug }, { sort: sortParam, page: pageParam }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const category = await getCategoryBySlug(slug);
   if (!category || !category.isActive) notFound();
 
   const sort = parseProductSort(sortParam);
+  const page = pageNumber(pageParam);
   const [{ items, total }, categories] = await Promise.all([
-    getSortedProducts({ categorySlug: slug, take: 60 }, sort),
+    getSortedProducts(
+      {
+        categorySlug: slug,
+        take: CATALOG_PAGE_SIZE,
+        skip: (page - 1) * CATALOG_PAGE_SIZE,
+      },
+      sort,
+    ),
     getNavCategories(),
   ]);
 
@@ -66,6 +77,13 @@ export default async function CategoryPage({
         basePath={`/category/${slug}`}
         sort={sort}
         sortBase={`/category/${slug}`}
+        page={page}
+        pageQuery={(p) =>
+          `/category/${slug}?${new URLSearchParams({
+            ...(sort !== "popular" ? { sort } : {}),
+            ...(p > 1 ? { page: String(p) } : {}),
+          })}`
+        }
       />
     </>
   );

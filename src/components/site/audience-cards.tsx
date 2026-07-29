@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Mars, Venus, Baby, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { usePathname } from "next/navigation";
 import { Phone, Search, ShoppingCart, User, Heart, ListChecks } from "lucide-react";
 import { Container } from "@/components/ui/container";
