@@ -34,15 +34,17 @@ export function AudienceCards() {
           <Link
             key={a.slug}
             href={`/for/${a.slug}`}
-            className="group flex min-h-14 items-center justify-center gap-2.5 px-2 py-3.5 text-center transition hover:bg-brand-50 active:bg-brand-100 sm:gap-3 sm:px-4"
+            className="group flex min-h-14 items-center justify-center gap-2 px-2 py-3.5 text-center transition hover:bg-brand-50 active:bg-brand-100 sm:gap-3 sm:px-4"
           >
             <Icon
-              className="h-5 w-5 shrink-0 text-brand-600 transition group-hover:text-brand-700"
+              className="h-[18px] w-[18px] shrink-0 text-brand-600 transition group-hover:text-brand-700 sm:h-5 sm:w-5"
               strokeWidth={1.9}
               aria-hidden
             />
             <span className="min-w-0 text-left">
-              <span className="block text-sm font-bold leading-tight text-ink sm:text-[15px]">
+              {/* 13px на самых узких экранах: втроём в ряд «Женщинам» с
+                  иконкой в 390px по 14px уже не помещается и обрезается. */}
+              <span className="block truncate text-[13px] font-bold leading-tight text-ink sm:text-[15px]">
                 {a.name}
               </span>
               <span className="mt-0.5 hidden truncate text-xs leading-tight text-ink-muted sm:block">
