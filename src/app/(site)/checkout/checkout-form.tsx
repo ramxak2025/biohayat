@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { useFormStatus } from "react-dom";
 import {
   CheckCircle2, ArrowRight, Loader2, Tag, X, MapPin, Plus, Package, User, MessageSquare, Coins,

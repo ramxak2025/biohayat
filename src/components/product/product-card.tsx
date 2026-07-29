@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Star } from "lucide-react";
 import { SmartImage } from "@/components/ui/smart-image";
 import { Badge } from "@/components/ui/badge";

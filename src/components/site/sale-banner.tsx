@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { ArrowRight } from "lucide-react";
 import { CountUp } from "@/components/motion/count-up";
 

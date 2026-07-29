@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { redirect } from "next/navigation";
 import type { OrderStatus, Prisma } from "@prisma/client";
 import { Package, Truck, ExternalLink, Tag } from "lucide-react";

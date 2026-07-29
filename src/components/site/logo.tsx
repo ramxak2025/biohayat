@@ -22,7 +22,11 @@ export function Logo({
         width={56}
         height={56}
         className="h-11 w-11 shrink-0"
-        priority
+        // priority только у знака в шапке. Инвертированный вариант живёт в
+        // футере, до него ещё нужно долистать — его предзагрузка отнимала
+        // канал у первого экрана.
+        priority={!inverted}
+        loading={inverted ? "lazy" : undefined}
       />
       <span className="flex flex-col leading-none">
         <span

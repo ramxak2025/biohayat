@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/prose";
 import { SmartImage } from "@/components/ui/smart-image";

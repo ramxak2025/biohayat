@@ -399,3 +399,100 @@ body {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
 }
+
+/* ── Появление контента ──────────────────────────────────────────────
+   Раньше входные анимации делал GSAP: компонент в layout-эффекте ставил
+   элементам opacity: 0 и оттуда их выводил. У этого два дорогих следствия.
+
+   Первое: пока не загрузился и не выполнился JS, контент невидим. Именно так
+   на телефонах однажды пропали все секции ниже первого экрана — человек
+   видел заголовок и пустоту.
+
+   Второе: заголовок героя — самый крупный элемент первого экрана, по нему
+   браузер считает LCP. Скрытый элемент в LCP не засчитывается, поэтому
+   метрика ждала загрузки 72 КБ GSAP. На медленной сети это ~700 мс.
+
+   Здесь то же движение сделано на CSS: оно запускается вместе с первой
+   отрисовкой, ничего не ждёт и не может «не сработать». GSAP остался там,
+   где он нужен по существу: счётчики и параллакс по прокрутке, магнитные
+   кнопки, панель каталога, пульс счётчика корзины.
+
+   Герой двигается без изменения прозрачности: текст должен быть на экране с
+   первого кадра, иначе LCP снова уедет. */
+@keyframes hero-in {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-hero-item] {
+  animation: hero-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+[data-hero-item]:nth-child(2) {
+  animation-delay: 0.07s;
+}
+[data-hero-item]:nth-child(3) {
+  animation-delay: 0.14s;
+}
+[data-hero-item]:nth-child(4) {
+  animation-delay: 0.21s;
+}
+
+.reveal {
+  animation: reveal-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Каскад по прямым детям. Шаг 60 мс, дальше десятого — без задержки:
+   в сетке из шестидесяти карточек ожидание конца волны важнее её красоты. */
+.reveal-stagger > * {
+  animation: reveal-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.reveal-stagger > *:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.reveal-stagger > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.reveal-stagger > *:nth-child(4) {
+  animation-delay: 0.18s;
+}
+.reveal-stagger > *:nth-child(5) {
+  animation-delay: 0.24s;
+}
+.reveal-stagger > *:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.reveal-stagger > *:nth-child(7) {
+  animation-delay: 0.36s;
+}
+.reveal-stagger > *:nth-child(8) {
+  animation-delay: 0.42s;
+}
+.reveal-stagger > *:nth-child(9) {
+  animation-delay: 0.48s;
+}
+.reveal-stagger > *:nth-child(n + 10) {
+  animation-delay: 0.54s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-item],
+  .reveal,
+  .reveal-stagger > * {
+    animation: none;
+  }
+}

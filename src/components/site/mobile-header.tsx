@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { SearchTrigger, SearchOverlay } from "@/components/site/mobile-search";
 import { useAuthFlag, useAuthName } from "@/lib/use-auth-flag";
 import { appScrollTop, onAppScroll } from "@/lib/app-scroll";

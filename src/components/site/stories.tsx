@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { X } from "lucide-react";
 import { SmartImage } from "@/components/ui/smart-image";
 import type { StoryData } from "@/lib/queries";

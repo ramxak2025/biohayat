@@ -6,6 +6,7 @@ import { FooterVisibility } from "@/components/site/footer-visibility";
 import { IOSViewportFix } from "@/components/site/ios-viewport-fix";
 import { ScrollManager } from "@/components/site/scroll-manager";
 import { ReferralCapture } from "@/components/site/referral-capture";
+import { PrefetchOnIntent } from "@/components/site/prefetch-on-intent";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { MobileHeader } from "@/components/site/mobile-header";
 import { BackToTop } from "@/components/site/back-to-top";
@@ -51,6 +52,9 @@ export default async function SiteLayout({
         </div>
         <ScrollManager />
         <ReferralCapture />
+        {/* Списочные ссылки грузятся по наведению/касанию, а не пачкой при
+            появлении на экране (см. ListLink) */}
+        <PrefetchOnIntent />
         {/* Пере-привязка fixed/sticky после клавиатуры iOS */}
         <IOSViewportFix />
         <MobileNav />

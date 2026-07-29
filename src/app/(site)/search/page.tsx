@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { ListLink as Link } from "@/components/ui/list-link";
 import { Search as SearchIcon, PackageSearch } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CatalogView } from "@/components/product/catalog-view";
+import { CatalogView, CATALOG_PAGE_SIZE, pageNumber } from "@/components/product/catalog-view";
 import { CatalogHub } from "@/components/site/catalog-hub";
 import { GoalCollections } from "@/components/site/goal-collections";
 import { getCategoriesWithCounts, getProducts, getPurchasedProducts } from "@/lib/queries";
@@ -14,6 +14,7 @@ import { buildMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 interface CatalogSearchParams {
+  page?: string;
   q?: string;
   category?: string;
   goal?: string;
@@ -42,8 +43,21 @@ export default async function CatalogPage({
 }: {
   searchParams: Promise<CatalogSearchParams>;
 }) {
-  const { q, category, goal, audience } = await searchParams;
+  const { q, category, goal, audience, page: pageParam } = await searchParams;
   const isFiltered = Boolean(q || category || goal || audience);
+  const page = pageNumber(pageParam);
+  const skip = (page - 1) * CATALOG_PAGE_SIZE;
+  /** Адрес N-й страницы с сохранением фильтров. */
+  const pageQuery = (p: number) => {
+    const qs = new URLSearchParams();
+    if (q) qs.set("q", q);
+    if (category) qs.set("category", category);
+    if (goal) qs.set("goal", goal);
+    if (audience) qs.set("audience", audience);
+    if (p > 1) qs.set("page", String(p));
+    const s = qs.toString();
+    return s ? `/catalog?${s}` : "/catalog";
+  };
 
   // Персонализация хаба: «Вы уже заказывали» для залогиненных
   // (страница force-dynamic — cookies здесь допустимы).
@@ -60,7 +74,8 @@ export default async function CatalogPage({
       categorySlug: category,
       goal: goal,
       audience: audience,
-      take: 60,
+      take: CATALOG_PAGE_SIZE,
+      skip,
     });
     const categoryName = category
       ? categories.find((c) => c.slug === category)?.name
@@ -79,6 +94,8 @@ export default async function CatalogPage({
         total={total}
         categories={categories}
         activeSlug={categoryName ? category : undefined}
+        page={page}
+        pageQuery={pageQuery}
       />
     );
   }
@@ -86,7 +103,7 @@ export default async function CatalogPage({
   // «Чистый» /catalog: на мобильном — хаб каталога, на десктопе — как раньше
   // сетка с боковым меню.
   const [{ items, total }, featured, brands, activeBrands] = await Promise.all([
-    getProducts({ take: 60 }),
+    getProducts({ take: CATALOG_PAGE_SIZE, skip }),
     getProducts({ featured: true, take: 10 }),
     getFeaturedBrands(),
     getActiveBrands(),
@@ -119,6 +136,8 @@ export default async function CatalogPage({
           total={total}
           categories={categories}
           brands={sidebarBrands}
+          page={page}
+          pageQuery={pageQuery}
         />
       </div>
     </>
