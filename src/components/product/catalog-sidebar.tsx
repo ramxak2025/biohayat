@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { ListLink as Link } from "@/components/ui/list-link";
 import { Tag, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,6 +10,11 @@ import type { Category } from "@prisma/client";
  * Левое боковое меню каталога (десктоп): только категории + быстрые пункты
  * «Все товары» и «Распродажа», с подсветкой активного раздела.
  *
+ * Живёт в макете группы каталога и при переходах не перерисовывается, поэтому
+ * активный раздел определяет сам по адресу, а не получает пропом от страницы:
+ * проп заставил бы перерисовывать меню на каждый переход — ровно то, от чего
+ * мы уходим.
+ *
  * Sticky-офсет учитывает суммарную высоту десктопной шапки
  * (см. src/components/site/header.tsx): 28px utility-полоса +
  * var(--spacing-header) (72px) основная строка + 36px полоса доверия + 1px
@@ -15,14 +23,14 @@ import type { Category } from "@prisma/client";
  */
 export function CatalogSidebar({
   categories,
-  activeHref,
   brands = [],
 }: {
   categories: (Pick<Category, "slug" | "name"> & { count?: number })[];
-  activeHref: string;
   /** Бренды для блока-фильтра (опционально; пусто — блок скрыт). */
   brands?: (Pick<Category, "slug" | "name"> & { count?: number })[];
 }) {
+  const activeHref = usePathname();
+
   return (
     <aside className="hidden w-[248px] shrink-0 lg:block">
       <div className="sticky top-[calc(var(--spacing-header)+53px)] max-h-[calc(100dvh-var(--spacing-header)-69px)] overflow-y-auto pr-1">
@@ -101,6 +109,9 @@ function Item({
   return (
     <Link
       href={href}
+      // Текущий раздел помечается не только цветом: скринридер объявляет его
+      // как текущий пункт навигации.
+      aria-current={active ? "page" : undefined}
       className={cn(
         "flex items-center gap-2.5 rounded-xl px-3 py-2 text-[14px] font-medium transition",
         active

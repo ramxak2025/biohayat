@@ -1,9 +1,7 @@
 import { ListLink as Link } from "@/components/ui/list-link";
 import { ArrowDownUp, PackageSearch } from "lucide-react";
-import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product/product-card";
-import { CatalogSidebar } from "@/components/product/catalog-sidebar";
 import { ChipsRow } from "@/components/product/chips-row";
 import { cn } from "@/lib/utils";
 import type { Category } from "@prisma/client";
@@ -43,7 +41,6 @@ export function CatalogView({
   basePath = "/catalog",
   sort,
   sortBase,
-  brands,
   page,
   pageQuery,
 }: {
@@ -58,8 +55,6 @@ export function CatalogView({
   sort?: ProductSort;
   /** Базовый путь для ссылок сортировки, напр. "/category/med" → "?sort=…". */
   sortBase?: string;
-  /** Бренды для блока-фильтра в десктопном сайдбаре (опционально). */
-  brands?: (Pick<Category, "slug" | "name"> & { count?: number })[];
   /** Текущая страница (с 1). Вместе с pageQuery включает постраничность. */
   page?: number;
   /** Строит адрес N-й страницы, сохраняя остальные параметры (?sort= и др.). */
@@ -69,82 +64,75 @@ export function CatalogView({
     page && pageQuery ? Math.ceil(total / CATALOG_PAGE_SIZE) : 1;
 
   return (
-    <Container className="py-6 sm:py-8">
-      <div className="lg:grid lg:grid-cols-[248px_1fr] lg:gap-8">
-        {/* Десктоп: боковое меню слева */}
-        <CatalogSidebar categories={categories} activeHref={basePath} brands={brands} />
-
-        <div className="min-w-0">
-          <div className="mb-5">
-            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
-            {description ? <p className="mt-1.5 max-w-2xl text-ink-muted">{description}</p> : null}
-            <p className="mt-1 text-sm text-ink-faint">{total} товаров</p>
-          </div>
-
-          {/* Мобайл: чипсы соседних категорий, текущая выделена и подскроллена в центр
-              (на десктопе их заменяет боковое меню) */}
-          <ChipsRow
-            activeKey={activeSlug ?? basePath}
-            className={cn("-mx-4 scroll-pl-4 px-4 py-1 lg:hidden", sortBase ? "mb-3" : "mb-6")}
-          >
-            <Chip href="/catalog" active={basePath === "/catalog" && !activeSlug}>
-              Все
-            </Chip>
-            <Chip href="/sale" active={basePath === "/sale"} tone="sale">
-              Распродажа
-            </Chip>
-            {categories.map((c) => (
-              <Chip key={c.slug} href={`/category/${c.slug}`} active={activeSlug === c.slug}>
-                {c.name}
-              </Chip>
-            ))}
-          </ChipsRow>
-
-          {/* Компактная панель сортировки (через ?sort=, ссылки кэш-дружелюбны) */}
-          {sortBase ? (
-            <div className="no-scrollbar -mx-4 mb-6 flex items-center gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:px-0">
-              {/* Без snap-x: снап пристыковывал первый чип к краю и выталкивал
-                  подпись «Сортировка» за левую границу экрана */}
-              <span className="inline-flex shrink-0 items-center gap-1.5 pr-1 text-sm font-bold text-ink-muted">
-                <ArrowDownUp className="h-4 w-4 text-brand-600" aria-hidden />
-                Сортировка
-              </span>
-              {SORT_OPTIONS.map((o) => (
-                <Chip
-                  key={o.value}
-                  href={o.value === "popular" ? sortBase : `${sortBase}?sort=${o.value}`}
-                  active={(sort ?? "popular") === o.value}
-                  size="sm"
-                >
-                  {o.label}
-                </Chip>
-              ))}
-            </div>
-          ) : null}
-
-          {products.length > 0 ? (
-            <>
-              <ProductGrid products={products} />
-              {pages > 1 && page && pageQuery ? (
-                <Pagination page={page} pages={pages} href={pageQuery} />
-              ) : null}
-            </>
-          ) : (
-            <div className="flex flex-col items-center rounded-2xl bg-surface-soft px-6 py-16 text-center">
-              <PackageSearch className="h-12 w-12 text-brand-300" aria-hidden />
-              <p className="mt-4 text-lg font-bold">Ничего не найдено</p>
-              <p className="mt-1 max-w-sm text-ink-muted">
-                Попробуйте изменить запрос или категорию — а в каталоге точно найдётся
-                что-то полезное.
-              </p>
-              <Button asChild className="mt-5">
-                <Link href="/catalog">В каталог</Link>
-              </Button>
-            </div>
-          )}
-        </div>
+    <div>
+      <div className="mb-5">
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
+        {description ? <p className="mt-1.5 max-w-2xl text-ink-muted">{description}</p> : null}
+        <p className="mt-1 text-sm text-ink-faint">{total} товаров</p>
       </div>
-    </Container>
+
+      {/* Мобайл: чипсы соседних категорий, текущая выделена и подскроллена в центр
+          (на десктопе их заменяет боковое меню) */}
+      <ChipsRow
+        activeKey={activeSlug ?? basePath}
+        className={cn("-mx-4 scroll-pl-4 px-4 py-1 lg:hidden", sortBase ? "mb-3" : "mb-6")}
+      >
+        <Chip href="/catalog" active={basePath === "/catalog" && !activeSlug}>
+          Все
+        </Chip>
+        <Chip href="/sale" active={basePath === "/sale"} tone="sale">
+          Распродажа
+        </Chip>
+        {categories.map((c) => (
+          <Chip key={c.slug} href={`/category/${c.slug}`} active={activeSlug === c.slug}>
+            {c.name}
+          </Chip>
+        ))}
+      </ChipsRow>
+
+      {/* Компактная панель сортировки (через ?sort=, ссылки кэш-дружелюбны) */}
+      {sortBase ? (
+        <div className="no-scrollbar -mx-4 mb-6 flex items-center gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:px-0">
+          {/* Без snap-x: снап пристыковывал первый чип к краю и выталкивал
+              подпись «Сортировка» за левую границу экрана */}
+          <span className="inline-flex shrink-0 items-center gap-1.5 pr-1 text-sm font-bold text-ink-muted">
+            <ArrowDownUp className="h-4 w-4 text-brand-600" aria-hidden />
+            Сортировка
+          </span>
+          {SORT_OPTIONS.map((o) => (
+            <Chip
+              key={o.value}
+              href={o.value === "popular" ? sortBase : `${sortBase}?sort=${o.value}`}
+              active={(sort ?? "popular") === o.value}
+              size="sm"
+            >
+              {o.label}
+            </Chip>
+          ))}
+        </div>
+      ) : null}
+
+      {products.length > 0 ? (
+        <>
+          <ProductGrid products={products} />
+          {pages > 1 && page && pageQuery ? (
+            <Pagination page={page} pages={pages} href={pageQuery} />
+          ) : null}
+        </>
+      ) : (
+        <div className="flex flex-col items-center rounded-2xl bg-surface-soft px-6 py-16 text-center">
+          <PackageSearch className="h-12 w-12 text-brand-300" aria-hidden />
+          <p className="mt-4 text-lg font-bold">Ничего не найдено</p>
+          <p className="mt-1 max-w-sm text-ink-muted">
+            Попробуйте изменить запрос или категорию — а в каталоге точно найдётся
+            что-то полезное.
+          </p>
+          <Button asChild className="mt-5">
+            <Link href="/catalog">В каталог</Link>
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 

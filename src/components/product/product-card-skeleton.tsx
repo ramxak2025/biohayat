@@ -41,23 +41,17 @@ export function CatalogHeaderSkeleton({ className }: { className?: string }) {
 }
 
 /**
- * Полный скелетон страницы каталога/подборки: повторяет раскладку CatalogView
- * (боковое меню на десктопе, чипсы на мобильном, заголовок + сетка карточек).
+ * Скелетон витрины каталога: заголовок, чипсы на мобильном и сетка карточек.
  * withSort — добавляет ряд под панель сортировки (страница категории).
+ *
+ * Ни контейнера, ни бокового меню здесь нет: и то и другое живёт в макете
+ * группы каталога и при переходах не перерисовывается. Пока меню рисовалось
+ * ещё и в скелетоне, во время загрузки на экране оказывались два меню и
+ * двойные поля.
  */
 export function CatalogPageSkeleton({ withSort = false }: { withSort?: boolean } = {}) {
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="lg:grid lg:grid-cols-[248px_1fr] lg:gap-8">
-        {/* боковое меню (десктоп) */}
-        <div className="hidden animate-pulse lg:block">
-          <div className="space-y-2.5 rounded-2xl bg-surface p-4 ring-1 ring-line">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-9 rounded-xl bg-surface-sunken" />
-            ))}
-          </div>
-        </div>
-
+    <div>
         <div className="min-w-0">
           <CatalogHeaderSkeleton className="mb-5" />
 
@@ -84,7 +78,6 @@ export function CatalogPageSkeleton({ withSort = false }: { withSort?: boolean }
 
           <ProductGridSkeleton count={10} />
         </div>
-      </div>
     </div>
   );
 }
@@ -95,7 +88,7 @@ export function CatalogPageSkeleton({ withSort = false }: { withSort?: boolean }
  */
 export function CatalogHubSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[1280px] animate-pulse space-y-7 px-4 pb-8 pt-5 sm:px-6">
+    <div className="animate-pulse space-y-7">
       <div>
         <div className="h-7 w-36 rounded-full bg-surface-sunken" />
         <div className="mt-2 h-4 w-64 max-w-full rounded-full bg-surface-sunken" />
