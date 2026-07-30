@@ -91,7 +91,7 @@ function Tab({
       >
         <Icon className="h-[21px] w-[21px]" strokeWidth={active ? 2.4 : 1.9} />
       </span>
-      <span className="text-[10px] font-medium leading-none">{label}</span>
+      <span className="text-xs font-medium leading-none">{label}</span>
     </Link>
   );
 }
@@ -113,7 +113,7 @@ function TabA({
       <span className="flex h-[26px] w-[46px] items-center justify-center rounded-full">
         <Icon className="h-[21px] w-[21px]" strokeWidth={1.9} />
       </span>
-      <span className="text-[10px] font-medium leading-none">{label}</span>
+      <span className="text-xs font-medium leading-none">{label}</span>
     </a>
   );
 }
@@ -140,13 +140,15 @@ function Center({
         )}
       >
         <Icon className="h-6 w-6" strokeWidth={2.2} />
+        {/* Счётчик такой же, как в рознице: 20px кружок, цифра 12px.
+            Было 16px и 10px — цифра не читалась. */}
         {badge > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-400 px-1 text-[10px] font-bold text-ink">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-400 px-1 text-xs font-bold text-ink">
             {badge}
           </span>
         ) : null}
       </span>
-      <span className="mt-1 pb-1.5 text-[10px] font-medium leading-none text-brand-700">{label}</span>
+      <span className="mt-1 pb-1.5 text-xs font-medium leading-none text-brand-700">{label}</span>
     </Link>
   );
 }
