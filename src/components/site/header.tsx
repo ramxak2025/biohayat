@@ -11,6 +11,7 @@ import { CatalogMenu } from "./catalog-menu";
 import { useAuthFlag, useAuthName } from "@/lib/use-auth-flag";
 import { formatMoney } from "@/lib/utils";
 import { Logo } from "./logo";
+import { SectionSwitch } from "@/components/ui/section-switch";
 
 /**
  * Десктопная шапка. Две строки, 109px:
@@ -60,6 +61,10 @@ export function Header({
       <div className="bg-brand-900 text-[13px] text-brand-100/85">
         <Container className="flex h-9 items-center justify-between gap-8">
           <div className="flex min-w-0 items-center gap-6">
+            {/* Переключатель раздела — первым в строке. Ссылка «Опт» раньше
+                стояла последней среди служебных, набранная тем же 13px: её
+                искали и не находили. */}
+            <SectionSwitch active="retail" retailUrl="/" />
             <a
               href={`tel:${phone.replace(/[^\d+]/g, "")}`}
               className="flex shrink-0 items-center gap-1.5 font-semibold text-white transition hover:text-accent-200"
@@ -79,7 +84,6 @@ export function Header({
           </div>
           <nav className="flex shrink-0 items-center gap-6" aria-label="Информация для покупателей">
             <Link href="/delivery" className="transition hover:text-white">Доставка и оплата</Link>
-            <Link href="/opt" className="transition hover:text-white">Опт</Link>
             <Link href="/contacts" className="transition hover:text-white">Контакты</Link>
           </nav>
         </Container>

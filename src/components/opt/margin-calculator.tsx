@@ -189,7 +189,7 @@ export function MarginCalculator() {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-brand-800 p-5 text-white shadow-brand">
+          <div className="rounded-2xl bg-brand-800 p-5 text-white">
             <p className="flex items-center gap-2 text-sm font-semibold text-brand-100">
               <PiggyBank className="h-4 w-4 text-accent-300" aria-hidden="true" />
               Экономия против розницы
@@ -222,7 +222,11 @@ export function MarginCalculator() {
         </div>
       </div>
 
-      <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-ink-faint">
+      {/* Мера по ширине: без неё абзац растягивался на 1152px — около ста
+          знаков в строке, худший показатель в разделе. Ограничение в
+          пикселях, а не в ch: ch считается по ширине нуля, а у кириллицы
+          средний знак заметно шире, и 65ch сузили бы вдвое сильнее нужного. */}
+      <p className="mt-6 max-w-[820px] border-t border-line pt-4 text-xs leading-relaxed text-ink-faint">
         Расчёт ориентировочный — скидку вы задали сами. Точные спец-цены по
         каждой из 119+ позиций откроются в персональном прайс-листе после
         одобрения заявки менеджером — обычно это занимает один рабочий день.
