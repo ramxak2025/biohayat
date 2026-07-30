@@ -18,7 +18,7 @@ export function OptFooter({ settings }: { settings: SiteSettings }) {
           <div>
             <div className="flex items-center gap-2.5">
               <Logo tone="inverted" />
-              <span className="rounded-full bg-white/12 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white">
+              <span className="rounded-full bg-white/12 px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider text-white">
                 Опт
               </span>
             </div>

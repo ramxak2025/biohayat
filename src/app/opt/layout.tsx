@@ -31,12 +31,15 @@ export default async function OptLayout({
 }) {
   const [settings, account] = await Promise.all([getSettings(), getB2BAccount()]);
 
-  const retailUrl = process.env.NEXT_PUBLIC_SITE_URL || "/";
+  // Абсолютный адрес, а не «/»: на оптовом поддомене «/» переписывается
+  // обратно в /opt (proxy.ts), и ссылка «назад в розницу» была бы петлёй.
+  const retailUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://biohayat.ru";
 
   return (
     <B2BCartProvider>
       <OptHeader
-        phone={settings.phone}
+        settings={settings}
+        retailUrl={retailUrl}
         account={
           account
             ? { company: account.company, approved: account.status === "APPROVED" }
@@ -50,7 +53,6 @@ export default async function OptLayout({
         loggedIn={Boolean(account)}
         approved={account?.status === "APPROVED"}
         phone={settings.phone}
-        retailUrl={retailUrl}
       />
     </B2BCartProvider>
   );

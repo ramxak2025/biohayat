@@ -17,11 +17,16 @@ const check = (name, ok, note = "") => {
 /** Площадь кликабельной цели и кегль подписи — мера «заметности». */
 const probe = (page, selector) =>
   page.evaluate((sel) => {
-    const el = document.querySelector(sel);
+    // Из всех видимых берём самый крупный: десктопная и мобильная разметки
+    // живут в DOM одновременно, а «заметность» — это про самую крупную цель,
+    // а не про первую попавшуюся в порядке разметки.
+    const el = [...document.querySelectorAll(sel)]
+      .map((n) => ({ n, b: n.getBoundingClientRect() }))
+      .filter(({ b }) => b.width > 0 && b.height > 0)
+      .sort((x, y) => y.b.width * y.b.height - x.b.width * x.b.height)[0]?.n;
     if (!el) return null;
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
-    if (r.width === 0 || r.height === 0) return null;
     return {
       w: Math.round(r.width),
       h: Math.round(r.height),
@@ -61,12 +66,25 @@ for (const [w, label] of [
   );
   if (toOpt) {
     check("вход в опт не мельче 13px", toOpt.fontSize >= 13, `${toOpt.fontSize}px`);
-    check("площадь цели ≥ 1600px²", toOpt.area >= 1600, `${toOpt.area}px²`);
+    // 24px — минимальный размер цели по WCAG 2.2 (Target Size, Minimum);
+    // на мобильном держим привычные 44px по короткой стороне.
+    const minSide = w < 800 ? 44 : 24;
+    check(
+      `короткая сторона цели ≥ ${minSide}px`,
+      Math.min(toOpt.w, toOpt.h) >= minSide,
+      `${toOpt.w}×${toOpt.h}px`,
+    );
   }
 
   // 2. Переход работает
   if (toOpt) {
-    await page.locator("[data-to-opt]").first().click();
+    await page.evaluate((sel) => {
+      const el = [...document.querySelectorAll(sel)]
+        .map((n) => ({ n, b: n.getBoundingClientRect() }))
+        .filter(({ b }) => b.width > 0 && b.height > 0)
+        .sort((x, y) => y.b.width * y.b.height - x.b.width * x.b.height)[0]?.n;
+      el?.click();
+    }, "[data-to-opt]");
     await page.waitForURL("**/opt", { timeout: 8000 }).catch(() => {});
     check("переход ведёт на /opt", new URL(page.url()).pathname.startsWith("/opt"), page.url());
   } else {

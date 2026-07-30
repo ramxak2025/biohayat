@@ -5,7 +5,6 @@ import {
   BadgePercent,
   CalendarClock,
   ClipboardCheck,
-  Factory,
   FileText,
   Gift,
   Megaphone,
@@ -48,11 +47,11 @@ export default async function OptLandingPage() {
         <Leaf className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 -rotate-45 text-brand-100/60" />
         <Container className="relative py-14 sm:py-20 lg:py-24">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-sm font-bold text-brand-800 shadow-xs ring-1 ring-brand-200">
-              <Factory className="h-4 w-4 text-brand-600" aria-hidden="true" />
-              Производитель — {settings.legalName || "ООО «Восток»"}, Россия
-            </span>
-            <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-ink sm:text-5xl">
+            {/* Чипа «Производитель — …» над заголовком больше нет: правило
+                скила запрещает eyebrow над h1 безусловно, а сам факт наполовину
+                повторялся полосой цифр ниже. Юрлицо переехало в полосу доверия
+                шапки — туда же, где в рознице живёт факт о производстве. */}
+            <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-5xl">
               Оптовые поставки натуральных БАД{" "}
               <span className="text-brand-700">ХАЯТ</span>
             </h1>
@@ -64,14 +63,14 @@ export default async function OptLandingPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/opt/register"
-                className="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
+                className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 py-4 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
               >
                 Получить оптовый прайс
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
               <Link
                 href="/opt/login"
-                className="inline-flex h-14 items-center justify-center rounded-full border border-line-strong bg-surface px-7 text-base font-semibold text-ink transition hover:bg-surface-soft"
+                className="inline-flex min-h-14 items-center justify-center rounded-full border border-line-strong py-4 bg-surface px-7 text-base font-semibold text-ink transition hover:bg-surface-soft"
               >
                 Войти
               </Link>
@@ -263,14 +262,14 @@ export default async function OptLandingPage() {
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/opt/register"
-                  className="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
+                  className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 py-4 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
                 >
                   <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
                   Получить оптовый прайс
                 </Link>
                 <a
                   href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
-                  className="tnum inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-5 text-lg font-extrabold tracking-tight text-white transition hover:text-accent-200"
+                  className="tnum inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full px-5 py-4 text-lg font-extrabold tracking-tight text-white transition hover:text-accent-200"
                 >
                   <PhoneCall className="h-5 w-5 text-brand-300" aria-hidden="true" />
                   {settings.phone}

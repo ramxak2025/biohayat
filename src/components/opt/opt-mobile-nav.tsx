@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutGrid, Package, ClipboardList, Phone, Store, LogIn, Sparkles, Home,
+  LayoutGrid, Package, ClipboardList, Phone, LogIn, Sparkles, Home,
 } from "lucide-react";
 import { useB2BCart } from "@/components/opt/b2b-cart-provider";
 import { cn } from "@/lib/utils";
@@ -13,19 +13,21 @@ import { cn } from "@/lib/utils";
  * что и в рознице, но с B2B-вкладками.
  *
  * Одобренный партнёр: Прайс · Мои заявки · [Заявка, счётчик позиций] ·
- * Менеджер (звонок) · Розница. Гость: Главная · Войти · [Получить прайс] ·
- * Менеджер · Розница.
+ * Менеджер (звонок). Гость: Главная · Войти · [Получить прайс] · Менеджер.
+ *
+ * Выхода в розницу здесь больше нет — он переехал в шапку, к переключателю
+ * раздела. В баре он занимал пятую часть панели и был оформлен так же, как
+ * «Прайс» и «Заявки», то есть читался как ещё одна задача внутри опта, а не
+ * как выход из раздела.
  */
 export function OptMobileNav({
   loggedIn,
   approved,
   phone,
-  retailUrl,
 }: {
   loggedIn: boolean;
   approved: boolean;
   phone: string;
-  retailUrl: string;
 }) {
   const pathname = usePathname();
   const { count } = useB2BCart();
@@ -44,7 +46,6 @@ export function OptMobileNav({
             <Tab href="/opt/orders" label="Заявки" icon={Package} active={is("/orders")} />
             <Center href="/opt/request" label="Заявка" icon={ClipboardList} active={is("/request")} badge={count} />
             <TabA href={tel} label="Менеджер" icon={Phone} />
-            <TabA href={retailUrl} label="Розница" icon={Store} />
           </>
         ) : (
           <>
@@ -57,7 +58,6 @@ export function OptMobileNav({
             />
             <Center href="/opt/register" label="Прайс" icon={Sparkles} active={is("/register")} />
             <TabA href={tel} label="Менеджер" icon={Phone} />
-            <TabA href={retailUrl} label="Розница" icon={Store} />
           </>
         )}
       </div>

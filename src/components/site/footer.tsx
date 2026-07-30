@@ -74,6 +74,21 @@ export function Footer({
           <FooterLink href={l.href}>{l.label}</FooterLink>
         </li>
       ))}
+      {/* Выделен так же, как «Все товары →» в соседней колонке: рядовой
+          ссылкой он потерялся бы между политикой конфиденциальности и
+          офертой. На мобильном этот список свёрнут в аккордеон, поэтому там
+          тот же вход продублирован отдельной плашкой ниже. */}
+      <li>
+        <Link
+          href="/opt"
+          data-to-opt
+          // min-h-6: строчная ссылка давала цель высотой 17px — ниже
+          // минимума WCAG 2.2 для размера цели (24px).
+          className="inline-flex min-h-6 items-center font-semibold text-brand-200 transition hover:text-white"
+        >
+          Оптовым покупателям →
+        </Link>
+      </li>
     </ul>
   );
 
@@ -91,6 +106,24 @@ export function Footer({
             <FooterAccordion title="Каталог">{catalogList}</FooterAccordion>
             <FooterAccordion title="Покупателям">{customerList}</FooterAccordion>
           </div>
+
+          {/* Вход в опт — вне аккордеонов. Переключатель раздела живёт в
+              десктопной шапке, на телефоне её нет, а внутри свёрнутого
+              «Покупателям» ссылку было не найти: чтобы её увидеть, нужно было
+              сначала догадаться раскрыть список. */}
+          <Link
+            href="/opt"
+            data-to-opt
+            className="mt-6 flex min-h-14 items-center justify-between gap-3 rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15 transition active:bg-white/15"
+          >
+            <span className="min-w-0">
+              <span className="block text-[15px] font-bold text-white">Оптовым покупателям</span>
+              <span className="mt-0.5 block text-xs text-white/65">
+                Цены производителя от 10 шт · для аптек и магазинов
+              </span>
+            </span>
+            <span aria-hidden className="shrink-0 text-brand-200">→</span>
+          </Link>
 
           <div className="mt-6 space-y-3">
             <a
