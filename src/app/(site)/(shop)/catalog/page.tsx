@@ -3,7 +3,7 @@ import { CatalogView, CATALOG_PAGE_SIZE, pageNumber } from "@/components/product
 import { CatalogHub } from "@/components/site/catalog-hub";
 import { GoalCollections } from "@/components/site/goal-collections";
 import { getCategoriesWithCounts, getProducts, getPurchasedProducts } from "@/lib/queries";
-import { getActiveBrands, getFeaturedBrands } from "@/lib/brands";
+import { getFeaturedBrands } from "@/lib/brands";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { audienceName, goalName } from "@/lib/taxonomy";
 import { getSettings } from "@/lib/settings";
@@ -102,16 +102,11 @@ export default async function CatalogPage({
 
   // «Чистый» /catalog: на мобильном — хаб каталога, на десктопе — как раньше
   // сетка с боковым меню.
-  const [{ items, total }, featured, brands, activeBrands] = await Promise.all([
+  const [{ items, total }, featured, brands] = await Promise.all([
     getProducts({ take: CATALOG_PAGE_SIZE, skip }),
     getProducts({ featured: true, take: 10 }),
     getFeaturedBrands(),
-    getActiveBrands(),
   ]);
-  // Бренды для десктопного сайдбара-фильтра (только со своими товарами).
-  const sidebarBrands = activeBrands
-    .filter((b) => b._count.products > 0)
-    .map((b) => ({ slug: b.slug, name: b.name, count: b._count.products }));
 
   return (
     <>
@@ -125,20 +120,19 @@ export default async function CatalogPage({
       </div>
       <div className="max-lg:hidden">
         {/* Десктопное стартовое окно каталога: подборки-карточки над товарами */}
-        <div className="mx-auto w-full max-w-[1280px] px-4 pt-8 sm:px-6 lg:px-8">
-          <h2 className="mb-3 text-xl font-extrabold tracking-tight">Подборки</h2>
-          <GoalCollections variant="grid" />
+        <h2 className="mb-3 text-xl font-extrabold tracking-tight">Подборки</h2>
+        <GoalCollections variant="grid" />
+        <div className="mt-10">
+          <CatalogView
+            title="Каталог товаров"
+            description="Натуральные витамины, БАД, масла, мёд и бальзамы ХАЯТ."
+            products={items}
+            total={total}
+            categories={categories}
+            page={page}
+            pageQuery={pageQuery}
+          />
         </div>
-        <CatalogView
-          title="Каталог товаров"
-          description="Натуральные витамины, БАД, масла, мёд и бальзамы ХАЯТ."
-          products={items}
-          total={total}
-          categories={categories}
-          brands={sidebarBrands}
-          page={page}
-          pageQuery={pageQuery}
-        />
       </div>
     </>
   );

@@ -1,6 +1,5 @@
 import { ListLink as Link } from "@/components/ui/list-link";
 import { ArrowRight } from "lucide-react";
-import { Container } from "@/components/ui/container";
 import { ProductCard } from "@/components/product/product-card";
 import { AudienceCards } from "@/components/site/audience-cards";
 import { CategoryTiles } from "@/components/site/category-tiles";
@@ -38,7 +37,7 @@ export function CatalogHub({
   featuredBrands?: Brand[];
 }) {
   return (
-    <Container className="space-y-7 pb-8 pt-5">
+    <div className="space-y-7">
       <header>
         <h1 className="text-2xl font-extrabold tracking-tight">Каталог</h1>
         <p className="mt-1 text-sm text-ink-muted">
@@ -118,6 +117,6 @@ export function CatalogHub({
           </div>
         </section>
       ) : null}
-    </Container>
+    </div>
   );
 }
