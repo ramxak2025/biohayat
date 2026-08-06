@@ -11,7 +11,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "check:auth": "tsx scripts/check-auth.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "set:admin-password": "tsx scripts/set-admin-password.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
