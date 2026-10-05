@@ -236,6 +236,10 @@ enum BitrixSyncStatus {
 }
 
 model Order {
+  // 0: legacy stock history is unknown; 1: exact item reservations recorded.
+  inventoryVersion Int @default(0)
+  clientRequestKey String? @unique
+  requestHash String?
   id           String      @id @default(cuid())
   number       Int         @unique @default(autoincrement())
   customerName String
@@ -285,6 +289,7 @@ model Order {
 }
 
 model OrderItem {
+  stockReserved Int @default(0)
   id           String   @id @default(cuid())
   orderId      String
   order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -404,6 +409,7 @@ model Customer {
   favorites     Favorite[]
   intakePlans   IntakePlan[]
   consultations ConsultationRequest[]
+  devices       Device[]
   addresses     CustomerAddress[]
   reviews       ProductReview[]
   pushSubscriptions PushSubscription[]
@@ -424,6 +430,11 @@ model Customer {
 
 // Сохранённые адреса доставки покупателя
 model CustomerAddress {
+  recipient String?
+  phone String?
+  house String?
+  apartment String?
+  comment String?
   id         String   @id @default(cuid())
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -685,4 +696,18 @@ model WholesaleOrderItem {
   priceKopecks Int // зафиксированная цена за шт по лесенке
 
   @@index([orderId])
+}
+
+
+model Device {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  platform   String // "ios" | "android"
+  pushToken  String @unique
+  appVersion String?
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
 }

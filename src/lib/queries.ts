@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -115,7 +116,18 @@ async function withReviewStats<T extends { id: string }>(
 
 /* ─────────── Товары ─────────── */
 
+export const PRODUCT_SORTS = ["popular", "price_asc", "price_desc", "discount", "new"] as const;
+export type ApiProductSort = (typeof PRODUCT_SORTS)[number];
+export function isProductSort(value: unknown): value is ApiProductSort {
+  return typeof value === "string" && (PRODUCT_SORTS as readonly string[]).includes(value);
+}
+
 interface ProductsOpts {
+  ids?: string[];
+  sort?: ApiProductSort;
+  priceFrom?: number;
+  priceTo?: number;
+  inStock?: boolean;
   categorySlug?: string;
   brandSlug?: string;
   audience?: string;
@@ -156,6 +168,9 @@ function axisConditions(opts: { audience?: string; goal?: string }) {
 async function loadProducts(opts: ProductsOpts) {
   const where = {
     isActive: true,
+    ...(opts.ids ? { id: { in: opts.ids } } : {}),
+    ...(opts.inStock ? { inStock: true } : {}),
+    ...((opts.priceFrom !== undefined || opts.priceTo !== undefined) ? { priceKopecks: { gte: opts.priceFrom, lte: opts.priceTo } } : {}),
     ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
     ...(opts.brandSlug ? { brand: { slug: opts.brandSlug } } : {}),
     AND: axisConditions(opts),
@@ -165,11 +180,27 @@ async function loadProducts(opts: ProductsOpts) {
       ? { name: { contains: opts.search, mode: "insensitive" as const } }
       : {}),
   };
+  const sorts: Record<Exclude<ApiProductSort, "discount">, Prisma.ProductOrderByWithRelationInput[]> = {
+    popular: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+    price_asc: [{ priceKopecks: "asc" }, { id: "asc" }],
+    price_desc: [{ priceKopecks: "desc" }, { id: "asc" }],
+    new: [{ createdAt: "desc" }, { id: "asc" }],
+  };
+  if (opts.sort === "discount") {
+    const products = await prisma.product.findMany({ where,
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
+      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+    });
+    const rate = (p: { priceKopecks: number; oldPriceKopecks: number | null }) =>
+      p.oldPriceKopecks && p.oldPriceKopecks > p.priceKopecks ? (p.oldPriceKopecks - p.priceKopecks) / p.oldPriceKopecks : 0;
+    products.sort((a, b) => rate(b) - rate(a));
+    return { items: await withReviewStats(products.slice(opts.skip ?? 0, opts.take === undefined ? undefined : (opts.skip ?? 0) + opts.take)), total: products.length };
+  }
   const [items, total] = await Promise.all([
     prisma.product.findMany({
       where,
       include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, category: true, brand: true },
-      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
+      orderBy: sorts[opts.sort ?? "popular"],
       take: opts.take,
       skip: opts.skip,
     }),
@@ -187,7 +218,7 @@ const getCachedProducts = unstable_cache(loadProducts, ["products-list"], {
 export async function getProducts(opts: ProductsOpts) {
   // Произвольные поисковые строки не кэшируем: каждый пользовательский запрос
   // создавал бы отдельную запись в Data Cache (см. также search.ts).
-  if (opts.search) return loadProducts(opts);
+  if (opts.search || opts.ids) return loadProducts(opts);
   return reviveDates(await getCachedProducts(opts));
 }
 

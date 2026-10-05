@@ -1,0 +1,79 @@
+{
+  "expo": {
+    "name": "ХАЯТ",
+    "slug": "hayat",
+    "scheme": "hayat",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon/ios-light.png",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "ios": {
+      "bundleIdentifier": "ru.biohayat.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDisplayName": "ХАЯТ",
+        "CFBundleLocalizations": [
+          "ru"
+        ],
+        "CFBundleDevelopmentRegion": "ru"
+      },
+      "icon": {
+        "light": "./assets/icon/ios-light.png",
+        "dark": "./assets/icon/ios-dark.png",
+        "tinted": "./assets/icon/ios-tinted.png"
+      }
+    },
+    "android": {
+      "package": "ru.biohayat.app",
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon/android-foreground.png",
+        "monochromeImage": "./assets/icon/android-monochrome.png",
+        "backgroundColor": "#f0f9f1"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#f0f9f1",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160,
+          "dark": {
+            "backgroundColor": "#0d100d",
+            "image": "./assets/images/splash-icon.png"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#3a9447",
+          "mode": "production"
+        }
+      ],
+      "./plugins/with-opaque-icon.js"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "60569aec-7b4d-4de6-b68b-4376f2f0a3f8"
+      }
+    },
+    "owner": "ramxak",
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    }
+  }
+}

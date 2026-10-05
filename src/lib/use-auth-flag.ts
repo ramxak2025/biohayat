@@ -55,3 +55,8 @@ export function useAuthName(): string {
   // useSyncExternalStore уже импортирован для useAuthFlag — переиспользуем подписку
   return useSyncExternalStore(subscribe, read, () => "");
 }
+
+/** Non-secret session marker changes on account switches too. */
+export function useAuthKey(): string {
+  return useSyncExternalStore(subscribe, () => document.cookie.split("; ").find(part => part.startsWith(`${AUTH_FLAG_COOKIE}=`))?.split("=")[1] || "", () => "");
+}

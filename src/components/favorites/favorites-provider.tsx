@@ -1,125 +1,94 @@
 "use client";
 
-import {
-  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
-} from "react";
-import { getFavoriteIds, syncFavorites } from "@/app/actions/favorites";
-import { useAuthFlag } from "@/lib/use-auth-flag";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { getFavoriteState, mergeGuestFavorites, setFavorite } from "@/app/actions/favorites";
+import { useAuthKey } from "@/lib/use-auth-flag";
 
-const STORAGE_KEY = "hayat_favorites_v1";
-
-interface FavoritesContextValue {
-  ids: string[];
-  has: (id: string) => boolean;
-  toggle: (id: string) => void;
-  count: number;
-  ready: boolean;
+// The old key mixed account and guest lists; it must never be uploaded again.
+const STORAGE_KEY = "hayat_guest_favorites_v2";
+function readGuest(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(value) ? [...new Set(value.filter((x): x is string => typeof x === "string"))].slice(0, 100) : [];
+  } catch { return []; }
 }
-
+interface FavoritesContextValue { ids: string[]; has: (id: string) => boolean; toggle: (id: string) => void; count: number; ready: boolean }
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  // Признак входа — из клиентского cookie-флага hayat_auth (а не из SSR-пропа):
-  // layout больше не читает cookies(), и страницы могут отдаваться статически.
-  // До гидрации значение false, после монтирования флаг перечитывается, и
-  // эффекты ниже отрабатывают флип false→true так же, как раньше смену пропа.
-  const loggedIn = useAuthFlag();
+  const authKey = useAuthKey();
   const [ids, setIds] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
-  // Серверный снимок избранного загружен (через getFavoriteIds). До этого
-  // sync не выполняем: syncFavorites заменяет набор в БД целиком, и отправка
-  // одного только localStorage стёрла бы серверное избранное. Ref, а не state:
-  // мердж серверных id меняет ids, и sync-эффект перечитает флаг сам.
-  const serverLoaded = useRef(false);
-  // Цепочка промисов сериализует запросы синхронизации: без неё два быстрых
-  // toggle могли прийти на сервер в обратном порядке, и БД получала бы
-  // устаревший снимок (гонка «последний пишет — побеждает не тот»).
-  const syncChain = useRef<Promise<void>>(Promise.resolve());
-  // Последний успешно подтверждённый сервером снимок — чтобы не слать дубли.
-  const lastSynced = useRef<string | null>(null);
+  const current = useRef<string[]>([]);
+  const owner = useRef<string | null>(null);
+  const generation = useRef(0);
+  const revision = useRef(0);
+  const chain = useRef(Promise.resolve());
+  const apply = useCallback((value: string[]) => { current.current = value; setIds(value); }, []);
 
-  // гидрация из localStorage (один раз при монтировании)
   useEffect(() => {
-    let local: string[] = [];
-    try {
-      const parsed: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      if (Array.isArray(parsed)) local = parsed.filter((x): x is string => typeof x === "string");
-    } catch {
-      /* ignore */
-    }
-    setIds((prev) => Array.from(new Set([...prev, ...local])));
-    setReady(true);
-  }, []);
-
-  // для авторизованных — подтягиваем серверное избранное и мерджим с локальным
-  // (порядок: сервер, затем новое локальное — как раньше при SSR-передаче)
-  useEffect(() => {
-    if (!loggedIn) {
-      serverLoaded.current = false;
-      lastSynced.current = null;
-      return;
-    }
-    let cancelled = false;
-    getFavoriteIds()
-      .then((server) => {
-        if (cancelled) return;
-        serverLoaded.current = true;
-        // новый массив → ids меняются по ссылке → sync-эффект сработает
-        setIds((prev) => Array.from(new Set([...server, ...prev])));
-      })
-      .catch(() => {
-        // сервер недоступен — работаем на localStorage; sync остаётся выключенным,
-        // чтобы не затереть серверное избранное неполным локальным набором
-      });
-    return () => {
-      cancelled = true;
+    const epoch = ++generation.current;
+    owner.current = null;
+    apply([]);
+    setReady(false);
+    const refresh = async () => {
+      if (document.visibilityState === "hidden") return;
+      const rev = revision.current;
+      try {
+        const state = await getFavoriteState();
+        if (epoch !== generation.current || rev !== revision.current) return;
+        owner.current = state.customerId;
+        if (!state.customerId) { apply(readGuest()); setReady(true); return; }
+        const guest = readGuest();
+        if (guest.length) {
+          await mergeGuestFavorites(state.customerId, guest);
+          if (epoch !== generation.current) return;
+          localStorage.removeItem(STORAGE_KEY);
+          const fresh = await getFavoriteState();
+          if (epoch !== generation.current || rev !== revision.current || fresh.customerId !== state.customerId) return;
+          apply(fresh.ids);
+        } else apply(state.ids);
+        setReady(true);
+      } catch { if (epoch === generation.current) toast.error("Не удалось обновить избранное"); }
     };
-  }, [loggedIn]);
-
-  // персист в localStorage + синхронизация в БД (для авторизованных)
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    if (!loggedIn || !serverLoaded.current) return;
-
-    const snapshot = [...ids];
-    const key = JSON.stringify([...snapshot].sort());
-    if (lastSynced.current === key) return; // этот набор уже подтверждён сервером
-
-    syncChain.current = syncChain.current
-      .then(async () => {
-        const confirmed = await syncFavorites(snapshot);
-        lastSynced.current = key;
-        if (!confirmed) return;
-        // Сервер мог отбросить id несуществующих товаров — убираем их и у себя,
-        // не трогая id, добавленные пользователем уже после отправки снимка.
-        const sent = new Set(snapshot);
-        const allowed = new Set(confirmed);
-        setIds((prev) => {
-          const next = prev.filter((id) => !sent.has(id) || allowed.has(id));
-          return next.length === prev.length ? prev : next;
-        });
-      })
-      .catch(() => {
-        // сеть/сервер недоступны — снимок не подтверждён, повторим при следующем изменении
-        lastSynced.current = null;
-      });
-  }, [ids, ready, loggedIn]);
+    void refresh();
+    const onFocus = () => { void chain.current.then(refresh); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const timer = setInterval(onFocus, 30_000);
+    return () => { ++generation.current; clearInterval(timer); window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onFocus); };
+  }, [authKey, apply]);
 
   const toggle = useCallback((id: string) => {
-    setIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }, []);
-
-  const value = useMemo<FavoritesContextValue>(
-    () => ({ ids, has: (id) => ids.includes(id), toggle, count: ids.length, ready }),
-    [ids, toggle, ready],
-  );
-
+    if (!ready) return;
+    const selected = !current.current.includes(id);
+    const next = selected ? [...current.current, id] : current.current.filter(x => x !== id);
+    apply(next);
+    const customerId = owner.current;
+    if (!customerId) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
+      catch { toast.error("Не удалось сохранить избранное на устройстве"); }
+      return;
+    }
+    const epoch = generation.current;
+    const rev = ++revision.current;
+    chain.current = chain.current.then(async () => {
+      if (epoch !== generation.current) return;
+      await setFavorite(customerId, id, selected);
+    }).catch(() => { if (epoch === generation.current) toast.error("Не удалось сохранить избранное"); }).then(async () => {
+      if (epoch !== generation.current || rev !== revision.current) return;
+      try {
+        const state = await getFavoriteState();
+        if (epoch === generation.current && rev === revision.current && customerId === state.customerId) apply(state.ids);
+      } catch { /* The next focus refresh retries the authoritative read. */ }
+    });
+  }, [ready, apply]);
+  const value = useMemo(() => ({ ids, has: (id: string) => ids.includes(id), toggle, count: ids.length, ready }), [ids, toggle, ready]);
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
 }
-
 export function useFavorites() {
-  const ctx = useContext(FavoritesContext);
-  if (!ctx) throw new Error("useFavorites должен использоваться внутри FavoritesProvider");
-  return ctx;
+  const value = useContext(FavoritesContext);
+  if (!value) throw new Error("useFavorites должен использоваться внутри FavoritesProvider");
+  return value;
 }

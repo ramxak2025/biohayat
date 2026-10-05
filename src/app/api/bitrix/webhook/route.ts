@@ -1,3 +1,5 @@
+import { revalidateTag } from "next/cache";
+import { restoreReservedStock } from "@/lib/order-inventory";
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
@@ -33,15 +35,22 @@ async function applyBonusForStatus(
 ): Promise<void> {
   if (!PAID_STATUSES.includes(status) && status !== "CANCELLED") return;
   const orders = await prisma.order.findMany({
-    where: { ...where, status, customerId: { not: null } },
+    where: { ...where, status },
     select: { id: true },
   });
   for (const { id } of orders) {
     await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${id} FOR UPDATE`;
+      const current = await tx.order.findUnique({ where: { id }, select: { status: true } });
+      if (current?.status !== status) return;
       if (PAID_STATUSES.includes(status)) await accrueOrderBonus(tx, id, bonusPercent);
-      else await revertOrderBonusOnCancel(tx, id);
+      else {
+        await revertOrderBonusOnCancel(tx, id);
+        await restoreReservedStock(tx, id);
+      }
     });
   }
+  if (status === "CANCELLED") revalidateTag("catalog", { expire: 0 });
 }
 
 /** Токен из Authorization: Bearer или ?token= (обратная совместимость). */
@@ -106,7 +115,7 @@ export async function POST(req: NextRequest) {
         if (!where) return NextResponse.json({ error: "no identifier" }, { status: 400 });
         // идемпотентность: не трогаем заказы, у которых статус уже совпадает
         const updated = await prisma.order.updateMany({
-          where: { ...where, status: { not: status as OrderStatus } },
+          where: { ...where, status: { notIn: [status as OrderStatus, "CANCELLED"] } },
           data: { status: status as OrderStatus },
         });
         await applyBonusForStatus(where, status as OrderStatus, settings.bonusPercent);
@@ -139,6 +148,7 @@ export async function POST(req: NextRequest) {
         where: {
           OR: [{ bitrixDealId: entityId }, ...(leadId ? [{ bitrixLeadId: leadId }] : [])],
           NOT: { status, bitrixDealId: entityId },
+          status: { not: "CANCELLED" },
         },
         data: { status, bitrixDealId: entityId },
       });
@@ -155,7 +165,7 @@ export async function POST(req: NextRequest) {
       if (!status) return NextResponse.json({ ok: true, skipped: "stage not mapped", stage });
       // идемпотентность: статус уже такой — отвечаем ok без записи
       const updated = await prisma.order.updateMany({
-        where: { bitrixLeadId: entityId, status: { not: status } },
+        where: { bitrixLeadId: entityId, status: { notIn: [status, "CANCELLED"] } },
         data: { status },
       });
       await applyBonusForStatus({ bitrixLeadId: entityId }, status, settings.bonusPercent);

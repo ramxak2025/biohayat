@@ -51,7 +51,7 @@ async function createCustomerSession(payload: CustomerSession): Promise<void> {
     maxAge: MAX_AGE,
   });
   // Клиентский флаг наличия сессии (без секретов — просто «1»).
-  store.set(AUTH_FLAG_COOKIE, "1", {
+  store.set(AUTH_FLAG_COOKIE, payload.sub, {
     httpOnly: false,
     secure: cookieSecure(),
     sameSite: "lax",
@@ -72,8 +72,11 @@ export async function getCustomerSession(): Promise<CustomerSession | null> {
   const token = store.get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, getSecret());
-    return { sub: payload.sub as string, phone: payload.phone as string, name: payload.name as string };
+    const { payload } = await jwtVerify(token, getSecret(), { algorithms: ["HS256"] });
+    if (typeof payload.sub !== "string") return null;
+    const customer = await prisma.customer.findUnique({ where: { id: payload.sub } });
+    if (!customer || !customer.isActive || customer.deletedAt) return null;
+    return { sub: customer.id, phone: customer.phone, name: customer.name };
   } catch {
     return null;
   }

@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { toggleIntakeLog } from "@/lib/intake-log";
+import { normalizeTimes } from "@/app/api/v2/intake/_lib";
 import { prisma } from "@/lib/prisma";
 import { requireCustomer } from "@/lib/customer-auth";
 
@@ -39,7 +41,8 @@ export async function createIntakePlan(_prev: IntakeState, fd: FormData): Promis
     .getAll("times")
     .map((t) => String(t).trim())
     .filter(Boolean);
-  if (times.length === 0) return { error: "Добавьте хотя бы одно время приёма" };
+  const normalizedTimes = normalizeTimes(times);
+  if (!normalizedTimes) return { error: "Укажите от 1 до 24 времён в формате ЧЧ:ММ" };
 
   const durationRaw = String(fd.get("durationDays") || "").trim();
   const durationDays = durationRaw ? Math.max(1, parseInt(durationRaw, 10)) : null;
@@ -50,7 +53,7 @@ export async function createIntakePlan(_prev: IntakeState, fd: FormData): Promis
       customerId: session.sub,
       productId,
       title,
-      times,
+      times: normalizedTimes,
       durationDays: Number.isNaN(durationDays as number) ? null : durationDays,
       note,
     },
@@ -66,15 +69,7 @@ export async function toggleIntake(planId: string, day: string, slot: string): P
   // Защита от IDOR: лог можно ставить/снимать только на собственном курсе.
   await assertOwnPlan(planId, session.sub);
 
-  const existing = await prisma.intakeLog.findUnique({
-    where: { planId_day_slot: { planId, day, slot } },
-  });
-
-  if (existing) {
-    await prisma.intakeLog.delete({ where: { id: existing.id } });
-  } else {
-    await prisma.intakeLog.create({ data: { planId, day, slot } });
-  }
+  await toggleIntakeLog(session.sub, planId, day, slot);
 
   revalidatePath("/account/intake");
 }

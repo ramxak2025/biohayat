@@ -32,50 +32,32 @@ export async function getFavoriteIds(): Promise<string[]> {
   return rows.map((f) => f.productId);
 }
 
-/**
- * Синхронизирует избранное авторизованного покупателя с БД.
- * Принимает полный набор productId; заменяет записи в БД на этот набор.
- * Возвращает подтверждённый сервером набор id (существующие товары) —
- * клиент использует его, чтобы вычистить «мёртвые» id из localStorage.
- * Для гостей — ничего не делает (избранное живёт в localStorage).
- */
-export async function syncFavorites(productIds: string[]): Promise<string[] | null> {
+/** Snapshot includes identity so a delayed browser operation cannot affect a new login. */
+export async function getFavoriteState() {
   const session = await getCustomerSession();
-  if (!session) return null;
+  if (!session) return { customerId: null, ids: [] as string[] };
+  const rows = await prisma.favorite.findMany({ where: { customerId: session.sub }, select: { productId: true }, orderBy: { createdAt: "asc" } });
+  return { customerId: session.sub, ids: rows.map(row => row.productId) };
+}
 
-  // только существующие товары
-  const valid = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-    select: { id: true },
-  });
-  const validIds = new Set(valid.map((p) => p.id));
-
-  const existing = await prisma.favorite.findMany({
-    where: { customerId: session.sub },
-    select: { productId: true },
-  });
-  const existingIds = new Set(existing.map((f) => f.productId));
-
-  const toAdd = [...validIds].filter((id) => !existingIds.has(id));
-  const toRemove = [...existingIds].filter((id) => !validIds.has(id));
-
-  await prisma.$transaction([
-    ...(toRemove.length
-      ? [prisma.favorite.deleteMany({ where: { customerId: session.sub, productId: { in: toRemove } } })]
-      : []),
-    // createMany + skipDuplicates: параллельный запрос не уронит транзакцию
-    // на unique-конфликте [customerId, productId]
-    ...(toAdd.length
-      ? [
-          prisma.favorite.createMany({
-            data: toAdd.map((productId) => ({ customerId: session.sub, productId })),
-            skipDuplicates: true,
-          }),
-        ]
-      : []),
-  ]);
-
+export async function mergeGuestFavorites(customerId: string, productIds: string[]) {
+  const session = await getCustomerSession();
+  if (!session || session.sub !== customerId) throw new Error("Сессия изменилась. Обновите страницу.");
+  if (productIds.length > 100) throw new Error("Слишком много товаров");
+  const valid = await prisma.product.findMany({ where: { id: { in: productIds }, isActive: true }, select: { id: true } });
+  await prisma.favorite.createMany({ data: valid.map(p => ({ customerId, productId: p.id })), skipDuplicates: true });
   revalidatePath("/account/favorites");
-  // Подтверждаем итоговый набор в исходном порядке клиента.
-  return productIds.filter((id) => validIds.has(id));
+}
+
+export async function setFavorite(customerId: string, productId: string, selected: boolean) {
+  const session = await getCustomerSession();
+  if (!session || session.sub !== customerId) throw new Error("Сессия изменилась. Обновите страницу.");
+  if (selected) {
+    const product = await prisma.product.findFirst({ where: { id: productId, isActive: true }, select: { id: true } });
+    if (!product) throw new Error("Товар недоступен");
+    await prisma.favorite.upsert({ where: { customerId_productId: { customerId, productId } }, create: { customerId, productId }, update: {} });
+  } else {
+    await prisma.favorite.deleteMany({ where: { customerId, productId } });
+  }
+  revalidatePath("/account/favorites");
 }

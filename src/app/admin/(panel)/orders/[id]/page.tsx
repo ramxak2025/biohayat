@@ -73,6 +73,9 @@ export default async function OrderDetailPage({
           <Card>
             <h2 className="mb-3 font-bold">Статус</h2>
             <OrderStatusSelect id={order.id} status={order.status} />
+            {order.inventoryVersion === 0 && (
+              <p className="mt-3 text-sm text-ink-muted">Заказ оформлен в предыдущей версии. После отмены проверьте остатки вручную: точное списанное количество не сохранено.</p>
+            )}
           </Card>
 
           <Card>

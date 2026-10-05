@@ -1,0 +1,119 @@
+import { useCallback, useEffect, useState } from "react";
+import { Alert, Linking } from "react-native";
+import * as Haptics from "expo-haptics";
+
+import type { IntakePlan } from "@/api/types";
+import {
+  areRemindersEnabled,
+  cancelIntakeReminders,
+  countScheduledReminders,
+  getPermissionState,
+  registerPushToken,
+  requestNotificationPermission,
+  setRemindersEnabled,
+  syncIntakeReminders,
+  type PermissionState,
+} from "@/lib/notifications";
+
+export interface RemindersState {
+  enabled: boolean;
+  permission: PermissionState;
+  /** Сколько напоминаний в сутки реально стоит в системе. */
+  scheduled: number;
+  busy: boolean;
+  toggle: (next: boolean) => void;
+}
+
+/**
+ * Локальные напоминания курса.
+ *
+ * Разрешение спрашиваем в момент включения тумблера, а не на старте приложения:
+ * в iOS системный диалог показывается один раз, и отказ уже не отыграть.
+ * Расписание пересобирается при любом изменении списка курсов — пауза, новое
+ * время, удаление.
+ *
+ * @param ready — список курсов уже загружен. Пока он false, синхронизацию не
+ * запускаем: на пустом «ещё грузится» списке она сняла бы все напоминания и тут
+ * же поставила обратно.
+ */
+export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): RemindersState {
+  const [enabled, setEnabled] = useState(false);
+  const [permission, setPermission] = useState<PermissionState>("undetermined");
+  const [scheduled, setScheduled] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const [on, state, count] = await Promise.all([
+        areRemindersEnabled(),
+        getPermissionState(),
+        countScheduledReminders(),
+      ]);
+      if (!alive) return;
+      setEnabled(on);
+      setPermission(state);
+      setScheduled(count);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !enabled || permission !== "granted") return;
+    let alive = true;
+    void syncIntakeReminders(plans).then((count) => {
+      if (alive) setScheduled(count);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [plans, ready, enabled, permission]);
+
+  const toggle = useCallback(
+    (next: boolean) => {
+      void (async () => {
+        setBusy(true);
+        try {
+          if (!next) {
+            await setRemindersEnabled(false);
+            await cancelIntakeReminders();
+            setEnabled(false);
+            setScheduled(0);
+            void Haptics.selectionAsync();
+            return;
+          }
+
+          let state = permission;
+          if (state !== "granted") state = await requestNotificationPermission();
+          setPermission(state);
+
+          if (state !== "granted") {
+            Alert.alert(
+              "Уведомления отключены",
+              "Разрешите уведомления в Настройках — иначе напоминания о приёме не придут.",
+              [
+                { text: "Не сейчас", style: "cancel" },
+                { text: "Настройки", onPress: () => void Linking.openSettings() },
+              ],
+            );
+            return;
+          }
+
+          await setRemindersEnabled(true);
+          setEnabled(true);
+          setScheduled(await syncIntakeReminders(plans));
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          // пуш-токен регистрируем только теперь: разрешение уже выдано
+          void registerPushToken();
+        } finally {
+          setBusy(false);
+        }
+      })();
+    },
+    [permission, plans],
+  );
+
+  return { enabled, permission, scheduled, busy, toggle };
+}

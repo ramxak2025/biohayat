@@ -1,0 +1,143 @@
+# Shared website/mobile data — verification, 2026-10-05
+
+Candidate is based on the exact live website commit
+`6db05438be3ace0e6b70c53add745ceeee1fc69d`, with an additive `/api/v2` and the
+updated mobile client. Production has not been changed. Its current origin is
+`https://new.biohayat.ru`; `localhost:3187` is the isolated test server.
+
+## Reproducible local checks
+
+`scripts/test-v2.ts` creates identifiable fixtures and removes only those exact
+records. It refuses remote databases, any database other than
+`hayat_shared_data_test` on localhost port 5434, remote HTTP origins, or enabled
+outbound Bitrix integration. Never point this harness at production.
+
+With a local `.env` containing that database URL, a local test AUTH_SECRET and
+`NEXT_PUBLIC_SITE_URL=http://localhost:3187`:
+
+```sh
+pnpm exec prisma generate
+pnpm exec tsc --noEmit --incremental false
+pnpm exec next build --webpack
+pnpm exec next start --port 3187
+# In another terminal, same checkout:
+pnpm exec tsx scripts/test-v2.ts
+```
+
+Start a fresh server before repeating the harness: a run uses four of the five
+website login attempts permitted per IP in fifteen minutes. Tests do not bypass
+rate limits. A dedicated test database must already match `prisma/schema.prisma`.
+
+From the primary checkout's `mobile/` (its installed dependencies were reused):
+
+```sh
+node --test tests/*.test.mjs
+npx --no-install tsc --noEmit --incremental false
+npx --no-install expo export --platform ios --platform android --output-dir /tmp/hayat-shared-data/mobile-export-final
+```
+
+The integrated mobile source/tests were byte-compared with the tested primary
+copy; 224 files matched at the final independent review.
+
+## Final evidence
+
+- **13 grouped HTTP/Prisma checks passed against the production Next build**, not
+  only the development server. Fixture cleanup passed. Negative database guard
+  checks rejected a remote host and a different local database name.
+- **27 mobile tests passed**, including tests that execute the real auth store,
+  API client, query cache, checkout helper and extracted UI callbacks. Eight
+  routing tests use the installed Expo Router resolver; they reproduced the old
+  unmatched checkout and sibling routes before their fixes. Mobile
+  TypeScript passed. Final iOS and Android JS/Hermes exports passed after the
+  logout/deletion race and navigation fixes.
+- Server TypeScript and `next build --webpack` passed. Scoped backend ESLint
+  had zero errors and two React effect warnings in the changed
+  favorites provider. `git diff --check` passed; no suppressions were added.
+- **Migration rehearsal passed**: generated the original live schema into a
+  separate local `hayat_shared_migration_test` database, applied
+  `prisma/changes/20261005_shared_mobile_data.sql` with `ON_ERROR_STOP=1`, and
+  compared the result to the target Prisma schema. Result: `No difference
+  detected`, exit 0. No production database was used.
+- Independent critical review completed with **no unresolved material findings**.
+  Reproductions verified cross-account isolation, serialized secure-storage
+  writes, delayed notification cleanup, exact-once reservation restoration,
+  terminal cancellation, concurrent same-key checkout with only one CRM-sync
+  invocation, serialized intake toggles and website favorites account boundaries.
+
+HTTP coverage: catalog sorts/filters/pagination; batched saved product IDs beyond
+the default page; current prices and image origins; categories/settings/content;
+legacy v1 envelope compatibility; shared web/API customers; additive favorites;
+inactive/deleted sessions; private record ownership; concurrent default addresses;
+whole-cart validation; stale totals; stock competition; idempotent retries and
+same-key concurrency; historical cancellation; terminal webhook; shared intake,
+logs and consultations.
+
+Evidence logs on this machine:
+`/tmp/hayat-shared-data/backend-build.log`,
+`/tmp/hayat-shared-data/http-production-verification.log`,
+`/tmp/hayat-shared-data/mobile-export-final.log`,
+`/tmp/hayat-shared-data/migration-verification.log`.
+
+## Limits and release behavior
+
+- Signed IPA/APK builds, physical devices, native push delivery, external CRM
+  delivery, external delivery services and production deployment are not proved
+  by these checks. The CRM invocation-count check uses a stub.
+- Server HTML/HTTP checks and actual-provider concurrency tests do not by
+  themselves prove browser interaction. Native/browser smoke evidence, if
+  performed, is recorded separately below.
+- Cart contents remain local to each device. Catalog, prices, stock, customer
+  identity/profile, account favorites, orders, addresses, tracker and
+  consultations use shared database records. An API endpoint does not imply a
+  native screen exists for every website feature.
+- Old unscoped credentials/private cache are discarded; users sign in again.
+  Old local cart/guest-favorite storage is not automatically migrated. Account
+  favorites/orders remain in the server database.
+- Historical orders have no reliable reservation provenance; their cancellation
+  requires manager handling and manual inventory reconciliation. New orders
+  record and restore only the stock actually reserved.
+- Publication and production deployment require separate explicit authorization
+  under `docs/codex-workflow.md`. See `docs/shared-data-release.md`.
+
+## Orchestration constraints
+
+Sol handled ordinary mobile implementation, routing and the independent backend
+harness; Luna handled bounded inventory/documentation/packaging reads. Critical
+synchronization decisions and fixes stayed with the orchestrator; a separate
+Astra reviewer performed read-only critical reproductions and final diff review.
+The client has no agent-close operation and does not expose per-agent filesystem
+sandbox enforcement here; completed agents were reused, with read-only review
+maintained by scope and observed actions. No cost savings are inferred from these
+role assignments.
+
+## Native and browser smoke on the final client
+
+Used a dedicated **Hayat Shared Data QA** iPhone 17 Pro simulator on iOS 26.5
+(`8FD6B2AD-899F-4EE4-B700-BDE60627BA17`), the existing matching Expo57 Debug
+client and current Metro JS pointed at localhost3187/api/v2. Other project
+simulators were not changed. Browser used the same local production Next
+server. All records below were disposable fixtures; outbound CRM was disabled.
+
+- Website and native catalog both displayed the same fixture product at
+  **1,234 RUB**; both authenticated the same fixture customer.
+- Adding a favorite in native appeared on the website. Removing it through
+  the website button produced the native empty state when favorites reopened.
+- Native checkout created an order visible in the website account. The first
+  pass exposed an existing relative-route defect after successful submission.
+  The same cause also affected sibling order/article/consultation/product links.
+  Fixed routes were independently reviewed and covered by eight resolver tests.
+- Final native retest created order **16**, showed **“Заявка принята”**, opened
+  order history and its correct detail screen, and the same order16/1,234RUB
+  appeared on the website. Product navigation from account favorites also
+  passed on iOS after the route fix.
+- The final export after all routing fixes completed successfully for both
+  iOS and Android. This is JS/Hermes export, not signed native distribution.
+
+Screenshots before fixture cleanup:
+`/tmp/hayat-shared-data/mobile-order-success.png` and
+`/tmp/hayat-shared-data/web-mobile-order.png`. Other native flows and Android
+runtime interactions were not exhaustively exercised.
+
+After smoke, scoped cleanup removed only the two UI-fixture orders, fixture
+customer, product and category. Temporary browser, Metro/Next processes and
+the task-owned simulator were stopped. No production records were created.

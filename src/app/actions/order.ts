@@ -4,6 +4,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidateTag } from "next/cache";
 import type { PromoCode } from "@prisma/client";
+import { writeAddress, AddressError } from "@/lib/customer-addresses";
 import { prisma } from "@/lib/prisma";
 import { syncOrderToBitrix } from "@/lib/bitrix";
 import { getCustomerSession } from "@/lib/customer-auth";
@@ -237,6 +238,7 @@ export async function submitOrder(
 
       const created = await tx.order.create({
         data: {
+          inventoryVersion: 1,
           customerName: data.customerName.trim(),
           phone: data.phone.trim(),
           email: data.email || null,
@@ -250,7 +252,7 @@ export async function submitOrder(
           consentAt: new Date(),
           source: referer ? "Сайт biohayat.ru" : "Сайт",
           customerId: session?.sub ?? null,
-          items: { create: items },
+          items: { create: items.map(item => ({ ...item, stockReserved: item.productId && priceById.get(item.productId)?.stockQty != null ? item.qty : 0 })) },
         },
       });
 
@@ -305,11 +307,10 @@ export async function submitOrder(
       select: { id: true },
     });
     if (!exists) {
-      const count = await prisma.customerAddress.count({ where: { customerId: session.sub } });
-      if (count < 20) {
-        await prisma.customerAddress.create({
-          data: { customerId: session.sub, city, street, isDefault: count === 0 },
-        });
+      try { await writeAddress(session.sub, "create", { city, street }); }
+      catch (error) {
+        // The accepted order remains valid if the optional address book is full.
+        if (!(error instanceof AddressError)) console.error("Не удалось сохранить адрес заказа", error);
       }
     }
   }

@@ -1,3 +1,4 @@
+import { formatAddressLine } from "@/app/api/v2/addresses/_address";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/account-shell";
@@ -15,12 +16,12 @@ export default async function AddressesPage() {
   const addresses = await prisma.customerAddress.findMany({
     where: { customerId: session.sub },
     orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-    select: { id: true, label: true, city: true, street: true, isDefault: true },
+    select: { id: true, label: true, city: true, street: true, house: true, apartment: true, comment: true, isDefault: true },
   });
 
   return (
     <AccountShell name={session.name}>
-      <AddressesView addresses={addresses} />
+      <AddressesView addresses={addresses.map(a => ({ ...a, street: formatAddressLine({ ...a, city: "" }) }))} />
     </AccountShell>
   );
 }

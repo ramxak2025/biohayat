@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { writeAddress, AddressError } from "@/lib/customer-addresses";
 import { prisma } from "@/lib/prisma";
 import {
   destroyCustomerSession, requireCustomer,
@@ -117,12 +118,8 @@ export async function addAddress(_prev: AddressState, fd: FormData): Promise<Add
   if (!city) return { error: "Укажите город" };
   if (!street) return { error: "Укажите улицу, дом и квартиру" };
 
-  const count = await prisma.customerAddress.count({ where: { customerId: session.sub } });
-  if (count >= 20) return { error: "Можно сохранить не более 20 адресов" };
-
-  await prisma.customerAddress.create({
-    data: { customerId: session.sub, label, city, street, isDefault: count === 0 },
-  });
+  try { await writeAddress(session.sub, "create", { label, city, street }); }
+  catch (e) { if (e instanceof AddressError) return { error: e.message }; throw e; }
   revalidatePath("/account/addresses");
   return { ok: true };
 }
@@ -132,13 +129,7 @@ export async function setDefaultAddress(id: string): Promise<AddressState> {
   const address = await prisma.customerAddress.findUnique({ where: { id }, select: { customerId: true } });
   if (!address || address.customerId !== session.sub) return { error: "Адрес не найден" };
 
-  await prisma.$transaction([
-    prisma.customerAddress.updateMany({
-      where: { customerId: session.sub, isDefault: true },
-      data: { isDefault: false },
-    }),
-    prisma.customerAddress.update({ where: { id }, data: { isDefault: true } }),
-  ]);
+  await writeAddress(session.sub, "update", { isDefault: true }, id);
   revalidatePath("/account/addresses");
   return { ok: true };
 }
@@ -147,7 +138,7 @@ export async function deleteAddress(id: string): Promise<AddressState> {
   const session = await requireCustomer();
   const address = await prisma.customerAddress.findUnique({ where: { id }, select: { customerId: true } });
   if (!address || address.customerId !== session.sub) return { error: "Адрес не найден" };
-  await prisma.customerAddress.delete({ where: { id } });
+  await writeAddress(session.sub, "delete", {}, id);
   revalidatePath("/account/addresses");
   return { ok: true };
 }

@@ -15,6 +15,8 @@ RUN pnpm install --frozen-lockfile
 
 # Сборка
 FROM base AS build
+ARG NEXT_PUBLIC_SITE_URL=https://new.biohayat.ru
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # гарантируем наличие папки public (git не хранит пустые директории)

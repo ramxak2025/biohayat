@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { restoreReservedStock } from "@/lib/order-inventory";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
 import { syncOrderToBitrix } from "@/lib/bitrix";
@@ -15,11 +16,13 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   await prisma.$transaction(async (tx) => {
     // Текущий статус читаем внутри транзакции: возврат остатков делаем только
     // на переходе НЕ-CANCELLED → CANCELLED (повторный клик ничего не вернёт).
+    await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${id} FOR UPDATE`;
     const order = await tx.order.findUnique({
       where: { id },
-      select: { status: true, items: { select: { productId: true, qty: true } } },
+      select: { status: true, inventoryVersion: true, items: { select: { productId: true, qty: true } } },
     });
     if (!order) return;
+    if (order.status === "CANCELLED" && status !== "CANCELLED") throw new Error("Отменённый заказ нельзя возобновить. Создайте новый заказ.");
 
     await tx.order.update({ where: { id }, data: { status } });
 
@@ -34,23 +37,13 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
     // Бонусы: возвращаем списанные и снимаем начисленные (однократно).
     await revertOrderBonusOnCancel(tx, id);
 
-    // Возвращаем остатки позиций отменённого заказа (только товарам
-    // с включённым учётом: stockQty != null).
-    for (const it of order.items) {
-      if (!it.productId) continue;
-      const returned = await tx.product.updateMany({
-        where: { id: it.productId, stockQty: { not: null } },
-        data: { stockQty: { increment: it.qty } },
-      });
-      if (returned.count > 0) {
-        restocked = true;
-        // Товар снова на складе — поднимаем флаг наличия, если был снят при нуле.
-        await tx.product.updateMany({
-          where: { id: it.productId, stockQty: { gt: 0 }, inStock: false },
-          data: { inStock: true },
-        });
-      }
+    if (order.inventoryVersion === 1) {
+      await restoreReservedStock(tx, id);
+      restocked = true;
     }
+    // Legacy reservations were not recorded consistently. Inventory correction
+    // for historical orders remains an explicit warehouse operation.
+
   });
   // Остатки вернулись — сбрасываем кэш витрины (тот же тег, что в actions товаров).
   if (restocked) revalidateTag("catalog", { expire: 0 });

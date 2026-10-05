@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Скрипты установленного скила impeccable — сторонний код, не наш стиль.
     ".claude/**",
+    // Native app has its own TypeScript/runtime and verification commands.
+    "mobile/**",
   ]),
   {
     rules: {

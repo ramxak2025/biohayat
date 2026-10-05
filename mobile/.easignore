@@ -1,0 +1,21 @@
+# EAS отдаёт приоритет этому файлу над .gitignore, поэтому здесь ВСЁ, что не нужно в облаке.
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+.DS_Store
+
+# Нативные папки генерируются в облаке заново (CNG) — иначе локальный prebuild
+# «замораживает» конфигурацию и плагин снятия альфы с иконки не отработает.
+/ios
+/android
+
+# Секреты сборки: ключ App Store Connect нужен ТОЛЬКО локально на шаге eas submit.
+/credentials
+*.p8
+.env.local
+.env*.local
+
+# Служебное
+/scripts/make-icons.mjs

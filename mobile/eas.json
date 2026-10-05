@@ -1,0 +1,59 @@
+{
+  "cli": {
+    "version": ">= 24.7.0",
+    "appVersionSource": "remote",
+    "requireCommit": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "medium"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://new.biohayat.ru/api/v2"
+      }
+    },
+    "simulator": {
+      "extends": "development",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://new.biohayat.ru/api/v2"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "medium",
+        "image": "macos-tahoe-26.5-xcode-26.6"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://new.biohayat.ru/api/v2"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "ios": {
+        "resourceClass": "medium",
+        "image": "macos-tahoe-26.5-xcode-26.6"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://new.biohayat.ru/api/v2"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleTeamId": "98SHYK65HQ",
+        "ascApiKeyPath": "./credentials/AuthKey_JR2ZM9H4Z2.p8",
+        "ascApiKeyId": "JR2ZM9H4Z2",
+        "ascApiKeyIssuerId": "ad099a0e-7cc1-4aa2-a5d5-fa32a0843b23",
+        "ascAppId": "6813228206"
+      }
+    }
+  }
+}
