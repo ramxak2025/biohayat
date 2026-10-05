@@ -253,21 +253,47 @@ test("removing a tall banner republishes the retained banner height without anot
   assert.equal(displayLayout.homeHeroHeight(667, 500, 88), 852, "Stale tall measurement would leave 485pt of extra height");
 });
 
-test("category rail expands the name's width for Dynamic Type without truncation or changed destination", () => {
-  const opens = [];
-  const category = { id: "qa-category", name: "Витамины и минералы", slug: "vitamins", icon: "leaf" };
-  const { CategoryRail } = loader({ ...homeMocks(), "./icon-map": { sfSymbolFor: () => "leaf" } })("src/components/home/category-rail.tsx");
-  const tree = CategoryRail({ categories: [category], onPress: (value) => opens.push(value), onPressAll() {} });
-  const tile = childComponent(tree, "CategoryTile");
-  assert.ok(tile.props.width > 158);
-  assert.ok(tile.props.width <= 375 - 32, "A whole tile must fit in the viewport");
-  const rendered = tile.type(tile.props);
-  const name = elements(rendered, "AppText")[0];
-  assert.equal(name.props.children, category.name);
-  assert.equal(name.props.numberOfLines, undefined);
-  rendered.props.onPress();
-  assert.deepEqual(opens, [category]);
-  assert.equal(tree.props.snapToInterval, tile.props.width + 12);
+test("live category names get the full tile width at normal and enlarged text without clipping or changed destinations", () => {
+  const categories = ["Витамины и минералы", "ЖКТ и пищеварение", "Мочеполовая система", "Эндокринная система"].map((name, index) => ({ id: `qa-category-${index}`, name, slug: `category-${index}`, icon: "leaf" }));
+  for (const [width, fontScale] of [[393, 1], [375, 1.9]]) {
+    const opens = [];
+    const { CategoryRail } = loader({ ...homeMocks(width, fontScale), "./icon-map": { sfSymbolFor: () => "leaf" } })("src/components/home/category-rail.tsx");
+    const { AppText } = loader({ "react-native": native("ios", width, fontScale), "@/theme": theme })("src/components/ui/app-text.tsx");
+    let openedAll = 0;
+    const tree = CategoryRail({ categories, onPress: (value) => opens.push(value), onPressAll: () => openedAll++ });
+    function visit(node) {
+      if (!node || typeof node !== "object") return [];
+      if (Array.isArray(node)) return node.flatMap(visit);
+      return [...(node.type?.name === "CategoryTile" || node.type?.name === "AllTile" ? [node] : []), ...visit(node.props?.children)];
+    }
+    const tiles = visit(tree);
+    assert.equal(tiles.length, categories.length + 1);
+    for (const tile of tiles) {
+      assert.ok(tile.props.width <= width - 32, "A whole tile must fit in the viewport");
+      const rendered = tile.type(tile.props);
+      const style = flatten(rendered.props.style);
+      assert.equal(style.flexDirection, "column", "Icon must not consume the width needed by 11-letter Russian words");
+      assert.ok(tile.props.width - style.padding * 2 >= 134 * Math.min(fontScale, 1.9));
+      assert.equal(style.height, undefined, "Tile height must grow with its entire label");
+      assert.ok(style.minHeight >= 44);
+      const name = elements(rendered, "AppText")[0];
+      assert.equal(name.props.numberOfLines, undefined);
+      assert.equal(name.props.adjustsFontSizeToFit, undefined);
+      assert.equal(flatten(name.props.style).flex, undefined, "Text keeps its intrinsic height below the icon");
+      assert.equal(flatten(name.props.style).alignSelf, "stretch");
+      if (tile.props.category) {
+        assert.equal(name.props.children, tile.props.category.name);
+        assert.equal(rendered.props.accessibilityLabel, tile.props.category.name);
+        const display = AppText(name.props);
+        assert.equal(display.props.children, typesetRussian(tile.props.category.name));
+        if (tile.props.category.name.includes(" и ")) assert.ok(display.props.children.includes(`и${nbsp}`), "Actual AppText must keep the conjunction with the next word");
+      }
+      rendered.props.onPress();
+      assert.equal(tree.props.snapToInterval, tile.props.width + 12);
+    }
+    assert.deepEqual(opens, categories);
+    assert.equal(openedAll, 1);
+  }
 });
 
 test("compact catalog keeps full count and controls and reports measured resting height to its list", () => {

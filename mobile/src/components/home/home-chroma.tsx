@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useIsFocused, useRouter } from "expo-router";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SFSymbol } from "expo-symbols";
@@ -150,17 +151,27 @@ export function HomeChroma({ scrollY, heroHeight, barHeight, onBarHeightChange }
             accessibilityRole="header"
             accessibilityLabel="ХАЯТ"
           >
-            {/* Две копии марки, кроссфейд по прозрачности: tintColor у SymbolView —
-                нативный проп, анимировать его нельзя, а перекрашивать надо. */}
+            {/* Оригинальные варианты фирменного знака с сайта; переключаем
+                их тем же кроссфейдом, что и цвет надписи. */}
             <Animated.View style={[styles.brandRow, photoStyle]}>
-              <SymbolView name="leaf.fill" size={17} tintColor={palette.surface} />
+              <Image
+                source={require("../../../assets/brand/logo-mark-white.png")}
+                style={styles.brandMark}
+                contentFit="contain"
+                accessible={false}
+              />
               <AppText variant="title3" weight="700" style={[styles.word, styles.wordOnPhoto]}>
                 ХАЯТ
               </AppText>
             </Animated.View>
 
             <Animated.View style={[styles.brandRow, styles.brandOverlay, glassStyle]}>
-              <SymbolView name="leaf.fill" size={17} tintColor={colors.brand} />
+              <Image
+                source={require("../../../assets/brand/logo-mark.png")}
+                style={styles.brandMark}
+                contentFit="contain"
+                accessible={false}
+              />
               <AppText variant="title3" weight="700" style={[styles.word, { color: colors.text }]}>
                 ХАЯТ
               </AppText>
@@ -269,6 +280,7 @@ const styles = StyleSheet.create({
   },
   brand: { justifyContent: "center", flexShrink: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  brandMark: { width: 36, height: 36, flexShrink: 0 },
   brandOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "center" },
   word: { letterSpacing: 1.4, flexShrink: 1 },
   // белый, а не colors.text: марка лежит на фотографии, и в светлой теме тоже

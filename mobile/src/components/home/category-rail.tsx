@@ -153,8 +153,11 @@ const styles = StyleSheet.create({
     flex: 1,
     width: TILE_WIDTH,
     minHeight: 72,
-    flexDirection: "row",
-    alignItems: "center",
+    // Long Russian words need the full text measure; an adjacent icon left
+    // only 88 pt at the normal tile width and forced character-level breaks.
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
     gap: spacing.sm + 2,
     padding: spacing.md,
     borderRadius: radii.xl,
@@ -167,5 +170,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  tileLabel: { flex: 1, minWidth: 0 },
+  tileLabel: { alignSelf: "stretch", minWidth: 0 },
 });
