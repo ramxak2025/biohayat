@@ -1,6 +1,6 @@
-# Shared website/mobile backend — release candidate
+# Shared website/mobile backend — deployed release
 
-## Status and intended result
+## Status and result
 
 Prepared from live commit `6db05438be3ace0e6b70c53add745ceeee1fc69d` in the managed
 `hayat-shared-backend/Hayat` worktree. The older primary website checkout must
@@ -9,10 +9,12 @@ into this candidate. The mobile dock/typography follow-up is included, with
 43 passing mobile tests and native iOS screenshots. See `api-v2-verification.md`
 for checks and limits.
 
-Production origin: `https://new.biohayat.ru`; server: `155.212.211.210`;
-current checkout: `/root/biohayat`. Credentials are not stored in this document.
-Latest read-only check found the same base commit, only untracked `backup.sql`,
-and running `biohayat-app-1`, `biohayat-db-1`, `biohayat-caddy-1` containers.
+Production origin: `https://new.biohayat.ru`; server: `155.212.211.210`.
+Deployment of committed source `b1be149` completed on 2026-10-06 (Europe/Moscow).
+Application source is unchanged from `021c038`; `b1be149` adds release instructions.
+Active source: `/root/biohayat-releases/20261006-b1be149`. The original checkout
+`/root/biohayat` remains at the live base with its untracked `backup.sql` preserved.
+Credentials are not stored in this document.
 
 The additive v2 API shares the website's PostgreSQL tables. The existing v1
 contract remains available. Website checkout, favorites, account and stock
@@ -22,7 +24,7 @@ origin is `https://new.biohayat.ru/api/v2` in defaults and EAS profiles.
 ## Authorized release procedure
 
 The user explicitly approved production deployment on 2026-10-06. Execution
-results are recorded separately below; approval alone is not proof of deployment.
+results are recorded below.
 
 1. Obtain explicit deployment approval. Recheck remote HEAD, uncommitted changes,
    running image, disk space, database health and effective Compose project name.
@@ -63,6 +65,12 @@ results are recorded separately below; approval alone is not proof of deployment
 
 ## Rollback
 
+Before checking rollback eligibility, quiesce and drain candidate order writes.
+The simplest gate is to stop the candidate app while retaining DB/Caddy, wait
+for its database transactions to finish, then query eligibility. Keep this gate
+in place through image replacement; checking while checkout remains available
+has a race with new orders.
+
 Before any `inventoryVersion = 1` order exists, the saved application image can
 be restored with the same configuration and volumes. Leave the additive schema
 in place: the old Prisma client ignores the new fields/table. Verify this condition
@@ -89,3 +97,60 @@ again. Old local cart and guest favorites are not automatically carried forward.
 Historical orders require manager-led cancellation and inventory reconciliation.
 Native UI for address-book management, promo/referral programs and wholesale
 ordering is outside this integration; the existing website retains those flows.
+
+## Production execution evidence — 2026-10-06
+
+- Release image: `biohayat-app:shared-20261006-b1be149`, image ID
+  `sha256:a1ade084112f25c420c6f869ad11e0d78a65226b9672376106bb5ace57cef6c3`.
+  Docker build (including the production Next.js/Turbopack build) completed on VDS.
+  The running image's revision label is `b1be149`.
+- Protected backup directory: `/root/biohayat-backups/20261006-b1be149`.
+  It contains the custom-format PostgreSQL dump, uploads archive, base and release
+  source archives, original environment/Compose/Caddy files and crontab, image and
+  volume identities, checksums and execution logs. `pg_restore --list` and a full
+  `pg_restore --file=/dev/null` read passed; the uploads archive listing passed.
+  The retained old image is `biohayat-app:rollback-20261006-b1be149`.
+- Only the verified Hayat auto-deploy cron was commented out while holding its
+  existing flock. Other crontab lines were preserved byte-for-byte. **It remains
+  paused** until its tracked source branch contains the compatible approved release.
+  No remote Git branch was pushed or reset. Do not resume the old job blindly.
+- Applied `prisma/changes/20261005_shared_mobile_data.sql` once, after checking all
+  new fields/table absent, with `lock_timeout=5s`, `statement_timeout=60s` and
+  `ON_ERROR_STOP`. Candidate Prisma-to-live-schema diff reports **no difference**.
+  All nine new fields and the new Device table/indexes/constraint are covered by
+  that comparison. Existing row counts remained 119 products, two customers, two
+  orders and two order items; both historical orders retained inventoryVersion 0.
+- Recreated only app with explicit project `biohayat`, protected server-local
+  environment and `--no-deps --no-build`. Database/Caddy container IDs and all
+  persistent mounts remained identical. Runtime environment (including auth and
+  database settings) matches the original resolved configuration.
+- HTTPS readiness passed after one transient 502 during app replacement. Public
+  catalog, product pages and representative image requests returned 200. Both v1
+  and v2 report 119 products; all 24 first-page rows match by ID, slug and price,
+  and website catalog links match in order. Examples: metodrol 90000 kopecks,
+  vitamin-d3-k2 130000, kyst-al-hindi-maslo 60000.
+- Categories, banners, public settings and product detail v2 GETs returned 200.
+  Unauthenticated account, orders, favorites, addresses and intake GETs returned
+  401. No test customers/orders, authenticated production writes or CRM messages
+  were created for smoke testing. Initial app logs contained no error lines.
+- Production logs and markers are retained in the protected backup directory:
+  `docker-build.log`, `migration.log`, `schema-verification.log`, `app-cutover.log`,
+  `containers.before.json`, `containers.after.json`, and `*.complete` markers.
+  Backups have not been test-restored into a separate database; archive readability
+  and complete decode were verified without production restore operations.
+- The existing iOS development client was run with
+  `EXPO_PUBLIC_API_URL=https://new.biohayat.ru/api/v2`. It displayed **119 products**,
+  the matching first-page prices and the live Metodrol image/detail/900-RUB dock.
+  Live checkout/customer mutations were intentionally excluded. Screenshots:
+  `/tmp/hayat-shared-data/live-mobile-catalog.png` and `live-mobile-product.png`.
+- Production names exposed a remaining narrow category-label issue. A separate
+  mobile-only follow-up places icons above the full-width names, preserving tap
+  destinations and intrinsic heights. The original standard leaf beside ХАЯТ
+  was also replaced, at the user's request, with the website's exact normal/white
+  tree logo PNGs. These mobile source changes do not modify the deployed backend.
+  Primary mobile integration passed 43/43 tests and nonincremental TypeScript;
+  independent final reviews found no material issues. Normal and enlarged native
+  screenshots confirm the new category layout and official logo after reload.
+  Native hot text-size changes briefly showed stale text layout before reload;
+  unrestricted in-place Dynamic Type transitions remain unverified.
+  Android runtime and signed IPA/APK/store delivery remain unverified/unpublished.

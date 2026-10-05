@@ -193,3 +193,37 @@ After this UI check, scoped cleanup removed exactly two local typography-fixture
 products and their category. Both task-owned QA simulators and the local Metro/
 Next processes were stopped. The other task's simulator/chat was not modified
 or messaged. All 462 baseline files outside primary `mobile/` remain unchanged.
+
+## Approved VDS deployment and real-catalog follow-up (2026-10-06)
+
+The shared backend was deployed after explicit user approval. See
+`shared-data-release.md` for the exact image/source, verified protected backups,
+additive migration, app-only cutover, paused competing cron and safe rollback
+conditions. Public HTTPS checks passed: v1/v2 both report 119 products; all 24
+first-page IDs/slugs/prices and website links match. Public v2 routes return 200,
+and private routes reject unauthenticated requests with 401. No production test
+accounts/orders or CRM messages were created.
+
+The iOS development client loaded the deployed production catalog (119 products)
+and live Metodrol detail at 900 RUB. This is still a development client served by
+Metro, not a signed distribution build. Evidence: `/tmp/hayat-shared-data/`
+`live-mobile-catalog.png`, `live-mobile-product.png`.
+
+Actual category names revealed residual midword wrapping at normal size. Moving
+the icon above the full-width label fixes the 88-point text bottleneck, retains
+intrinsic height/accessibility/tap routes, and passes the regression that failed
+with the old layout. At the user's request, both header states now use exact
+website brand PNGs (normal/white tree mark), replacing the standard leaf icon.
+No API/backend/dependency changes were needed for these refinements.
+
+Final primary checks: 43/43 mobile tests and nonincremental TypeScript pass;
+independent category and brand component reviews found no material issues.
+The managed checkout lacks mobile dependencies, so its focused 16 typography
+tests passed but full checks were run using the installed primary mobile stack.
+Normal native category screenshot: `live-mobile-categories-final.png`;
+XXXL after reload with the official white logo: `live-mobile-official-logo-large.png`.
+Changing native text size while running briefly retained stale layout; fresh
+reload renders full hero copy correctly. In-place font-size transitions and
+horizontal/end-of-scroll gestures are not fully verified. Previous Android
+JS/Hermes exports predate these final style/asset-only changes; Android runtime,
+physical devices and signed distribution remain unverified.
