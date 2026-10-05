@@ -154,3 +154,36 @@ ordering is outside this integration; the existing website retains those flows.
   Native hot text-size changes briefly showed stale text layout before reload;
   unrestricted in-place Dynamic Type transitions remain unverified.
   Android runtime and signed IPA/APK/store delivery remain unverified/unpublished.
+
+## Internal TestFlight delivery — 2026-10-06
+
+- The user authorized TestFlight delivery and then selected the existing internal
+  group instead of external testing. No external group, external review submission
+  or App Store public release was created.
+- Built mobile source from committed `e3a1337b69fc9f59ea5fcad1698b9c2dd7842b9c`
+  using scoped EAS CLI 24.10.0 and the production store profile. All 277 uploaded
+  mobile files matched that commit. Independent read-only release review found no
+  material blockers, local environment files, credentials or runtime localhost
+  URLs in the upload payload. Existing signing credentials were reused unchanged.
+- EAS build `b85d2b5d-163d-4c76-868f-fbeadaf1dd1c` finished successfully:
+  **1.0.0 (6)**, bundle `ru.biohayat.app`, team `98SHYK65HQ`.
+  The downloaded 22,862,263-byte IPA has SHA-256
+  `b76fcecd797855361d74deff51538f1150e969f507a59106b533b8d6d8edf349`.
+  ZIP integrity, embedded bundle/version/build, production v2 URL, distribution
+  profile and binary entitlements passed. `codesign --verify --deep --strict`
+  passed; `get-task-allow` is false.
+- EAS submission `86e2fdfc-ac5a-4eb9-bb59-59f4490d14fe` finished successfully.
+  An earlier scheduling request with release notes was rejected by EAS because
+  that convenience feature requires Enterprise; ordinary submission succeeded
+  without changing the account plan. Russian test notes were saved directly in
+  App Store Connect and read back for verification.
+- Apple build resource `14a7121d-7e5f-47cb-8c18-2f405aa8ea6c` reports
+  `processingState=VALID` and `internalBuildState=IN_BETA_TESTING`.
+  Membership was verified in **Внутреннее тестирование**, group
+  `9b913c5b-5f05-4e43-8660-9bd963cbf06c`. Its existing automatic distribution
+  added the build; the existing tester list and permissions were unchanged.
+- Verification evidence: `/tmp/hayat-shared-data/ipa-build6-verification.json`,
+  `testflight-build6-verification.json`, and EAS build/submission status records.
+  This establishes signed iOS delivery and group availability, not installation
+  or runtime testing of the TestFlight binary on a physical device. Android
+  distribution remains outside this delivery.
