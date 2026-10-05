@@ -2,7 +2,7 @@
  * из обработчика скролла — штатный способ анимировать на UI-потоке. Правило
  * React Compiler про shared values не знает и даёт ложное срабатывание. */
 import { useCallback, useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { Stack, useRouter, type Href } from "expo-router";
 import { SymbolView, type SFSymbol } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
@@ -53,8 +53,6 @@ import { shareProduct } from "./share-product";
 
 /** Максимальная высота героя: на больших экранах квадрат 1:1 съедает весь первый экран. */
 const HERO_MAX_HEIGHT = 420;
-/** Место под плавающую панель покупки, чтобы она не накрывала последний блок. */
-const BUY_BAR_SPACE = 96;
 /** Без фото герой делаем ниже: заглушка на пол-экрана выглядит как ошибка загрузки. */
 const HERO_EMPTY_HEIGHT = 240;
 
@@ -94,6 +92,12 @@ export function ProductScreen({ slug }: { slug: string }) {
   const detailOptions = useDetailScreenOptions();
 
   const fullHeroHeight = Math.min(width, HERO_MAX_HEIGHT);
+  const [buyBarHeight, setBuyBarHeight] = useState(0);
+  const onBuyBarLayout = useCallback((event: LayoutChangeEvent) => {
+    const height = Math.ceil(event.nativeEvent.layout.height);
+    setBuyBarHeight((previous) => previous === height ? previous : height);
+  }, []);
+  const buyBarBottom = tabInset + spacing.sm;
 
   const scrollY = useSharedValue(0);
   /** Из этой вью вылетает копия товара при добавлении в корзину. */
@@ -134,7 +138,7 @@ export function ProductScreen({ slug }: { slug: string }) {
         translateY: interpolate(
           barReveal.value,
           [0, 1],
-          [tabInset + BUY_BAR_SPACE, 0],
+          [buyBarBottom + buyBarHeight, 0],
           Extrapolation.CLAMP,
         ),
       },
@@ -247,7 +251,7 @@ export function ProductScreen({ slug }: { slug: string }) {
            * contentOffset.y отрицателен на высоту бара, и параллакс героя начинался
            * бы уже увеличенным. Инсет таб-бара поэтому добавляем сами — ниже. */
           contentInsetAdjustmentBehavior="never"
-          contentContainerStyle={{ paddingBottom: tabInset + BUY_BAR_SPACE }}
+          contentContainerStyle={{ paddingBottom: buyBarBottom + buyBarHeight + spacing.base }}
         >
           {/* 1. Галерея во всю ширину: счётчик «2/5», точки, тап — полный экран */}
           <Animated.View ref={heroRef} collapsable={false}>
@@ -359,7 +363,8 @@ export function ProductScreen({ slug }: { slug: string }) {
         </Animated.ScrollView>
 
         <Animated.View
-          style={[styles.bar, { bottom: tabInset + spacing.sm }, barStyle]}
+          style={[styles.bar, { bottom: buyBarBottom }, barStyle]}
+          onLayout={onBuyBarLayout}
           pointerEvents="box-none"
         >
           <ProductBuyBar product={product} flightSource={heroRef} />

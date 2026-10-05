@@ -5,7 +5,9 @@
 Prepared from live commit `6db05438be3ace0e6b70c53add745ceeee1fc69d` in the managed
 `hayat-shared-backend/Hayat` worktree. The older primary website checkout must
 not be deployed over the VDS website. The primary mobile changes are integrated
-into this candidate. See `api-v2-verification.md` for checks and limits.
+into this candidate. The mobile dock/typography follow-up is included, with
+43 passing mobile tests and native iOS screenshots. See `api-v2-verification.md`
+for checks and limits.
 
 Production origin: `https://new.biohayat.ru`; server: `155.212.211.210`;
 current checkout: `/root/biohayat`. Credentials are not stored in this document.

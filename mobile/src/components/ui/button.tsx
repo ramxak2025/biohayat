@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import {
   ActivityIndicator,
+  Platform,
   StyleSheet,
   View,
   type StyleProp,
@@ -8,7 +9,7 @@ import {
 } from "react-native";
 import { SymbolView, type SFSymbol } from "expo-symbols";
 
-import { HIT_SLOP, radii, shadows, spacing, useColors } from "@/theme";
+import { MIN_TAP_SIZE, radii, shadows, spacing, useColors } from "@/theme";
 
 import { AppText, type TextVariant } from "./app-text";
 import { PressableScale, type PressHaptic } from "./press-scale";
@@ -35,6 +36,7 @@ export interface ButtonProps {
 
 const HEIGHT: Record<ButtonSize, number> = { sm: 36, md: 48, lg: 56 };
 const PAD: Record<ButtonSize, number> = { sm: spacing.base, md: spacing.lg, lg: spacing.xl + 4 };
+const VERTICAL_PAD: Record<ButtonSize, number> = { sm: spacing.sm, md: spacing.md, lg: spacing.base };
 const TEXT: Record<ButtonSize, TextVariant> = { sm: "subhead", md: "callout", lg: "headline" };
 const ICON: Record<ButtonSize, number> = { sm: 15, md: 17, lg: 19 };
 
@@ -93,7 +95,6 @@ export function Button({
       onPress={onPress}
       disabled={inactive}
       haptic={inactive ? "none" : haptic}
-      hitSlop={size === "sm" ? HIT_SLOP : undefined}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
@@ -101,8 +102,9 @@ export function Button({
       style={[
         styles.base,
         {
-          height: HEIGHT[size],
+          minHeight: Math.max(HEIGHT[size], Platform.OS === "android" ? 48 : MIN_TAP_SIZE),
           paddingHorizontal: PAD[size],
+          paddingVertical: VERTICAL_PAD[size],
           backgroundColor: surface[variant],
         },
         outlineColor[variant]
@@ -117,7 +119,7 @@ export function Button({
     >
       <View style={[styles.content, loading ? styles.hidden : null]}>
         {leftIcon ? renderIcon(leftIcon) : null}
-        <AppText variant={TEXT[size]} weight="600" numberOfLines={1} maxScale={1.5} style={{ color: foreground }}>
+        <AppText variant={TEXT[size]} weight="600" maxScale={1.5} style={[styles.label, { color: foreground }]}>
           {title}
         </AppText>
         {rightIcon ? renderIcon(rightIcon) : null}
@@ -137,11 +139,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-start",
+    maxWidth: "100%",
+    flexShrink: 1,
     borderRadius: radii.pill,
   },
   fullWidth: { alignSelf: "stretch", width: "100%" },
   inactive: { opacity: 0.45 },
-  content: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  content: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minWidth: 0, maxWidth: "100%" },
+  label: { flexShrink: 1, textAlign: "center" },
   // прячем подпись, а не убираем: иначе кнопка «прыгает» по ширине на время загрузки
   hidden: { opacity: 0 },
   spinner: { flex: 1 },

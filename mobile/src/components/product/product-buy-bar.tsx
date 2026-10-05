@@ -2,7 +2,7 @@
  * из обработчика — штатный способ анимировать на UI-потоке. Правило React
  * Compiler про shared values не знает и даёт ложное срабатывание. */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, View, useWindowDimensions, type StyleProp, type ViewStyle } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter, type Href } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -48,6 +48,12 @@ export function ProductBuyBar({ product, style, flightSource }: ProductBuyBarPro
   const router = useRouter();
   const reduced = useReducedMotion();
   const flyToCart = useFlyToCart();
+  const { width, fontScale } = useWindowDimensions();
+  const [rowWidth, setRowWidth] = useState(0);
+  // 320 pt fits a readable price block plus the primary action. Dynamic Type
+  // reduces the effective width instead of reducing the user's text size.
+  const availableWidth = rowWidth || width - spacing.base * 2 - (spacing.sm + 2) * 2;
+  const stacked = availableWidth / Math.min(fontScale, 1.5) < 320;
 
   const line = useCart((state) => state.lines.find((item) => item.id === product.id));
   const add = useCart((state) => state.add);
@@ -103,7 +109,7 @@ export function ProductBuyBar({ product, style, flightSource }: ProductBuyBarPro
           accessibilityLiveRegion="polite"
         >
           <SymbolView name="checkmark.circle.fill" size={15} tintColor={colors.textOnBrand} />
-          <AppText variant="footnote" weight="600" style={{ color: colors.textOnBrand }}>
+          <AppText variant="footnote" weight="600" style={[styles.flashText, { color: colors.textOnBrand }]}>
             Добавлено в корзину
           </AppText>
         </Animated.View>
@@ -119,7 +125,8 @@ export function ProductBuyBar({ product, style, flightSource }: ProductBuyBarPro
 
           <Animated.View
             layout={reduced ? undefined : LinearTransition.duration(Duration.base)}
-            style={styles.row}
+            style={[styles.row, stacked ? styles.stacked : null]}
+            onLayout={(event) => setRowWidth(event.nativeEvent.layout.width)}
           >
             {qty > 0 ? (
               <PressableScale
@@ -127,10 +134,10 @@ export function ProductBuyBar({ product, style, flightSource }: ProductBuyBarPro
                 onPress={() => router.push("/cart" as Href)}
                 accessibilityRole="button"
                 accessibilityLabel={`В корзине ${qty} ${plural(qty, "штука", "штуки", "штук")}. Перейти в корзину`}
-                style={styles.info}
+                style={[styles.info, stacked ? styles.stackedInfo : null]}
               >
                 <View style={styles.infoRow}>
-                  <AppText variant="caption" color="brand" weight="600" numberOfLines={1}>
+                  <AppText variant="caption" color="brand" weight="600" style={styles.quantityLabel}>
                     В корзине · {qty} шт
                   </AppText>
                   <SymbolView name="chevron.right" size={10} tintColor={colors.brand} weight="semibold" />
@@ -138,7 +145,7 @@ export function ProductBuyBar({ product, style, flightSource }: ProductBuyBarPro
                 <Price price={totalKopecks} size="sm" />
               </PressableScale>
             ) : (
-              <View style={styles.info}>
+              <View style={[styles.info, stacked ? styles.stackedInfo : null]}>
                 <Price
                   price={product.price}
                   oldPrice={product.oldPrice}
@@ -148,32 +155,37 @@ export function ProductBuyBar({ product, style, flightSource }: ProductBuyBarPro
               </View>
             )}
 
-            {!product.inStock ? (
-              <Button
-                title="Нет в наличии"
-                size="md"
-                variant="secondary"
-                disabled
-                accessibilityLabel="Нет в наличии"
-                accessibilityHint="Товар временно недоступен"
-              />
-            ) : qty > 0 ? (
-              <Stepper
-                value={qty}
-                size="md"
-                onChange={(next) => setQty(product.id, next)}
-                onRemove={() => remove(product.id)}
-              />
-            ) : (
-              <Button
-                title="В корзину"
-                size="md"
-                leftIcon="basket"
-                haptic="none"
-                onPress={onAdd}
-                accessibilityLabel={`Добавить в корзину: ${product.name}`}
-              />
-            )}
+            <View style={[styles.action, stacked ? styles.stackedAction : null]}>
+              {!product.inStock ? (
+                <Button
+                  title="Нет в наличии"
+                  size="md"
+                  variant="secondary"
+                  disabled
+                  fullWidth={stacked}
+                  accessibilityLabel="Нет в наличии"
+                  accessibilityHint="Товар временно недоступен"
+                />
+              ) : qty > 0 ? (
+                <Stepper
+                  value={qty}
+                  size="md"
+                  onChange={(next) => setQty(product.id, next)}
+                  onRemove={() => remove(product.id)}
+                  style={stacked ? styles.stackedStepper : undefined}
+                />
+              ) : (
+                <Button
+                  title="В корзину"
+                  size="md"
+                  leftIcon="basket"
+                  fullWidth={stacked}
+                  haptic="none"
+                  onPress={onAdd}
+                  accessibilityLabel={`Добавить в корзину: ${product.name}`}
+                />
+              )}
+            </View>
           </Animated.View>
         </GlassSurface>
       </Animated.View>
@@ -191,12 +203,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.sm,
     borderRadius: radii.pill,
+    maxWidth: "100%",
   },
   // тень живёт на обёртке: у GlassSurface overflow:hidden, она бы её срезала
   shadow: { borderRadius: radii["2xl"] },
   glass: { borderRadius: radii["2xl"], padding: spacing.sm + 2 },
   note: { paddingHorizontal: spacing.sm, paddingBottom: spacing.sm },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  info: { flex: 1, gap: 2, paddingLeft: spacing.sm },
+  stacked: { flexDirection: "column", alignItems: "stretch" },
+  info: { flex: 1, minWidth: 0, gap: 2, paddingLeft: spacing.sm },
+  stackedInfo: { flex: 0 },
   infoRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  quantityLabel: { flexShrink: 1 },
+  action: { flexShrink: 0 },
+  stackedAction: { alignSelf: "stretch" },
+  stackedStepper: { alignSelf: "stretch", justifyContent: "space-between" },
+  flashText: { flexShrink: 1 },
 });

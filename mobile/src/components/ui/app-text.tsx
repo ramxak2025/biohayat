@@ -1,6 +1,7 @@
 import { StyleSheet, Text, type StyleProp, type TextProps, type TextStyle } from "react-native";
 
 import { typography, useColors } from "@/theme";
+import { typesetTextChildren } from "@/lib/russian-typesetting";
 
 export type TextVariant = keyof typeof typography;
 
@@ -43,6 +44,7 @@ export function AppText({
   align,
   maxScale,
   style,
+  children,
   ...rest
 }: AppTextProps) {
   const colors = useColors();
@@ -61,6 +63,8 @@ export function AppText({
 
   return (
     <Text
+      lineBreakStrategyIOS="standard"
+      textBreakStrategy="highQuality"
       maxFontSizeMultiplier={maxScale ?? MAX_SCALE[variant] ?? DEFAULT_MAX_SCALE}
       style={[
         styles[variant],
@@ -70,7 +74,9 @@ export function AppText({
         style,
       ]}
       {...rest}
-    />
+    >
+      {typesetTextChildren(children)}
+    </Text>
   );
 }
 

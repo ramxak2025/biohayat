@@ -79,8 +79,7 @@ export function Price({
       variant={CURRENT[size]}
       weight="800"
       maxScale={1.5}
-      numberOfLines={1}
-      style={{ color: hasOld ? colors.sale : colors.text }}
+      style={[styles.amount, { color: hasOld ? colors.sale : colors.text }]}
     >
       {formatKopecks(current)}
     </AppText>
@@ -92,12 +91,11 @@ export function Price({
         variant={(layout === "inline" ? OLD_INLINE : OLD_STACK)[size]}
         color="faint"
         weight="500"
-        numberOfLines={1}
         maxScale={1.4}
         // зачёркивание — чистая графика: без подписи VoiceOver прочтёт просто
         // второе число и получится «тысяча триста рублей две тысячи рублей»
         accessibilityLabel={`Старая цена ${formatKopecks(old)}`}
-        style={styles.old}
+        style={[styles.amount, styles.old]}
       >
         {formatKopecks(old)}
       </AppText>
@@ -135,13 +133,15 @@ export function Price({
 const alignment = { left: "flex-start", center: "center", right: "flex-end" } as const;
 
 const styles = StyleSheet.create({
-  wrap: { gap: 2 },
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  wrap: { gap: 2, maxWidth: "100%" },
+  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm, maxWidth: "100%" },
   inline: {
     flexDirection: "row",
     alignItems: "baseline",
     flexWrap: "wrap",
     gap: spacing.xs + 2,
+    maxWidth: "100%",
   },
+  amount: { maxWidth: "100%" },
   old: { textDecorationLine: "line-through" },
 });

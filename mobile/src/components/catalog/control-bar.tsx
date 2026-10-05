@@ -1,4 +1,5 @@
-import { StyleSheet, View } from "react-native";
+import { useCallback, useState } from "react";
+import { Platform, StyleSheet, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { SymbolView, type SFSymbol } from "expo-symbols";
 import Animated, {
   Extrapolation,
@@ -10,7 +11,8 @@ import Animated, {
 
 import { AppText, Divider, GlassSurface, PressableScale } from "@/components/ui";
 import { plural } from "@/lib/format";
-import { HIT_SLOP, radii, spacing, useColors } from "@/theme";
+import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
+import { catalogControlsStacked } from "@/lib/display-layout";
 
 import { sortShortLabel, type CatalogSort } from "./sort";
 
@@ -37,6 +39,8 @@ export interface CatalogControlBarProps {
   scrolled: SharedValue<number>;
   /** Высота нативной шапки: панель висит ровно под ней. */
   top: number;
+  /** Resting height is also reserved by the list below this overlay. */
+  onHeightChange: (height: number) => void;
 }
 
 /**
@@ -67,9 +71,19 @@ export function CatalogControlBar({
   onOpenFilters,
   scrolled,
   top,
+  onHeightChange,
 }: CatalogControlBarProps) {
   const colors = useColors();
   const reduced = useReducedMotion();
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = catalogControlsStacked(width, fontScale) || isCounting;
+  const [contentHeight, setContentHeight] = useState(CONTROL_BAR_HEIGHT_MIN);
+  const restingHeight = Math.max(CONTROL_BAR_HEIGHT, contentHeight + spacing.md);
+  const onContentLayout = useCallback((event: LayoutChangeEvent) => {
+    const next = Math.ceil(event.nativeEvent.layout.height);
+    setContentHeight((previous) => previous === next ? previous : next);
+    onHeightChange(Math.max(CONTROL_BAR_HEIGHT, next + spacing.md));
+  }, [onHeightChange]);
 
   const countLabel = isCounting
     ? "Подбираем товары…"
@@ -77,11 +91,16 @@ export function CatalogControlBar({
       `${total.toLocaleString("ru-RU").replace(/\s/g, "\u00a0")}\u00a0${plural(total, "товар", "товара", "товаров")}`;
 
   const shellStyle = useAnimatedStyle(() => {
-    if (reduced) return { height: CONTROL_BAR_HEIGHT };
+    if (reduced || stacked) return { height: restingHeight };
     const progress = interpolate(scrolled.value, [0, COLLAPSE_RANGE], [0, 1], Extrapolation.CLAMP);
     return {
-      height: interpolate(progress, [0, 1], [CONTROL_BAR_HEIGHT, CONTROL_BAR_HEIGHT_MIN]),
+      height: interpolate(progress, [0, 1], [restingHeight, Math.max(CONTROL_BAR_HEIGHT_MIN, contentHeight)]),
     };
+  });
+
+  const paddingStyle = useAnimatedStyle(() => {
+    if (reduced || stacked) return { paddingVertical: spacing.md / 2 };
+    return { paddingVertical: interpolate(scrolled.value, [0, COLLAPSE_RANGE], [spacing.md / 2, 0], Extrapolation.CLAMP) };
   });
 
   const countStyle = useAnimatedStyle(() => {
@@ -103,36 +122,40 @@ export function CatalogControlBar({
   return (
     <Animated.View style={[styles.shell, { top }, shellStyle]}>
       <GlassSurface style={styles.glass}>
-        <View style={styles.row}>
-          <Animated.View style={[styles.count, countStyle]}>
-            <AppText variant="subhead" color="muted" numberOfLines={1} maxScale={1.4}>
-              {countLabel}
-            </AppText>
-          </Animated.View>
+        <Animated.View style={paddingStyle}>
+          <View style={[styles.row, stacked ? styles.stackedRow : null]} onLayout={onContentLayout}>
+            <Animated.View style={[styles.count, countStyle]}>
+              <AppText variant="subhead" color="muted" maxScale={1.4}>
+                {countLabel}
+              </AppText>
+            </Animated.View>
 
-          <View style={styles.actions}>
-            <BarButton
-              icon="arrow.up.arrow.down"
-              label={sortShortLabel(sort)}
-              accessibilityLabel={`Сортировка: ${sortShortLabel(sort)}`}
-              accessibilityHint="Открывает список вариантов сортировки"
-              onPress={onOpenSort}
-            />
+            <View style={[styles.actions, stacked ? styles.stackedActions : null]}>
+              <BarButton
+                icon="arrow.up.arrow.down"
+                label={sortShortLabel(sort)}
+                accessibilityLabel={`Сортировка: ${sortShortLabel(sort)}`}
+                accessibilityHint="Открывает список вариантов сортировки"
+                onPress={onOpenSort}
+                expanded={stacked}
+              />
 
-            <Divider vertical style={styles.separator} />
+              <Divider vertical style={styles.separator} />
 
-            <BarButton
-              icon="line.3.horizontal.decrease"
-              label="Фильтры"
-              marked={activeCount > 0}
-              accessibilityLabel={
-                activeCount > 0 ? `Фильтры, выбрано ${activeCount}` : "Фильтры"
-              }
-              accessibilityHint="Открывает фильтры каталога"
-              onPress={onOpenFilters}
-            />
+              <BarButton
+                icon="line.3.horizontal.decrease"
+                label="Фильтры"
+                marked={activeCount > 0}
+                accessibilityLabel={
+                  activeCount > 0 ? `Фильтры, выбрано ${activeCount}` : "Фильтры"
+                }
+                accessibilityHint="Открывает фильтры каталога"
+                onPress={onOpenFilters}
+                expanded={stacked}
+              />
+            </View>
           </View>
-        </View>
+        </Animated.View>
       </GlassSurface>
 
       <Animated.View
@@ -151,6 +174,7 @@ interface BarButtonProps {
   accessibilityLabel: string;
   accessibilityHint?: string;
   onPress: () => void;
+  expanded?: boolean;
 }
 
 /**
@@ -161,21 +185,20 @@ interface BarButtonProps {
  * «как часть материала»). Поэтому здесь только глиф и подпись, а зона нажатия
  * добирается слопом до 44 pt даже когда панель ужалась.
  */
-function BarButton({ icon, label, marked, accessibilityLabel, accessibilityHint, onPress }: BarButtonProps) {
+function BarButton({ icon, label, marked, accessibilityLabel, accessibilityHint, onPress, expanded }: BarButtonProps) {
   const colors = useColors();
 
   return (
     <PressableScale
       onPress={onPress}
       haptic="light"
-      hitSlop={HIT_SLOP}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
-      style={styles.button}
+      style={[styles.button, expanded ? styles.expandedButton : null]}
     >
       <SymbolView name={icon} size={15} tintColor={colors.text} weight="semibold" />
-      <AppText variant="subhead" weight="600" numberOfLines={1} maxScale={1.3}>
+      <AppText variant="subhead" weight="600" maxScale={1.3} style={styles.buttonLabel}>
         {label}
       </AppText>
       {marked ? (
@@ -189,15 +212,16 @@ const styles = StyleSheet.create({
   shell: { position: "absolute", left: 0, right: 0, zIndex: 2 },
   glass: { flex: 1 },
   row: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
     paddingHorizontal: spacing.base,
   },
+  stackedRow: { flexDirection: "column", alignItems: "stretch", gap: spacing.xs },
   count: { flexShrink: 1 },
   actions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  stackedActions: { alignSelf: "stretch" },
   separator: { height: 18, alignSelf: "center" },
   button: {
     flexDirection: "row",
@@ -206,7 +230,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.xs,
     borderRadius: radii.sm,
+    minHeight: Platform.OS === "android" ? 48 : MIN_TAP_SIZE,
+    flexShrink: 1,
   },
+  expandedButton: { flex: 1 },
+  buttonLabel: { flexShrink: 1 },
   // точка вместо числа: сколько именно фильтров включено, человек увидит в листе,
   // а на панели важен один бит — «что-то выбрано»
   dot: { width: 8, height: 8, borderRadius: radii.pill, borderWidth: 1.5, marginLeft: -2 },

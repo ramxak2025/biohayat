@@ -1,6 +1,7 @@
 import { useCallback, useContext, useState, type ReactNode, type RefObject } from "react";
 import {
   RefreshControl,
+  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -13,19 +14,15 @@ import { HeaderHeightContext } from "expo-router/react-navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { spacing, useColors } from "@/theme";
+import { nativeTabBottomInset } from "./native-tab-inset";
 
-/**
- * Высота нативного таб-бара iOS без безопасной зоны. UIKit не отдаёт её в RN
- * при использовании NativeTabs, а системный отступ применяется только к
- * скролл-вью с `contentInsetAdjustmentBehavior="automatic"`. Для НЕскроллящегося
- * контента и плавающих футеров считаем руками.
- */
+/** Legacy flight animation estimate; native layout insets must not add this height. */
 export const TAB_BAR_HEIGHT = 49;
 
 /** Отступ снизу, чтобы контент/футер не попал под нативный таб-бар. */
 export function useTabBarInset(withTabBar = true): number {
   const insets = useSafeAreaInsets();
-  return insets.bottom + (withTabBar ? TAB_BAR_HEIGHT : 0);
+  return nativeTabBottomInset(Platform.OS, insets.bottom, withTabBar);
 }
 
 /**
@@ -98,7 +95,7 @@ export function Screen({
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderInset();
-  const bottomInset = insets.bottom + (withTabBar ? TAB_BAR_HEIGHT : 0);
+  const bottomInset = nativeTabBottomInset(Platform.OS, insets.bottom, withTabBar);
 
   /**
    * Реальная высота футера вместо константы «на глаз»: панель покупки в разных
@@ -152,7 +149,7 @@ export function Screen({
         {
           // прозрачная шапка не сдвигает контент — отступ под неё наш
           paddingTop: headerTransparent ? headerHeight : 0,
-          // здесь системного инсета нет вовсе: считаем таб-бар и футер сами
+          // iOS даёт полный инсет UIKit, Android уже разместил экран над табами
           paddingBottom: bottomInset + (footer ? footerHeight : 0),
         },
         contentContainerStyle,

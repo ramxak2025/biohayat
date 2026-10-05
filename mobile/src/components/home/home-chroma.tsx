@@ -21,6 +21,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { MIN_TAP_SIZE, palette, radii, spacing, useColors, useTheme } from "@/theme";
 
 import { withAlpha } from "./banner-color";
+import { HOME_CHROMA_MIN_HEIGHT } from "@/lib/display-layout";
 
 /**
  * Цвет обводки точки над фотографией. Вычисляется в модуле, а НЕ внутри
@@ -49,10 +50,9 @@ export interface HomeChromaProps {
   /** Вертикальное смещение главной (общий с героем shared value). */
   scrollY: SharedValue<number>;
   heroHeight: number;
+  barHeight: number;
+  onBarHeightChange: (height: number) => void;
 }
-
-/** Высота строки под safe-area: ровно под 44-pt кнопки плюс воздух. */
-const BAR_HEIGHT = 52;
 /** Длина кроссфейда в пунктах скролла — чтобы переход читался, но не тянулся. */
 const CROSSFADE = 72;
 
@@ -66,7 +66,7 @@ function chromaProgress(y: number, switchAt: number, reduced: boolean): number {
   return interpolate(y, [switchAt - CROSSFADE, switchAt], [0, 1], Extrapolation.CLAMP);
 }
 
-export function HomeChroma({ scrollY, heroHeight }: HomeChromaProps) {
+export function HomeChroma({ scrollY, heroHeight, barHeight, onBarHeightChange }: HomeChromaProps) {
   const colors = useColors();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -76,7 +76,7 @@ export function HomeChroma({ scrollY, heroHeight }: HomeChromaProps) {
   const { ids } = useFavorites();
 
   // точка, в которой низ героя догнал низ полосы: дальше под хромой уже контент
-  const switchAt = Math.max(1, heroHeight - insets.top - BAR_HEIGHT);
+  const switchAt = Math.max(1, heroHeight - insets.top - barHeight);
 
   // Строка статуса — единственное, что нельзя анимировать на UI-потоке: это
   // системный вызов. Поэтому в JS уходит один boolean и только в момент смены.
@@ -122,7 +122,7 @@ export function HomeChroma({ scrollY, heroHeight }: HomeChromaProps) {
             снежном кадре, и в светлой теме. Уходит ровно тем же кроссфейдом,
             каким проявляется стекло. */}
         <Animated.View
-          style={[styles.scrim, { height: insets.top + BAR_HEIGHT + 28 }, photoStyle]}
+          style={[styles.scrim, { height: insets.top + barHeight + 28 }, photoStyle]}
           pointerEvents="none"
         >
           <LinearGradient
@@ -140,7 +140,7 @@ export function HomeChroma({ scrollY, heroHeight }: HomeChromaProps) {
 
         {/* box-none по всей цепочке: плавающая хрома не должна перехватывать
             ни скролл, ни нажатие на герой — только свои кнопки */}
-        <View style={styles.bar} pointerEvents="box-none">
+        <View style={styles.bar} pointerEvents="box-none" onLayout={(event) => onBarHeightChange(event.nativeEvent.layout.height)}>
           {/* Две копии марки читались бы VoiceOver дважды — собираем их в один
               элемент и подписываем его сами. */}
           <View
@@ -260,17 +260,17 @@ const styles = StyleSheet.create({
   scrim: { position: "absolute", top: 0, left: 0, right: 0 },
   hairline: { position: "absolute", left: 0, right: 0, bottom: 0, height: StyleSheet.hairlineWidth },
   bar: {
-    height: BAR_HEIGHT,
+    minHeight: HOME_CHROMA_MIN_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingLeft: spacing.lg,
     paddingRight: spacing.sm,
   },
-  brand: { justifyContent: "center" },
+  brand: { justifyContent: "center", flexShrink: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   brandOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "center" },
-  word: { letterSpacing: 1.4 },
+  word: { letterSpacing: 1.4, flexShrink: 1 },
   // белый, а не colors.text: марка лежит на фотографии, и в светлой теме тоже
   wordOnPhoto: { color: palette.surface },
   actions: { flexDirection: "row", alignItems: "center" },

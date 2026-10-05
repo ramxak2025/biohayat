@@ -222,6 +222,7 @@ test("home exposes required banner, offer and settings failures with retry", () 
   const home = Object.fromEntries(["ArticlesRail", "CategoryRail", "HeroCarousel", "HomeChroma", "HomeSection", "PromoStrip", "TaxonomyRail", "TrustBlock"].map((name) => [name, name]));
   Object.assign(home, { useBannerNavigate: () => () => {}, useHeroHeight: () => 400 });
   const { HomeScreen } = loader({
+    react: reactHooks,
     "react-native": { ...native, RefreshControl: "RefreshControl" },
     "expo-router": { Stack: { Screen: "StackScreen" }, useRouter: () => router },
     "react-native-safe-area-context": { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },

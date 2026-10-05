@@ -44,7 +44,7 @@ copy; 224 files matched at the final independent review.
 - **13 grouped HTTP/Prisma checks passed against the production Next build**, not
   only the development server. Fixture cleanup passed. Negative database guard
   checks rejected a remote host and a different local database name.
-- **27 mobile tests passed**, including tests that execute the real auth store,
+- **43 mobile tests passed**, including tests that execute the real auth store,
   API client, query cache, checkout helper and extracted UI callbacks. Eight
   routing tests use the installed Expo Router resolver; they reproduced the old
   unmatched checkout and sibling routes before their fixes. Mobile
@@ -141,3 +141,55 @@ runtime interactions were not exhaustively exercised.
 After smoke, scoped cleanup removed only the two UI-fixture orders, fixture
 customer, product and category. Temporary browser, Metro/Next processes and
 the task-owned simulator were stopped. No production records were created.
+
+## Mobile dock and typography follow-up (2026-10-05)
+
+The product dock no longer adds a fixed 49-point tab height on top of the native
+inset. It uses an 8-point gap and its measured height for content reservation.
+Narrow layouts or enlarged text stack price and action. Shared buttons grow with
+their labels; prices retain nonbreaking currency groups; section headings wrap;
+stepper controls have 44-point iOS / 48-point Android targets.
+
+Display-only Russian typesetting binds short prepositions and common numeric
+units, preserving paragraphs, existing nonbreaking spaces, URLs, emails,
+technical identifiers and nested React elements. It does not modify input/API
+values or join across link/element boundaries. Compact product-card excerpts
+and system navigation titles may still intentionally use ellipsis.
+
+Native large-text checks exposed a clipped home hero, narrow category labels
+and a squeezed catalog count. Hero content/header and catalog-control heights
+are now measured; category widths respond to font size. Independent review
+caught stale hero height when the tallest server banner was removed; a rerender
+regression reproduces and fixes that case without another retained-banner
+layout event (852 to 367 points in the test scenario).
+
+Final evidence after integration:
+
+- 43/43 mobile tests and nonincremental TypeScript pass, independently rechecked.
+- Independent final diff review has no unresolved material findings.
+- Final iOS and Android JS/Hermes exports pass; log:
+  `/tmp/hayat-shared-data/mobile-export-ui-release.log`.
+- `git diff --check` passes; Impeccable typography detector returns no findings.
+- Native iPhone SE3, iOS26.5, dark mode and XXXL text: full home heading with
+  correct short-preposition grouping and readable cart total/action confirmed.
+- Native iPhone17Pro in system Reduce Motion mode: 1,234-RUB product dock sits
+  approximately 8 points above native tabs. In dark/XXXL mode it stacks cleanly;
+  increasing quantity from one to two shows 246,912 RUB without clipping.
+- Screenshots: `/tmp/hayat-shared-data/ui-final-product-dock.png`,
+  `/tmp/hayat-shared-data/ui-final-product-large-type.png`,
+  `/tmp/hayat-shared-data/ui-final-home-typeset.png`, and
+  `/tmp/hayat-shared-data/ui-final-cart-compact.png`.
+
+Visual limits: concurrent Simulator use by another task and unreliable automated
+scroll gestures prevented a complete final animated-reveal/end-of-scroll and
+category-scroll pass. Dock position was confirmed using the genuine iOS Reduce
+Motion setting, with no application-code override. The task-owned iPhone17Pro
+QA device retains Reduce Motion enabled for that scenario; check it before a
+future animation test. No Android device/emulator, signed distribution or
+physical-device check was performed. These are JS exports, not IPA/APK builds.
+No production data or server configuration changed in this UI follow-up.
+
+After this UI check, scoped cleanup removed exactly two local typography-fixture
+products and their category. Both task-owned QA simulators and the local Metro/
+Next processes were stopped. The other task's simulator/chat was not modified
+or messaged. All 462 baseline files outside primary `mobile/` remain unchanged.

@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import type { Category } from "@/api/types";
@@ -6,6 +6,7 @@ import { AppText, ErrorState, PressableScale, Skeleton } from "@/components/ui";
 import { radii, shadows, spacing, useColors } from "@/theme";
 
 import { sfSymbolFor } from "./icon-map";
+import { categoryTileWidth } from "@/lib/display-layout";
 
 const TILE_WIDTH = 158;
 const GAP = spacing.md;
@@ -32,6 +33,8 @@ export function CategoryRail({
   onPress,
   onPressAll,
 }: CategoryRailProps) {
+  const { width, fontScale } = useWindowDimensions();
+  const tileWidth = categoryTileWidth(width, fontScale);
   if (error && categories.length === 0) {
     return <ErrorState error={error} onRetry={onRetry} compact style={styles.state} />;
   }
@@ -45,8 +48,8 @@ export function CategoryRail({
       >
         {[0, 1, 2].map((column) => (
           <View key={column} style={styles.column}>
-            <Skeleton width={TILE_WIDTH} height={72} radius={radii.xl} />
-            <Skeleton width={TILE_WIDTH} height={72} radius={radii.xl} />
+            <Skeleton width={tileWidth} height={72} radius={radii.xl} />
+            <Skeleton width={tileWidth} height={72} radius={radii.xl} />
           </View>
         ))}
       </ScrollView>
@@ -62,7 +65,7 @@ export function CategoryRail({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      snapToInterval={TILE_WIDTH + GAP}
+      snapToInterval={tileWidth + GAP}
       snapToAlignment="start"
       decelerationRate="fast"
       contentContainerStyle={styles.track}
@@ -70,13 +73,13 @@ export function CategoryRail({
       {columns.map((column) => (
         <View key={column[0].id} style={styles.column}>
           {column.map((category) => (
-            <CategoryTile key={category.id} category={category} onPress={onPress} />
+            <CategoryTile key={category.id} category={category} onPress={onPress} width={tileWidth} />
           ))}
         </View>
       ))}
 
       <View style={styles.column}>
-        <AllTile onPress={onPressAll} />
+        <AllTile onPress={onPressAll} width={tileWidth} />
       </View>
     </ScrollView>
   );
@@ -85,9 +88,11 @@ export function CategoryRail({
 function CategoryTile({
   category,
   onPress,
+  width,
 }: {
   category: Category;
   onPress: (category: Category) => void;
+  width: number;
 }) {
   const colors = useColors();
 
@@ -98,6 +103,7 @@ function CategoryTile({
       accessibilityLabel={category.name}
       style={[
         styles.tile,
+        { width },
         shadows.xs,
         { backgroundColor: colors.surface, borderColor: colors.line },
       ]}
@@ -105,14 +111,14 @@ function CategoryTile({
       <View style={[styles.glyph, { backgroundColor: colors.brandSoft }]}>
         <SymbolView name={sfSymbolFor(category.icon)} size={19} tintColor={colors.brand} />
       </View>
-      <AppText variant="subhead" weight="600" numberOfLines={2} style={styles.tileLabel}>
+      <AppText variant="subhead" weight="600" style={styles.tileLabel}>
         {category.name}
       </AppText>
     </PressableScale>
   );
 }
 
-function AllTile({ onPress }: { onPress: () => void }) {
+function AllTile({ onPress, width }: { onPress: () => void; width: number }) {
   const colors = useColors();
 
   return (
@@ -120,7 +126,7 @@ function AllTile({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel="Все категории каталога"
-      style={[styles.tile, { backgroundColor: colors.brandSoft, borderColor: colors.brandBorder }]}
+      style={[styles.tile, { width, backgroundColor: colors.brandSoft, borderColor: colors.brandBorder }]}
     >
       <View style={[styles.glyph, { backgroundColor: colors.brand }]}>
         <SymbolView name="square.grid.2x2.fill" size={18} tintColor={colors.textOnBrand} />
@@ -129,7 +135,6 @@ function AllTile({ onPress }: { onPress: () => void }) {
         variant="subhead"
         weight="600"
         color="brand"
-        numberOfLines={2}
         style={styles.tileLabel}
       >
         Весь каталог
@@ -162,5 +167,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  tileLabel: { flex: 1 },
+  tileLabel: { flex: 1, minWidth: 0 },
 });

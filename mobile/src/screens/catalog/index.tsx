@@ -74,6 +74,10 @@ export function CatalogScreen() {
   const taxonomy = useTaxonomy();
 
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [controlBarHeight, setControlBarHeight] = useState(CONTROL_BAR_HEIGHT);
+  const onControlBarHeight = useCallback((height: number) => {
+    setControlBarHeight((previous) => previous === height ? previous : height);
+  }, []);
   const listRef = useRef<FlashListRef<Product>>(null);
   const railOffset = useRef(0);
 
@@ -154,7 +158,7 @@ export function CatalogScreen() {
     () => (
       <View style={styles.header}>
         {/* распорка под плавающую панель: она перекрывает верх списка */}
-        <View style={styles.barSpacer} />
+        <View style={{ height: controlBarHeight }} />
         <CatalogFilterRail
           filters={filters}
           categories={categories.data ?? []}
@@ -166,7 +170,7 @@ export function CatalogScreen() {
         />
       </View>
     ),
-    [filters, categories.data, categories.isLoading, toggleAxis, toggleFlag, clearSearch],
+    [controlBarHeight, filters, categories.data, categories.isLoading, toggleAxis, toggleFlag, clearSearch],
   );
 
   // плашка про БАД обязательна в каталоге — показываем в хвосте списка
@@ -206,7 +210,7 @@ export function CatalogScreen() {
         isFetchingNextPage={products.isFetchingNextPage}
         onScroll={onScroll}
         headerInset={headerInset}
-        barHeight={CONTROL_BAR_HEIGHT}
+        barHeight={controlBarHeight}
         bottomPadding={spacing["2xl"]}
         ListHeaderComponent={listHeader}
         ListFooterComponent={items.length > 0 ? listFooter : null}
@@ -226,6 +230,7 @@ export function CatalogScreen() {
         onOpenFilters={openFilters}
         scrolled={scrolled}
         top={headerInset}
+        onHeightChange={onControlBarHeight}
       />
 
       <CatalogFilterSheet
@@ -250,6 +255,5 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   // шапка списка живёт в контейнере сетки — добираем её поле до поля карточек
   header: { paddingHorizontal: GRID_EDGE_FIX },
-  barSpacer: { height: CONTROL_BAR_HEIGHT },
   footer: { paddingHorizontal: GRID_EDGE_FIX, paddingTop: spacing.lg },
 });

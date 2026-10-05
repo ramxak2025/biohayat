@@ -26,11 +26,11 @@ export function SectionHeader({ title, subtitle, actionLabel, onAction, style }:
   return (
     <View style={[styles.row, style]}>
       <View style={styles.titles}>
-        <AppText variant="title3" numberOfLines={1}>
+        <AppText variant="title3">
           {title}
         </AppText>
         {subtitle ? (
-          <AppText variant="footnote" color="muted" numberOfLines={2} style={styles.subtitle}>
+          <AppText variant="footnote" color="muted" style={styles.subtitle}>
             {subtitle}
           </AppText>
         ) : null}
@@ -45,7 +45,7 @@ export function SectionHeader({ title, subtitle, actionLabel, onAction, style }:
           accessibilityLabel={`${label}: ${title}`}
           style={styles.action}
         >
-          <AppText variant="subhead" color="brand" weight="600">
+          <AppText variant="subhead" color="brand" weight="600" style={styles.actionLabel}>
             {label}
           </AppText>
           <SymbolView name="chevron.right" size={12} tintColor={colors.brand} weight="semibold" />
@@ -64,7 +64,8 @@ const styles = StyleSheet.create({
     minHeight: MIN_TAP_SIZE,
     marginBottom: spacing.md,
   },
-  titles: { flex: 1 },
+  titles: { flex: 1, minWidth: 0 },
   subtitle: { marginTop: 2 },
-  action: { flexDirection: "row", alignItems: "center", gap: spacing.xs, paddingLeft: spacing.sm },
+  action: { flexDirection: "row", alignItems: "center", gap: spacing.xs, paddingLeft: spacing.sm, minHeight: MIN_TAP_SIZE, flexShrink: 1, maxWidth: "45%" },
+  actionLabel: { flexShrink: 1, textAlign: "right" },
 });

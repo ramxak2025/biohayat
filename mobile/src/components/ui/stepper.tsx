@@ -1,4 +1,4 @@
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import * as Haptics from "expo-haptics";
 import { SymbolView } from "expo-symbols";
 
@@ -6,6 +6,8 @@ import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 
 import { AppText } from "./app-text";
 import { PressableScale } from "./press-scale";
+
+const TAP_SIZE = Platform.OS === "android" ? 48 : MIN_TAP_SIZE;
 
 export interface StepperProps {
   value: number;
@@ -59,7 +61,7 @@ export function Stepper({
         haptic="none"
         accessibilityRole="button"
         accessibilityLabel={removeMode ? "Удалить из корзины" : "Уменьшить количество"}
-        style={[styles.button, compact ? styles.buttonSm : null]}
+        style={styles.button}
       >
         <SymbolView
           name={removeMode ? "trash" : "minus"}
@@ -86,7 +88,7 @@ export function Stepper({
         haptic="none"
         accessibilityRole="button"
         accessibilityLabel="Увеличить количество"
-        style={[styles.button, compact ? styles.buttonSm : null]}
+        style={styles.button}
       >
         <SymbolView
           name="plus"
@@ -101,9 +103,8 @@ export function Stepper({
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", borderRadius: radii.pill, alignSelf: "flex-start" },
-  rowMd: { height: MIN_TAP_SIZE, paddingHorizontal: spacing.xs },
-  rowSm: { height: 36, paddingHorizontal: 2 },
-  button: { width: MIN_TAP_SIZE - 8, height: MIN_TAP_SIZE - 8, alignItems: "center", justifyContent: "center" },
-  buttonSm: { width: 32, height: 32 },
-  value: { minWidth: 28 },
+  rowMd: { minHeight: TAP_SIZE, paddingHorizontal: spacing.xs },
+  rowSm: { minHeight: TAP_SIZE, paddingHorizontal: 2 },
+  button: { width: TAP_SIZE, minHeight: TAP_SIZE, alignItems: "center", justifyContent: "center" },
+  value: { minWidth: 28, paddingHorizontal: spacing.xs },
 });

@@ -1,7 +1,9 @@
 /* eslint-disable react-hooks/immutability -- Reanimated shared values: запись в `.value`
  * из обработчика скролла — штатный способ передать позицию на UI-поток. Правило
  * React Compiler про shared values не знает и даёт ложное срабатывание. */
+import { useCallback, useEffect, useRef } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView } from "expo-symbols";
@@ -18,6 +20,7 @@ import Animated, {
 import type { Banner } from "@/api/types";
 import { AppText, PressableScale } from "@/components/ui";
 import { palette, radii, spacing, useColors } from "@/theme";
+import { homeHeroHeight, HOME_CHROMA_MIN_HEIGHT, HERO_FADE_RATIO } from "@/lib/display-layout";
 
 import { bannerGradient, DEFAULT_BANNER_COLOR, inkOn, tint, withAlpha } from "./banner-color";
 
@@ -45,29 +48,24 @@ export interface HeroCarouselProps {
   onOpenCatalog: () => void;
   /** Вертикальное смещение экрана — источник параллакса и «резинки». */
   scrollY: SharedValue<number>;
+  height: number;
+  /** Intrinsic text height, excluding height-dependent fade padding. */
+  onContentHeightChange: (height: number) => void;
 }
-
-/**
- * Доля экрана под герой. 55 % — витрина занимает верх целиком, но снизу видна
- * кромка первой секции: она и приглашает скроллить.
- */
-const HERO_RATIO = 0.55;
-/** Пол и потолок: на SE 55 % — это мало, на Pro Max — уже слишком много. */
-const HERO_MIN = 340;
-const HERO_MAX = 560;
 
 /** Насколько фотография отстаёт от экрана при скролле (0 — едет вместе с ним). */
 const PARALLAX = 0.3;
 /** Доля героя, отданная растворению в фон экрана. */
-const FADE_RATIO = 0.3;
+const FADE_RATIO = HERO_FADE_RATIO;
 
 /**
  * Высота героя. Хук, а не константа: её знает и экран (чтобы сказать хроме, где
  * переключаться), и сам герой. Считается из размеров окна, поэтому чистый.
  */
-export function useHeroHeight(): number {
+export function useHeroHeight(contentHeight = 0, chromaHeight = HOME_CHROMA_MIN_HEIGHT): number {
   const { height } = useWindowDimensions();
-  return Math.round(Math.min(HERO_MAX, Math.max(HERO_MIN, height * HERO_RATIO)));
+  const insets = useSafeAreaInsets();
+  return homeHeroHeight(height, contentHeight, insets.top + chromaHeight + spacing.base);
 }
 
 export function HeroCarousel({
@@ -76,11 +74,26 @@ export function HeroCarousel({
   onPressBanner,
   onOpenCatalog,
   scrollY,
+  height,
+  onContentHeightChange,
 }: HeroCarouselProps) {
   const { width } = useWindowDimensions();
   const colors = useColors();
   const reduced = useReducedMotion();
-  const height = useHeroHeight();
+  const contentHeights = useRef(new Map<string, number>());
+  const publishContentHeight = useCallback(() => {
+    const activeIds = banners.length > 0 ? banners.map((banner) => banner.id) : ["fallback"];
+    for (const id of contentHeights.current.keys()) {
+      if (!activeIds.includes(id)) contentHeights.current.delete(id);
+    }
+    onContentHeightChange(Math.max(0, ...activeIds.map((key) => contentHeights.current.get(key) ?? 0)));
+  }, [banners, onContentHeightChange]);
+  // A retained slide need not fire onLayout when another banner disappears.
+  useEffect(publishContentHeight, [publishContentHeight]);
+  const measureContent = useCallback((id: string, measuredHeight: number) => {
+    contentHeights.current.set(id, Math.ceil(measuredHeight));
+    publishContentHeight();
+  }, [publishContentHeight]);
 
   // зона растворения в фон экрана; текст слайда живёт ВЫШЕ неё, иначе светлая
   // надпись оказалась бы на светлом фоне и пропала
@@ -122,6 +135,7 @@ export function HeroCarousel({
           reduced={reduced}
           scrollY={scrollY}
           onPress={onOpenCatalog}
+          onContentHeight={(value) => measureContent("fallback", value)}
         />
       ) : (
         <Animated.ScrollView
@@ -146,6 +160,7 @@ export function HeroCarousel({
               fade={fade}
               reduced={reduced}
               onPress={onPressBanner}
+              onContentHeight={(value) => measureContent(banner.id, value)}
             />
           ))}
         </Animated.ScrollView>
@@ -195,6 +210,7 @@ interface HeroSlideProps {
   fade: number;
   reduced: boolean;
   onPress: (banner: Banner) => void;
+  onContentHeight: (height: number) => void;
 }
 
 function HeroSlide({
@@ -207,6 +223,7 @@ function HeroSlide({
   fade,
   reduced,
   onPress,
+  onContentHeight,
 }: HeroSlideProps) {
   const background = banner.bgColor ?? DEFAULT_BANNER_COLOR;
   const ink = inkOn(background);
@@ -311,19 +328,21 @@ function HeroSlide({
         style={[styles.content, { paddingBottom: fade + spacing.sm }, contentStyle]}
         pointerEvents="none"
       >
-        <AppText variant="title1" numberOfLines={2} style={{ color: ink }}>
-          {banner.title}
-        </AppText>
-
-        {banner.subtitle ? (
-          <AppText variant="subhead" numberOfLines={2} style={[styles.subtitle, { color: ink }]}>
-            {banner.subtitle}
+        <View style={styles.contentBody} onLayout={(event) => onContentHeight(event.nativeEvent.layout.height)}>
+          <AppText variant="title1" style={{ color: ink }}>
+            {banner.title}
           </AppText>
-        ) : null}
 
-        {banner.ctaLabel && banner.link ? (
-          <HeroCta label={banner.ctaLabel} ink={ink} background={background} />
-        ) : null}
+          {banner.subtitle ? (
+            <AppText variant="subhead" style={[styles.subtitle, { color: ink }]}>
+              {banner.subtitle}
+            </AppText>
+          ) : null}
+
+          {banner.ctaLabel && banner.link ? (
+            <HeroCta label={banner.ctaLabel} ink={ink} background={background} />
+          ) : null}
+        </View>
       </Animated.View>
     </PressableScale>
   );
@@ -336,6 +355,7 @@ interface HeroFallbackProps {
   reduced: boolean;
   scrollY: SharedValue<number>;
   onPress: () => void;
+  onContentHeight: (height: number) => void;
 }
 
 /**
@@ -346,7 +366,7 @@ interface HeroFallbackProps {
  * прыгает. Без баннеров пользователь всё равно должен попасть в товары —
  * отсюда кнопка «В каталог».
  */
-function HeroFallback({ height, fade, loading, reduced, scrollY, onPress }: HeroFallbackProps) {
+function HeroFallback({ height, fade, loading, reduced, scrollY, onPress, onContentHeight }: HeroFallbackProps) {
   const ink = inkOn(DEFAULT_BANNER_COLOR);
   const drift = Math.round(height * PARALLAX);
 
@@ -372,30 +392,29 @@ function HeroFallback({ height, fade, loading, reduced, scrollY, onPress }: Hero
       </Animated.View>
 
       <View style={[styles.content, { paddingBottom: fade + spacing.sm }]}>
-        <AppText variant="caption2" style={[styles.kicker, { color: ink }]}>
-          ХАЯТ
-        </AppText>
-        <AppText variant="title1" numberOfLines={2} style={{ color: ink }}>
-          Витамины и добавки для каждого дня
-        </AppText>
+        <View style={styles.contentBody} onLayout={(event) => onContentHeight(event.nativeEvent.layout.height)}>
+          <AppText variant="title1" style={{ color: ink }}>
+            Витамины и добавки для каждого дня
+          </AppText>
 
-        {/* Пока баннеры грузятся, показываем ровно столько же экрана, сколько
-            он займёт потом: серый скелетон на брендовом градиенте читался бы
-            как поломка, а подпись с кнопкой, исчезающие через секунду, —
-            как прыжок вёрстки. */}
-        {loading ? null : (
-          <>
-            <AppText variant="subhead" numberOfLines={2} style={[styles.subtitle, { color: ink }]}>
-              Подберём курс под возраст, цель и образ жизни
-            </AppText>
-            <HeroCta
-              label="В каталог"
-              ink={ink}
-              background={DEFAULT_BANNER_COLOR}
-              onPress={onPress}
-            />
-          </>
-        )}
+          {/* Пока баннеры грузятся, показываем ровно столько же экрана, сколько
+              он займёт потом: серый скелетон на брендовом градиенте читался бы
+              как поломка, а подпись с кнопкой, исчезающие через секунду, —
+              как прыжок вёрстки. */}
+          {loading ? null : (
+            <>
+              <AppText variant="subhead" style={[styles.subtitle, { color: ink }]}>
+                Подберём курс под возраст, цель и образ жизни
+              </AppText>
+              <HeroCta
+                label="В каталог"
+                ink={ink}
+                background={DEFAULT_BANNER_COLOR}
+                onPress={onPress}
+              />
+            </>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -443,7 +462,7 @@ interface HeroCtaProps {
 function HeroCta({ label, ink, background, onPress }: HeroCtaProps) {
   const body = (
     <>
-      <AppText variant="subhead" weight="700" maxScale={1.3} style={{ color: background }}>
+      <AppText variant="subhead" weight="700" maxScale={1.3} style={[styles.ctaLabel, { color: background }]}>
         {label}
       </AppText>
       <SymbolView name="arrow.right" size={13} tintColor={background} weight="semibold" />
@@ -525,9 +544,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     paddingHorizontal: spacing.lg,
-    gap: spacing.xs,
   },
-  kicker: { letterSpacing: 1.6, opacity: 0.8, marginBottom: spacing.xs },
+  contentBody: { gap: spacing.xs },
   subtitle: { opacity: 0.9 },
   cta: {
     flexDirection: "row",
@@ -537,8 +555,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.base,
     minHeight: 44,
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    maxWidth: "100%",
     borderRadius: radii.pill,
   },
+  ctaLabel: { flexShrink: 1 },
   dots: {
     position: "absolute",
     left: 0,

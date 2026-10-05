@@ -2,6 +2,7 @@
  * из обработчика скролла — штатный способ передать позицию на UI-поток. Правило
  * React Compiler про shared values не знает и даёт ложное срабатывание. */
 import { RefreshControl, StyleSheet, View } from "react-native";
+import { useCallback, useState } from "react";
 import { Stack, useRouter, type NativeStackNavigationOptions } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
@@ -22,6 +23,7 @@ import {
 import { ProductStrip } from "@/components/product-card";
 import { AppText, BadDisclaimer, ErrorState, useTabBarInset } from "@/components/ui";
 import { palette, spacing, useColors } from "@/theme";
+import { HOME_CHROMA_MIN_HEIGHT } from "@/lib/display-layout";
 
 import { useHomeData } from "./use-home-data";
 
@@ -42,7 +44,17 @@ export function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
-  const heroHeight = useHeroHeight();
+  const [heroContentHeight, setHeroContentHeight] = useState(0);
+  const [chromaHeight, setChromaHeight] = useState(HOME_CHROMA_MIN_HEIGHT);
+  const heroHeight = useHeroHeight(heroContentHeight, chromaHeight);
+  const onHeroContentHeight = useCallback((height: number) => {
+    const next = Math.ceil(height);
+    setHeroContentHeight((previous) => previous === next ? previous : next);
+  }, []);
+  const onChromaHeight = useCallback((height: number) => {
+    const next = Math.ceil(height);
+    setChromaHeight((previous) => previous === next ? previous : next);
+  }, []);
   const openBanner = useBannerNavigate();
   const data = useHomeData();
 
@@ -151,6 +163,8 @@ export function HomeScreen() {
           onPressBanner={(banner) => openBanner(banner.link)}
           onOpenCatalog={openCatalog}
           scrollY={scrollY}
+          height={heroHeight}
+          onContentHeightChange={onHeroContentHeight}
         />
 
         {/* Непрозрачная подложка под всеми секциями. Герой на «резинке» растёт
@@ -270,7 +284,7 @@ export function HomeScreen() {
       </Animated.ScrollView>
 
       {/* Хрома рисуется ПОСЛЕ скролла: она лежит поверх героя и не входит в поток */}
-      <HomeChroma scrollY={scrollY} heroHeight={heroHeight} />
+      <HomeChroma scrollY={scrollY} heroHeight={heroHeight} barHeight={chromaHeight} onBarHeightChange={onChromaHeight} />
     </View>
   );
 }
