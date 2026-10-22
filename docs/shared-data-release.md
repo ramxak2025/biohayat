@@ -273,10 +273,29 @@ ordering is outside this integration; the existing website retains those flows.
 - Verification: **76 tests**, nonincremental TypeScript and independent code
   review passed. Native iOS 26.5 QA confirmed visible mask, ten-digit input
   formatting, redesigned layouts and pointer-driven card expansion/return.
-  Native capture required restarting the dedicated simulator after disabling
-  its QA Reduce Motion setting. No live sign-in, customer/order write or backend
+  Native capture was made after restarting the dedicated simulator with
+  its QA Reduce Motion setting disabled. No live sign-in, customer/order write or backend
   deployment was performed. Android and older-iOS native execution is unverified.
 - Local evidence: `/tmp/hayat-redesign-20261022/`; native transition recording
   `product-zoom.mp4`, extracted `zoom-a.png` through `zoom-c.png`, and return
   recording `product-return.mp4`. A concise actual-animation clip is retained
   in the task visualization folder `hayat-redesign-20261022/product-opening.mp4`.
+
+### TestFlight build 8 delivery
+
+- Source `c1a23d85bef1b2c8f46722db25f1ef5c06a252b8`; all 287 tracked mobile
+  files matched the primary checkout and inspected upload archive. Private keys,
+  local environment files and installed dependencies were excluded.
+- EAS production build `9ac78220-4c3e-45a7-94eb-d6beb99a18ab` and submission
+  `03618ad2-f5d7-4258-a503-c549d17272eb` finished successfully. Version **1.0.0 (8)**,
+  bundle `ru.biohayat.app`; existing signing credentials were reused.
+  The 22,868,016-byte IPA has SHA-256
+  `67876a367f797e6d6ec0f0751318f5d4d318ef9177116e7cc62bf08397a92321`.
+  ZIP integrity, production API origin, version, binary entitlements and
+  `codesign --verify --deep --strict` passed. Android JS/Hermes export passed.
+- Apple build `43880609-9c4d-4dbd-8d02-61c3119fc646` reports `VALID` and
+  `IN_BETA_TESTING`. Its membership in **Внутреннее тестирование**
+  (`9b913c5b-5f05-4e43-8660-9bd963cbf06c`) and Russian test notes were read back
+  successfully on 2026-10-22. No external/public release or tester access change.
+- Evidence is in `/tmp/hayat-redesign-20261022/`: `ipa-verification.json`,
+  `testflight-verification.json`, EAS status records and final test/export logs.
