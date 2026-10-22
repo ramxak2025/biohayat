@@ -32,8 +32,10 @@ export function formatPhone(raw: string): string {
 
 /** Только цифры в формате, который принимает API: +7XXXXXXXXXX. */
 export function normalizePhone(raw: string): string {
-  const d = raw.replace(/\D/g, "").replace(/^8/, "7");
-  return d ? `+${d.slice(0, 11)}` : "";
+  const digits = raw.replace(/\D/g, "");
+  const d = !raw.trimStart().startsWith("+") && digits.length === 11 && digits.startsWith("8")
+    ? `7${digits.slice(1)}` : digits;
+  return d ? `+${d}` : "";
 }
 
 export function isValidPhone(raw: string): boolean {

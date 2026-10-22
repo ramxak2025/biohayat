@@ -7,14 +7,15 @@ import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 
 import { AppText } from "./app-text";
 import { PressableScale } from "./press-scale";
+import { authSheetFraction } from "@/lib/auth-sheet-layout";
 
-/** Native detents leave context visible; compact/large-text layouts get all available height. */
-export function sheetScreenOptions(height: number, fontScale: number, backgroundColor: string): NativeStackNavigationOptions {
-  const needsFullHeight = height < 700 || fontScale >= 1.3;
+/** Native detents follow intrinsic auth content; overflowing forms can use the full height. */
+export function sheetScreenOptions(height: number, fontScale: number, backgroundColor: string, contentHeight = 0, topInset = 0): NativeStackNavigationOptions {
+  const fraction = authSheetFraction(contentHeight, height, topInset, fontScale);
   return {
     presentation: "formSheet",
     headerShown: false,
-    sheetAllowedDetents: needsFullHeight ? [1] : [0.8, 1],
+    sheetAllowedDetents: fraction === 1 ? [1] : [fraction, 1],
     sheetInitialDetentIndex: 0,
     sheetGrabberVisible: true,
     sheetExpandsWhenScrolledToEdge: true,

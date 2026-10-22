@@ -1,7 +1,7 @@
 import { memo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { useSegments } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import ReanimatedSwipeable, {
   type SwipeableMethods,
@@ -21,6 +21,8 @@ import { useCart, type CartLine } from "@/store/cart";
 import { Duration, Ease, radii, shadows, spacing, staggerDelay, useColors } from "@/theme";
 
 import { lineOldPriceKopecks } from "./pricing";
+import { ProductLink, ProductZoomSource } from "@/components/product-card/product-link";
+import { productHref } from "@/components/product-card/product-href";
 
 /** Ширина «ящика» с кнопкой удаления, который открывается свайпом влево. */
 const ACTION_WIDTH = 92;
@@ -78,7 +80,7 @@ function DeleteAction({
 export const CartLineRow = memo(function CartLineRow({ line, index, onRemove }: CartLineRowProps) {
   const colors = useColors();
   const reduced = useReducedMotion();
-  const router = useRouter();
+  const segments = useSegments();
   const setQty = useCart((state) => state.setQty);
   const swipeable = useRef<SwipeableMethods | null>(null);
 
@@ -91,9 +93,6 @@ export const CartLineRow = memo(function CartLineRow({ line, index, onRemove }: 
     onRemove(line);
   };
 
-  const openProduct = () => {
-    router.push(`./product/${line.slug}` as `./${string}`, { relativeToDirectory: true });
-  };
 
   return (
     <Animated.View
@@ -116,20 +115,22 @@ export const CartLineRow = memo(function CartLineRow({ line, index, onRemove }: 
         containerStyle={styles.swipeContainer}
         renderRightActions={(_progress, drag) => <DeleteAction drag={drag} onPress={remove} />}
       >
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+          <ProductLink href={productHref(segments, line.slug)}>
         <PressableScale
-          onPress={openProduct}
           haptic="none"
           accessibilityRole="button"
           accessibilityLabel={`${line.name}. ${line.qty} шт. ${formatKopecks(lineTotal)}`}
           accessibilityHint="Открыть товар. Свайп влево — удалить из корзины"
-          style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.line }]}
+          style={styles.rowMain}
         >
+          <ProductZoomSource>
           <View style={[styles.image, { backgroundColor: colors.surfaceSunken }]}>
             {line.image ? (
               <Image
                 source={{ uri: line.image }}
                 style={StyleSheet.absoluteFill}
-                contentFit="cover"
+                contentFit="contain"
                 transition={200}
                 cachePolicy="memory-disk"
                 recyclingKey={line.id}
@@ -138,11 +139,12 @@ export const CartLineRow = memo(function CartLineRow({ line, index, onRemove }: 
               />
             ) : (
               <View style={styles.noImage}>
-                <SymbolView name="leaf" size={20} tintColor={colors.brand} />
+                <Image source={require("../../../assets/brand/logo-mark.png")} style={{ width: 32, height: 32 }} contentFit="contain" accessible={false} />
               </View>
             )}
           </View>
 
+          </ProductZoomSource>
           <View style={styles.body}>
             <AppText variant="subhead" weight="600" numberOfLines={2}>
               {line.name}
@@ -161,6 +163,10 @@ export const CartLineRow = memo(function CartLineRow({ line, index, onRemove }: 
               </AppText>
             ) : null}
 
+
+          </View>
+        </PressableScale>
+          </ProductLink>
             <View style={styles.footer}>
               {/* `onRemove` степперу не даём: иначе на количестве 1 «−» тоже
                   превращается в корзину и в строке оказываются две одинаковые
@@ -180,8 +186,7 @@ export const CartLineRow = memo(function CartLineRow({ line, index, onRemove }: 
                 style={styles.trash}
               />
             </View>
-          </View>
-        </PressableScale>
+        </View>
       </ReanimatedSwipeable>
     </Animated.View>
   );
@@ -191,9 +196,9 @@ const styles = StyleSheet.create({
   outer: { marginBottom: spacing.sm, borderRadius: radii["2xl"] },
   // радиус на контейнере свайпа, иначе красная кнопка торчит углами из-под карточки
   swipeContainer: { borderRadius: radii["2xl"] },
+  rowMain: { flexDirection: "row", gap: spacing.md },
   card: {
-    flexDirection: "row",
-    gap: spacing.md,
+    flexDirection: "column",
     padding: spacing.md,
     borderRadius: radii["2xl"],
     borderWidth: StyleSheet.hairlineWidth,
@@ -203,6 +208,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, gap: 2 },
   price: { marginTop: spacing.xs },
   footer: {
+    marginLeft: IMAGE_SIZE + spacing.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

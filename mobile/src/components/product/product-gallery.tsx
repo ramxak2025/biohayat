@@ -45,35 +45,17 @@ export interface ProductGalleryProps {
   /** Ширина экрана: страница пагинации равна ей ровно, иначе paging «плывёт». */
   width: number;
   height: number;
-  /** Вертикальный скролл экрана — им управляется параллакс героя. */
-  scrollY: SharedValue<number>;
   /** Reduce Motion: параллакс выключаем, галерея остаётся обычной. */
   reducedMotion?: boolean;
   onOpenImage?: (index: number) => void;
 }
 
-/**
- * Герой карточки товара: фото на всю ширину с пагинацией, счётчиком «2/5»,
- * зумом по тапу и параллаксом.
- *
- * Счётчик в углу — привычка покупателя Wildberries: он сразу говорит, сколько
- * всего фото, ещё до того как человек начал листать. Точки показывают позицию,
- * счётчик — объём; вместе они и работают, поэтому оставлены оба.
- *
- * Геометрия параллакса выведена, а не подобрана: при оттяжке на d точек кадр
- * уезжает вниз на d, поэтому фото масштабируем в (1 + d/height) раз и поднимаем
- * на d/2 — тогда его верх ровно упирается в шапку, а низ в нижнюю границу кадра.
- * Клиппинг кадра сознательно НЕ включён: он срезал бы именно эту оттяжку, а
- * «съезд» фото вниз при обычном скролле закрывает непрозрачный контент под
- * героем. Отдельная страница галереи клиппинг всё же имеет — но в своих
- * координатах, до масштабирования героя, поэтому оттяжке это не мешает.
- */
+/** Вписанные фотографии в спокойной панели: листание, счётчик и просмотр на весь экран. */
 export function ProductGallery({
   images,
   name,
   width,
   height,
-  scrollY,
   reducedMotion = false,
   onOpenImage,
 }: ProductGalleryProps) {
@@ -99,36 +81,18 @@ export function ProductGallery({
     [images.length],
   );
 
-  const parallax = useAnimatedStyle(() => {
-    if (reducedMotion) return { transform: [{ translateY: 0 }, { scale: 1 }] };
-    const y = scrollY.value;
-    return {
-      transform: [
-        {
-          translateY: interpolate(
-            y,
-            [-height, 0, height],
-            [-height / 2, 0, height * 0.32],
-            Extrapolation.CLAMP,
-          ),
-        },
-        { scale: interpolate(y, [-height, 0], [2, 1], Extrapolation.CLAMP) },
-      ],
-    };
-  });
-
   const placeholder = (
     <View style={[styles.placeholder, { backgroundColor: colors.brandSoft }]}>
-      <SymbolView name="leaf" size={44} tintColor={colors.brand} weight="light" />
+      <Image source={require("../../../assets/brand/logo-mark.png")} style={{ width: 48, height: 48 }} contentFit="contain" accessible={false} />
       <AppText variant="footnote" color="faint">
-        Фото скоро появится
+        Фото пока нет
       </AppText>
     </View>
   );
 
   return (
     <View style={[styles.frame, { height, backgroundColor: colors.surface }]}>
-      <Animated.View style={[StyleSheet.absoluteFill, parallax]}>
+      <Animated.View style={StyleSheet.absoluteFill}>
         {images.length === 0 ? (
           placeholder
         ) : (
@@ -158,6 +122,10 @@ export function ProductGallery({
         )}
       </Animated.View>
 
+      {images.length > 0 ? <View style={styles.zoomHint} pointerEvents="none" accessibilityElementsHidden>
+        <SymbolView name={{ ios: "arrow.up.left.and.arrow.down.right", android: "open_in_full", web: "open_in_full" }} size={12} tintColor={colors.textMuted} />
+        <AppText variant="caption" color="muted">Увеличить</AppText>
+      </View> : null}
       {images.length > 1 ? (
         <>
           {/* «2/5» в углу: сколько всего фото, видно не начав листать */}
@@ -212,8 +180,8 @@ interface SlideProps {
  * появляется глубина. Считаем от общего `page`, поэтому и сдвиг, и затемнение
  * живут на UI-потоке — ни одного ререндера за жест.
  *
- * Сдвиг применяется к внутренней вьюхе, а вертикальный параллакс героя — к
- * общей обёртке над лентой, так что трансформации складываются, а не спорят.
+ * Сдвиг применяется только внутри горизонтальной страницы; сама панель
+ * не растягивается и не движется относительно вертикального содержимого.
  */
 function Slide({
   image,
@@ -226,6 +194,7 @@ function Slide({
   reducedMotion,
   onPress,
 }: SlideProps) {
+  const [failed, setFailed] = useState(false);
   const slide = useAnimatedStyle(() => {
     if (reducedMotion) return { opacity: 1, transform: [{ translateX: 0 }] };
     const offset = page.value - index;
@@ -255,7 +224,12 @@ function Slide({
       style={[styles.page, { width, height }]}
     >
       <Animated.View style={[styles.slide, slide]}>
-        <Image
+        {failed ? (
+          <View style={styles.placeholder}>
+            <SymbolView name={{ ios: "photo", android: "image_not_supported", web: "image_not_supported" }} size={32} />
+            <AppText variant="footnote" color="muted">Не удалось загрузить фото</AppText>
+          </View>
+        ) : <Image
           source={{ uri: image.url }}
           style={styles.image}
           contentFit="contain"
@@ -266,7 +240,8 @@ function Slide({
           recyclingKey={image.url}
           accessibilityIgnoresInvertColors
           alt={image.alt ?? name}
-        />
+          onError={() => setFailed(true)}
+        />}
       </Animated.View>
     </Pressable>
   );
@@ -304,11 +279,12 @@ function Dot({ index, page, active, inactive, reducedMotion }: DotProps) {
 }
 
 const styles = StyleSheet.create({
-  frame: { width: "100%" },
+  frame: { width: "100%", borderRadius: radii.xl, overflow: "hidden" },
   page: { overflow: "hidden" },
   slide: { flex: 1 },
   image: { flex: 1, margin: spacing.lg },
   placeholder: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm },
+  zoomHint: { position: "absolute", left: spacing.md, bottom: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.xs },
   dots: {
     position: "absolute",
     alignSelf: "center",

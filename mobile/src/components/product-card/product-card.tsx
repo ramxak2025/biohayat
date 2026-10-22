@@ -1,7 +1,7 @@
+import type { ReactElement } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { Image } from "expo-image";
 import { useRouter, useSegments } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import Animated, { FadeInDown, useReducedMotion } from "react-native-reanimated";
 
 import type { Product } from "@/api/types";
@@ -14,6 +14,7 @@ import { Duration, Ease, radii, shadows, spacing, staggerDelay, useColors } from
 import { AddToCart } from "./add-to-cart";
 import { FavoriteButton } from "./favorite-button";
 import { productHref } from "./product-href";
+import { ProductLink, ProductZoomSource } from "./product-link";
 
 export type ProductCardLayout = "grid" | "row";
 
@@ -73,6 +74,8 @@ export function ProductCard({
     router.push(productHref(segments, product.slug));
   };
 
+  const navigate = (child: ReactElement<{ style?: StyleProp<ViewStyle> }>) => onPress ? child : <ProductLink href={productHref(segments, product.slug)}>{child}</ProductLink>;
+
   const discount = product.discountPercent;
   const extraBadge = product.badges[0];
 
@@ -91,6 +94,7 @@ export function ProductCard({
 
   /** Фото. Форма (размер и радиусы) приходит снаружи — она разная у плитки и строки. */
   const photo = (shape: StyleProp<ViewStyle>) => (
+    <ProductZoomSource enabled={!onPress}>
     <View
       style={[
         styles.photo,
@@ -105,7 +109,7 @@ export function ProductCard({
         <Image
           source={{ uri: product.image }}
           style={StyleSheet.absoluteFill}
-          contentFit="cover"
+          contentFit="contain"
           transition={220}
           cachePolicy="memory-disk"
           recyclingKey={product.id}
@@ -114,13 +118,14 @@ export function ProductCard({
         />
       ) : (
         <View style={styles.noImage}>
-          <SymbolView name="leaf" size={22} tintColor={colors.brand} />
+          <Image source={require("../../../assets/brand/logo-mark.png")} style={{ width: 32, height: 32 }} contentFit="contain" accessible={false} />
           <AppText variant="caption2" color="faint" numberOfLines={1}>
             ХАЯТ
           </AppText>
         </View>
       )}
     </View>
+    </ProductZoomSource>
   );
 
   /**
@@ -134,131 +139,42 @@ export function ProductCard({
     <Badge label={extraBadge} tone="accent" size="sm" />
   ) : null;
 
-  const body =
-    layout === "grid" ? (
-      <PressableScale
-        accessible={false}
-        onPress={open}
-        style={[
-          styles.card,
-          shadows.sm,
-          { backgroundColor: colors.surface, borderColor: colors.line, borderRadius: GRID_RADIUS },
-          width ? { width } : null,
-          style,
-        ]}
-      >
-        {/* onAccessibilityTap задан осознанно: с ним RCTView отвечает на
-            accessibilityActivate сам, и UIKit не синтезирует тап по родителю —
-            переход происходит ровно один раз */}
-        <View
-          accessible
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          accessibilityHint="Открывает карточку товара"
-          onAccessibilityTap={open}
-        >
-          <View>
-            {photo(styles.gridPhoto)}
-            {corner ? (
-              <View style={styles.corner} pointerEvents="none">
-                {corner}
-              </View>
-            ) : null}
-          </View>
+  const summary = (row: boolean) => navigate(
+    <PressableScale
+      onPress={onPress ? open : undefined}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint="Открывает карточку товара"
+      onAccessibilityTap={open}
+      style={row ? styles.rowMain : undefined}
+    >
+      <View style={row ? styles.rowImage : undefined}>
+        {photo(row ? styles.rowPhoto : styles.gridPhoto)}
+        {corner ? <View style={row ? styles.rowCorner : styles.corner} pointerEvents="none">{corner}</View> : null}
+      </View>
+      <View style={row ? styles.rowBody : styles.gridBody}>
+        {row && product.category ? <AppText variant="caption" color="brand" weight="600" numberOfLines={1}>{product.category.name}</AppText> : null}
+        <AppText variant={row ? "subhead" : "footnote"} weight={row ? "600" : "500"} numberOfLines={2} style={row ? styles.rowName : styles.gridName}>{product.name}</AppText>
+        {row && product.volume ? <AppText variant="caption" color="faint">{product.volume}</AppText> : null}
+        <Price price={product.price} oldPrice={product.oldPrice} discountPercent={product.discountPercent} size={row ? "sm" : "md"} layout="inline" showDiscount={false} />
+      </View>
+    </PressableScale>
+  );
 
-          <View style={styles.gridBody}>
-            <AppText variant="footnote" weight="500" numberOfLines={2} style={styles.gridName}>
-              {product.name}
-            </AppText>
-            {/* цена — главный герой плитки: крупнее названия, скидочная — цветом
-                sale; процент не дублируем, он уже висит на фото */}
-            <Price
-              price={product.price}
-              oldPrice={product.oldPrice}
-              discountPercent={product.discountPercent}
-              size="md"
-              layout="inline"
-              showDiscount={false}
-            />
-          </View>
-        </View>
-
-        {showAddToCart ? (
-          <View style={styles.gridCta}>
-            <AddToCart product={product} />
-          </View>
-        ) : null}
-
-        <View style={styles.favorite}>
-          <FavoriteButton productId={product.id} />
-        </View>
-      </PressableScale>
-    ) : (
-      <PressableScale
-        accessible={false}
-        onPress={open}
-        style={[
-          styles.rowCard,
-          shadows.sm,
-          { backgroundColor: colors.surface, borderColor: colors.line },
-          style,
-        ]}
-      >
-        <View
-          style={styles.rowImage}
-          // фото продублировано словами в сводке — лишняя остановка VoiceOver не нужна
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          {photo(styles.rowPhoto)}
-          {corner ? (
-            <View style={styles.rowCorner} pointerEvents="none">
-              {corner}
-            </View>
-          ) : null}
-        </View>
-
-        <View style={styles.rowBody}>
-          <View
-            accessible
-            accessibilityRole="button"
-            accessibilityLabel={label}
-            accessibilityHint="Открывает карточку товара"
-            onAccessibilityTap={open}
-          >
-            {product.category ? (
-              <AppText variant="caption" color="brand" weight="600" numberOfLines={1}>
-                {product.category.name}
-              </AppText>
-            ) : null}
-            <AppText variant="subhead" weight="600" numberOfLines={2} style={styles.rowName}>
-              {product.name}
-            </AppText>
-            {product.volume ? (
-              <AppText variant="caption" color="faint" numberOfLines={1}>
-                {product.volume}
-              </AppText>
-            ) : null}
-          </View>
-
-          <View style={styles.rowFooter}>
-            <Price
-              price={product.price}
-              oldPrice={product.oldPrice}
-              discountPercent={product.discountPercent}
-              size="sm"
-              layout="inline"
-              showDiscount={false}
-            />
-            {showAddToCart ? <AddToCart product={product} /> : null}
-          </View>
-        </View>
-
-        <View style={styles.rowFavorite}>
-          <FavoriteButton productId={product.id} onImage={false} />
-        </View>
-      </PressableScale>
-    );
+  const body = layout === "grid" ? (
+    <View accessible={false} style={[styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.line, borderRadius: GRID_RADIUS }, width ? { width } : null, style]}>
+      {summary(false)}
+      {showAddToCart ? <View style={styles.gridCta}><AddToCart product={product} /></View> : null}
+      <View style={styles.favorite}><FavoriteButton productId={product.id} /></View>
+    </View>
+  ) : (
+    <View accessible={false} style={[styles.rowCard, { flexDirection: "column" }, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.line }, style]}>
+      {summary(true)}
+      {showAddToCart ? <View style={styles.rowActions}><AddToCart product={product} /></View> : null}
+      <View style={styles.rowFavorite}><FavoriteButton productId={product.id} onImage={false} /></View>
+    </View>
+  );
 
   return (
     <Animated.View
@@ -294,6 +210,8 @@ const styles = StyleSheet.create({
   gridName: { minHeight: 36 },
   gridCta: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
 
+  rowMain: { flexDirection: "row", gap: spacing.md },
+  rowActions: { alignSelf: "flex-end", marginTop: spacing.sm },
   rowCard: {
     flexDirection: "row",
     gap: spacing.md,

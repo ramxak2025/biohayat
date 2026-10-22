@@ -1,5 +1,5 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { SymbolView, type SFSymbol } from "expo-symbols";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
 import { MIN_TAP_SIZE, radii, useColors } from "@/theme";
 
@@ -9,7 +9,7 @@ import { PressableScale, type PressHaptic } from "./press-scale";
 export type IconButtonVariant = "plain" | "soft" | "filled" | "glass";
 
 export interface IconButtonProps {
-  name: SFSymbol;
+  name: SymbolViewProps["name"];
   /** Обязателен: VoiceOver не видит иконку (HIG: «always specify an accessibility label»). */
   label: string;
   onPress?: () => void;

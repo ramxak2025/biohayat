@@ -133,7 +133,7 @@ export function FavoriteButton({ productId, onImage = true, size = 18 }: Favorit
         if (reduced) return;
         squeeze.value = withSpring(1, Spring.press);
       }}
-      onPress={() => toggle(productId)}
+      onPress={(event) => { event.stopPropagation(); toggle(productId); }}
       accessibilityRole="button"
       accessibilityLabel={active ? "Убрать из избранного" : "Добавить в избранное"}
       accessibilityState={{ selected: active }}

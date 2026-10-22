@@ -21,7 +21,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { formatPhone, normalizePhone } from "@/lib/format";
+import { normalizePhoneInput, phoneInputDisplay, PHONE_MASK } from "@/lib/phone-input";
 import { Duration, Ease, MIN_TAP_SIZE, radii, spacing, typography, useColors } from "@/theme";
 
 import { AppText } from "./app-text";
@@ -128,13 +128,13 @@ export function PhoneInput({ value, onChangeText, label = "Телефон", ...r
   return (
     <Input
       label={label}
-      value={formatPhone(value)}
-      onChangeText={(raw) => onChangeText(normalizePhone(raw))}
+      value={phoneInputDisplay(value)}
+      onChangeText={(raw) => onChangeText(normalizePhoneInput(raw))}
       keyboardType="phone-pad"
       textContentType="telephoneNumber"
       autoComplete="tel"
-      placeholder="+7 999 000-00-00"
-      maxLength={18}
+      placeholder={PHONE_MASK}
+      maxLength={64}
       {...rest}
     />
   );

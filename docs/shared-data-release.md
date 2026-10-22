@@ -245,3 +245,38 @@ ordering is outside this integration; the existing website retains those flows.
   or tester permission change was made.
 - Delivery evidence is retained in `/tmp/hayat-ui-20261022/` as
   `ipa-verification.json`, `testflight-verification.json` and EAS status records.
+
+## Sign-in and product redesign — 2026-10-22
+
+- Replaced the fixed-height sign-in composition with a measured intrinsic form,
+  centered original brand mark and readable title, visible field labels and
+  adjacent form actions. Native detents follow login, registration and error
+  content; overflowing forms retain scrolling and home-indicator clearance.
+  Floating iOS 26 sheets avoid redundant bottom space; full-height, older-iOS
+  and Android forms retain their manual bottom inset. Dismissal guards remain.
+- Empty phone fields now display `+7 ___ ___-__-__`. Placeholder characters never
+  enter the model. Ten-digit subscriber input, domestic 8-prefix and formatted
+  +7 input converge on the canonical number. Explicit foreign and overlong
+  numbers are no longer silently rewritten/truncated into another account.
+  Autofill metadata, clear behavior and one-time focus advance are preserved.
+- Product identity precedes a bounded, rounded, contain-fit media panel beneath
+  an opaque compact navigation bar. Price and availability remain factual;
+  the purchase dock is always available and reserves its measured height once.
+  Removed vertical photo stretching and duplicate availability text. Existing
+  details, contraindications, full-screen media, sharing and tracker flows remain.
+- Product cards and cart product links use the public, installed Expo Router
+  `Link.AppleZoom` source and target APIs on iOS. The native transition originates
+  from the actual tapped photo; independent favorite/cart actions do not navigate.
+  Reduced Motion, Android, old iOS and source-less/cross-modal entry have normal
+  navigation fallbacks. Expo's Slot child-style requirement is covered by a
+  regression using its installed renderer; source frames/refs are preserved.
+- Verification: **76 tests**, nonincremental TypeScript and independent code
+  review passed. Native iOS 26.5 QA confirmed visible mask, ten-digit input
+  formatting, redesigned layouts and pointer-driven card expansion/return.
+  Native capture required restarting the dedicated simulator after disabling
+  its QA Reduce Motion setting. No live sign-in, customer/order write or backend
+  deployment was performed. Android and older-iOS native execution is unverified.
+- Local evidence: `/tmp/hayat-redesign-20261022/`; native transition recording
+  `product-zoom.mp4`, extracted `zoom-a.png` through `zoom-c.png`, and return
+  recording `product-return.mp4`. A concise actual-animation clip is retained
+  in the task visualization folder `hayat-redesign-20261022/product-opening.mp4`.

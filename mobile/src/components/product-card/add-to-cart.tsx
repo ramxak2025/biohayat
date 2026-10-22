@@ -169,7 +169,7 @@ export function AddToCart({ product, size = "sm", style }: AddToCartProps) {
             «нельзя» должно быть слышно и видно, а не просто не работать */}
         <PressableScale
           haptic="none"
-          onPress={onUnavailable}
+          onPress={(event) => { event.stopPropagation(); onUnavailable(); }}
           accessibilityRole="button"
           accessibilityLabel={`Нет в наличии: ${product.name}`}
           accessibilityHint="Товар временно недоступен"
@@ -201,7 +201,7 @@ export function AddToCart({ product, size = "sm", style }: AddToCartProps) {
       >
         <PressableScale
           haptic="none"
-          onPress={onAdd}
+          onPress={(event) => { event.stopPropagation(); onAdd(); }}
           accessibilityRole="button"
           accessibilityLabel={`Добавить в корзину: ${product.name}`}
           hitSlop={tapSlop}

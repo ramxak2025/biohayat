@@ -2,6 +2,8 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import { Skeleton } from "@/components/ui";
 import { radii, spacing, useColors } from "@/theme";
+import { ProductZoomTarget } from "@/components/product-card/product-link";
+import { PRODUCT_IDENTITY_MIN_HEIGHT } from "@/lib/product-layout";
 
 export interface ProductScreenSkeletonProps {
   /** Высота героя = высоте будущей галереи, чтобы контент не «прыгнул» после загрузки. */
@@ -10,7 +12,7 @@ export interface ProductScreenSkeletonProps {
 
 /**
  * Скелетон карточки товара: повторяет реальную сетку блок в блок — и в том же
- * порядке, что и настоящий экран (фото → цена → название → характеристики).
+ * порядке, что и настоящий экран (название → фото → цена → характеристики).
  * Иначе после загрузки контент переставляется у человека на глазах.
  */
 export function ProductScreenSkeleton({ heroHeight }: ProductScreenSkeletonProps) {
@@ -20,12 +22,21 @@ export function ProductScreenSkeleton({ heroHeight }: ProductScreenSkeletonProps
     <ScrollView
       scrollEnabled={false}
       // тот же режим, что и у настоящего экрана, — иначе герой скакнёт после загрузки
-      contentInsetAdjustmentBehavior="never"
+      contentInsetAdjustmentBehavior="automatic"
       style={{ backgroundColor: colors.background }}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <Skeleton width="100%" height={heroHeight} radius={0} />
+      <View style={styles.identity}>
+        <Skeleton width="92%" height={28} />
+        <Skeleton width="64%" height={28} />
+        <Skeleton width={120} height={16} />
+      </View>
+      <ProductZoomTarget>
+        <View collapsable={false} style={styles.media}>
+          <Skeleton width="100%" height={heroHeight} radius={radii.xl} />
+        </View>
+      </ProductZoomTarget>
 
       <View style={styles.body}>
         {/* цена — первый блок под фото */}
@@ -37,10 +48,7 @@ export function ProductScreenSkeleton({ heroHeight }: ProductScreenSkeletonProps
           <Skeleton width={64} height={24} radius={radii.pill} />
         </View>
 
-        {/* категория и название */}
-        <Skeleton width={120} height={12} style={styles.gap} />
-        <Skeleton width="92%" height={22} />
-        <Skeleton width="64%" height={22} />
+        {/* краткое описание */}
         <Skeleton width="100%" height={16} style={styles.gap} />
         <Skeleton width="80%" height={16} />
 
@@ -64,6 +72,8 @@ export function ProductScreenSkeleton({ heroHeight }: ProductScreenSkeletonProps
 }
 
 const styles = StyleSheet.create({
+  identity: { minHeight: PRODUCT_IDENTITY_MIN_HEIGHT, paddingHorizontal: spacing.base, paddingTop: spacing.base, paddingBottom: spacing.md, gap: spacing.xs },
+  media: { marginHorizontal: spacing.base },
   body: { padding: spacing.base, gap: spacing.md },
   badges: { flexDirection: "row", gap: spacing.sm },
   gap: { marginTop: spacing.sm },

@@ -3,19 +3,13 @@
  * React Compiler про shared values не знает и даёт ложное срабатывание. */
 import { useCallback, useState } from "react";
 import { StyleSheet, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
-import { Stack, useRouter, type Href } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { SymbolView, type SFSymbol } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 import Animated, {
-  Extrapolation,
   FadeInDown,
-  interpolate,
   useAnimatedRef,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
   useReducedMotion,
-  useSharedValue,
-  withTiming,
 } from "react-native-reanimated";
 
 import { api } from "@/api/endpoints";
@@ -38,31 +32,19 @@ import { FavoriteButton, ProductStrip } from "@/components/product-card";
 import {
   AppText,
   BadDisclaimer,
-  Badge,
   ErrorState,
   IconButton,
   PressableScale,
   Screen,
   SectionHeader,
-  useDetailScreenOptions,
+  useStackScreenOptions,
   useTabBarInset,
 } from "@/components/ui";
 import { Duration, Ease, HIT_SLOP, spacing, staggerDelay, useColors } from "@/theme";
 
 import { shareProduct } from "./share-product";
-
-/** Максимальная высота героя: на больших экранах квадрат 1:1 съедает весь первый экран. */
-const HERO_MAX_HEIGHT = 420;
-/** Без фото герой делаем ниже: заглушка на пол-экрана выглядит как ошибка загрузки. */
-const HERO_EMPTY_HEIGHT = 240;
-
-/**
- * Где панель покупки начинает и заканчивает выезжать — в долях высоты героя.
- * Пока цена видна в контенте, дублировать её в панели незачем: она подъезжает
- * ровно тогда, когда блок с ценой начинает уходить за верхний край.
- */
-const BAR_REVEAL_FROM = 0.35;
-const BAR_REVEAL_TO = 0.8;
+import { productMediaHeight, productFooterClearance, PRODUCT_IDENTITY_MIN_HEIGHT } from "@/lib/product-layout";
+import { ProductZoomTarget } from "@/components/product-card/product-link";
 
 interface TextSection {
   key: string;
@@ -71,27 +53,16 @@ interface TextSection {
   text: string;
 }
 
-/**
- * Карточка товара. Порядок блоков перенесён из Wildberries — не ради копирования
- * чужого стиля (палитра, шрифты и логотип у нас свои), а потому что покупатель
- * приходит к нам с готовой привычкой искать информацию именно в этом порядке:
- *
- *   фото → ЦЕНА → название → характеристики → описание → похожие → кнопка внизу.
- *
- * Отсюда главное отличие от прошлой версии экрана: цена стоит ДО названия.
- * Чего у WB есть, а у нас честно нет (рейтингов, отзывов, остатков, сроков и
- * способов доставки, продавцов) — того нет и на экране: этих полей нет в API,
- * а заглушки на карточке товара — это враньё покупателю.
- */
+/** Название и категория объясняют товар до фотографии; покупка всегда доступна. */
 export function ProductScreen({ slug }: { slug: string }) {
   const colors = useColors();
   const router = useRouter();
   const reduced = useReducedMotion();
-  const { width, height: windowHeight } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const tabInset = useTabBarInset();
-  const detailOptions = useDetailScreenOptions();
+  const detailOptions = useStackScreenOptions({ largeTitle: false, transparent: false });
 
-  const fullHeroHeight = Math.min(width, HERO_MAX_HEIGHT);
+  const mediaHeight = productMediaHeight(width);
   const [buyBarHeight, setBuyBarHeight] = useState(0);
   const onBuyBarLayout = useCallback((event: LayoutChangeEvent) => {
     const height = Math.ceil(event.nativeEvent.layout.height);
@@ -99,53 +70,8 @@ export function ProductScreen({ slug }: { slug: string }) {
   }, []);
   const buyBarBottom = tabInset + spacing.sm;
 
-  const scrollY = useSharedValue(0);
-  /** Из этой вью вылетает копия товара при добавлении в корзину. */
+  /** Источник полёта в корзину — реальная панель фотографий. */
   const heroRef = useAnimatedRef<View>();
-  // при Reduce Motion панель просто есть с самого начала: выезда нет, но и без
-  // кнопки покупки пользователь не остаётся
-  const barReveal = useSharedValue(reduced ? 1 : 0);
-
-  const onScroll = useAnimatedScrollHandler((event) => {
-    const y = event.contentOffset.y;
-    scrollY.value = y;
-    if (reduced) return;
-
-    const from = fullHeroHeight * BAR_REVEAL_FROM;
-    const to = fullHeroHeight * BAR_REVEAL_TO;
-    const progress = Math.min(1, Math.max(0, (y - from) / (to - from)));
-    // Панель едет 1:1 с пальцем — HIG прямо советует привязывать движение к
-    // жесту, а не проигрывать его «в ответ». Но только вверх: один раз
-    // показавшись, она больше не прячется, иначе пользователь, вернувшийся к
-    // фотографиям, терял бы кнопку покупки.
-    if (progress > barReveal.value) barReveal.value = progress;
-  });
-
-  const onContentSize = useCallback(
-    (_width: number, contentHeight: number) => {
-      // Короткая карточка товара (нет фото, нет описания, нет похожих) может не
-      // прокручиваться настолько, чтобы панель успела выехать — тогда кнопка
-      // покупки была бы недостижима. В этом случае показываем её сами.
-      if (contentHeight - windowHeight >= fullHeroHeight * BAR_REVEAL_TO) return;
-      barReveal.value = withTiming(1, { duration: Duration.reveal, easing: Ease.power3Out });
-    },
-    [barReveal, fullHeroHeight, windowHeight],
-  );
-
-  const barStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: interpolate(
-          barReveal.value,
-          [0, 1],
-          [buyBarBottom + buyBarHeight, 0],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    // короткое проявление в начале пути: стекло не должно «всплывать» из ничего
-    opacity: interpolate(barReveal.value, [0, 0.35], [0, 1], Extrapolation.CLAMP),
-  }));
 
   /* Индекс держим и после закрытия: если обнулять его, Modal размонтируется
    * раньше своей анимации и просмотр будет «схлопываться» рывком. */
@@ -173,7 +99,7 @@ export function ProductScreen({ slug }: { slug: string }) {
     return (
       <>
         <Stack.Screen options={{ ...detailOptions, title: "Товар" }} />
-        <ProductScreenSkeleton heroHeight={fullHeroHeight} />
+        <ProductScreenSkeleton heroHeight={mediaHeight} />
       </>
     );
   }
@@ -184,7 +110,7 @@ export function ProductScreen({ slug }: { slug: string }) {
     return (
       <>
         <Stack.Screen options={{ ...detailOptions, title: "Товар" }} />
-        <Screen contentContainerStyle={styles.center}>
+        <Screen headerTransparent={false} contentContainerStyle={styles.center}>
           <ErrorState
             error={productQuery.error}
             onRetry={hasSlug ? () => void productQuery.refetch() : undefined}
@@ -209,7 +135,6 @@ export function ProductScreen({ slug }: { slug: string }) {
   // пустые поля админка отдаёт как null/"" — такие секции просто не рисуем
   const sections = allSections.filter((section) => section.text.trim().length > 0);
 
-  const heroHeight = product.images.length > 0 ? fullHeroHeight : HERO_EMPTY_HEIGHT;
 
   const related = relatedQuery.data ?? [];
   const showRelated = relatedQuery.isPending || related.length > 0;
@@ -228,7 +153,7 @@ export function ProductScreen({ slug }: { slug: string }) {
         <Stack.Screen
           options={{
             ...detailOptions,
-            title: product.name,
+            title: "Товар",
             // «Поделиться» в шапке — там же, где его ищут в WB и в системных
             // приложениях iOS. Уходит ссылка на товар на сайте.
             headerRight: () => (
@@ -244,74 +169,39 @@ export function ProductScreen({ slug }: { slug: string }) {
         />
 
         <Animated.ScrollView
-          onScroll={onScroll}
-          onContentSizeChange={onContentSize}
-          scrollEventThrottle={16}
-          /* "never", а не "automatic": при автоматическом инсете стартовый
-           * contentOffset.y отрицателен на высоту бара, и параллакс героя начинался
-           * бы уже увеличенным. Инсет таб-бара поэтому добавляем сами — ниже. */
-          contentInsetAdjustmentBehavior="never"
-          contentContainerStyle={{ paddingBottom: buyBarBottom + buyBarHeight + spacing.base }}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ paddingBottom: productFooterClearance(buyBarHeight) }}
         >
-          {/* 1. Галерея во всю ширину: счётчик «2/5», точки, тап — полный экран */}
-          <Animated.View ref={heroRef} collapsable={false}>
-            <ProductGallery
-              images={product.images}
-              name={product.name}
-              width={width}
-              height={heroHeight}
-              scrollY={scrollY}
-              reducedMotion={reduced}
-              onOpenImage={(index) => setViewer({ index, visible: true })}
-            />
-
-            {product.discountPercent ? (
-              <View style={styles.heroBadge} pointerEvents="none">
-                <Badge label={`−${product.discountPercent}%`} tone="sale" solid />
-              </View>
-            ) : null}
-
-            <View style={styles.heroFavorite}>
-              <FavoriteButton productId={product.id} size={22} />
+          <View style={styles.identity}>
+            <View style={styles.identityRow}>
+              <AppText variant="title2" accessibilityRole="header" style={styles.name}>{product.name}</AppText>
+              <FavoriteButton productId={product.id} onImage={false} size={22} />
             </View>
-          </Animated.View>
-
-          {/* 2. Цена — сразу под фото и ДО названия: главная привычка WB */}
-          <Animated.View entering={reveal(0)} style={styles.block}>
-            <ProductPriceBlock product={product} />
-          </Animated.View>
-
-          {/* 3–4. Категория «хлебной крошкой», следом название и краткое описание */}
-          <Animated.View entering={reveal(1)} style={styles.block}>
             {product.category ? (
               <PressableScale
                 haptic="none"
                 hitSlop={HIT_SLOP}
-                onPress={() =>
-                  router.push(`/catalog?category=${encodeURIComponent(product.category?.slug ?? "")}` as Href)
-                }
+                onPress={() => router.push({ pathname: "/catalog", params: { category: product.category?.slug } })}
                 accessibilityRole="button"
                 accessibilityLabel={`Категория: ${product.category.name}`}
                 style={styles.categoryRow}
               >
-                {/* мелкая ссылка — brandText: основной бренд на белом не добирает 4.5:1 */}
-                <AppText variant="footnote" weight="600" numberOfLines={1} style={{ color: colors.brandText }}>
-                  {product.category.name}
-                </AppText>
+                <AppText variant="footnote" weight="600" style={{ color: colors.brandText }}>{product.category.name}</AppText>
                 <SymbolView name="chevron.right" size={10} tintColor={colors.brandText} weight="semibold" />
               </PressableScale>
             ) : null}
+          </View>
 
-            {/* название после цены — привычка WB; title2, а не title1: на этой
-              * позиции крупнее выглядит криком, а не заголовком */}
-            <AppText variant="title2">{product.name}</AppText>
+          <ProductZoomTarget>
+            <Animated.View ref={heroRef} collapsable={false} style={styles.media}>
+              <ProductGallery images={product.images} name={product.name} width={width - spacing.base * 2} height={mediaHeight} reducedMotion={reduced} onOpenImage={(index) => setViewer({ index, visible: true })} />
+            </Animated.View>
+          </ProductZoomTarget>
 
-            {product.shortDescription ? (
-              <AppText variant="callout" color="muted" style={styles.lead}>
-                {product.shortDescription}
-              </AppText>
-            ) : null}
-          </Animated.View>
+          <View style={styles.block}>
+            <ProductPriceBlock product={product} />
+            {product.shortDescription ? <AppText variant="callout" color="muted" style={styles.lead}>{product.shortDescription}</AppText> : null}
+          </View>
 
           {/* Как это работает: доставка, заявка, оплата при получении */}
           <Animated.View entering={reveal(2)} style={styles.block}>
@@ -363,7 +253,7 @@ export function ProductScreen({ slug }: { slug: string }) {
         </Animated.ScrollView>
 
         <Animated.View
-          style={[styles.bar, { bottom: buyBarBottom }, barStyle]}
+          style={[styles.bar, { bottom: buyBarBottom }]}
           onLayout={onBuyBarLayout}
           pointerEvents="box-none"
         >
@@ -386,8 +276,10 @@ export function ProductScreen({ slug }: { slug: string }) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { justifyContent: "center" },
-  heroBadge: { position: "absolute", top: spacing.base, left: spacing.base },
-  heroFavorite: { position: "absolute", top: spacing.sm, right: spacing.sm },
+  identity: { paddingHorizontal: spacing.base, paddingTop: spacing.base, paddingBottom: spacing.md, minHeight: PRODUCT_IDENTITY_MIN_HEIGHT },
+  identityRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
+  name: { flex: 1, minWidth: 0 },
+  media: { marginHorizontal: spacing.base },
 
   block: { paddingHorizontal: spacing.base, paddingTop: spacing.lg, gap: spacing.sm },
   categoryRow: {

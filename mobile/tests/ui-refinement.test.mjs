@@ -16,7 +16,7 @@ const native = (os = "ios", height = 844, fontScale = 1) => ({
   useWindowDimensions: () => ({ width: 390, height, fontScale }),
 });
 const theme = (colors = tokens.lightColors) => ({ ...tokens, useColors: () => colors, useTheme: () => ({ dark: colors === tokens.darkColors, colors }) });
-const ui = Object.fromEntries(["AppText", "Button", "Input", "PhoneInput", "PasswordInput", "PressableScale", "EmptyState", "ErrorState", "Skeleton", "ListSkeleton", "SectionHeader", "Card", "Chip", "Divider"].map((name) => [name, name]));
+const ui = Object.fromEntries(["AppText", "Button", "IconButton", "Input", "PhoneInput", "PasswordInput", "PressableScale", "EmptyState", "ErrorState", "Skeleton", "ListSkeleton", "SectionHeader", "Card", "Chip", "Divider"].map((name) => [name, name]));
 
 test("native bars are compact by default in every state, with explicit large-title opt-in", () => {
   for (const os of ["ios", "android"]) for (const glass of [false, true]) {
@@ -174,7 +174,7 @@ test("guest account invitation stays readable and keeps its sign-in action in a 
 test("filter and time-picker shells share reachable close headers without changing apply/selection callbacks", () => {
   const common = {
     react: hooks, "react-native": { ...native(), Modal: "Modal", Pressable: "Pressable", KeyboardAvoidingView: "KeyboardAvoidingView" },
-    "react-native-safe-area-context": { useSafeAreaInsets: () => ({ bottom: 34 }) },
+    "react-native-safe-area-context": { useSafeAreaInsets: () => ({ top: 59, bottom: 34 }) },
     "@/components/ui": ui, "@/components/ui/sheet-header": { SheetHeader: "SheetHeader" }, "@/theme": theme(),
   };
   const closed = [];
@@ -202,7 +202,7 @@ test("filter and time-picker shells share reachable close headers without changi
 
 test("auth uses adaptive native sheets while search retains room for its fixed field and results", () => {
   const { sheetScreenOptions } = loader({ "react-native": native(), "@/theme": theme(), "expo-symbols": {}, "./app-text": { AppText: "AppText" }, "./press-scale": { PressableScale: "Pressable" } })("src/components/ui/sheet-header.tsx");
-  for (const [height, scale, detents] of [[844, 1, [0.8, 1]], [667, 1, [1]], [844, 1.8, [1]], [390, 1, [1]]]) {
+  for (const [height, scale, detents] of [[844, 1, [0.75, 1]], [667, 1, [0.95, 1]], [844, 1.8, [1]], [390, 1, [1]]]) {
     const options = sheetScreenOptions(height, scale, "#fff");
     assert.equal(options.presentation, "formSheet");
     assert.deepEqual(Array.from(options.sheetAllowedDetents), detents);
@@ -223,7 +223,7 @@ test("auth uses adaptive native sheets while search retains room for its fixed f
   const routes = nodes(RootLayout()).filter((node) => node.type === "StackScreen");
   const auth = routes.find((route) => route.props.name === "auth").props.options;
   assert.equal(auth.presentation, "formSheet");
-  assert.deepEqual(Array.from(auth.sheetAllowedDetents), [0.8, 1]);
+  assert.deepEqual(Array.from(auth.sheetAllowedDetents), [0.75, 1]);
   assert.equal(routes.find((route) => route.props.name === "search").props.options.presentation, "modal");
 });
 
@@ -256,20 +256,20 @@ test("shared sheet headers wrap and expose a distinct native-size close action",
   }
 });
 
-test("auth sheet keeps a reachable measured close, labeled fields and contiguous keyboard-safe form in both modes", () => {
+test("auth sheet measures intrinsic form with centered branding, visible labels and a reachable separate close in both modes", () => {
   for (const mode of ["login", "register"]) {
     const changes = [], routes = [], measurements = [];
     const submit = () => changes.push("submit");
     const values = { name: "Алия", phone: "+79990000000", password: "password" };
     const { AuthScreen } = loader({
       react: { ...hooks, useState: (value) => [value === "login" ? mode : value, (update) => { if (typeof update === "function") measurements.push(update(72)); }] },
-      "react-native": native(), "./use-auth-dismiss": { useAuthDismiss: () => () => routes.push("back") },
+      "react-native": native(), "expo-router": { Stack: { Screen: "StackScreen" } }, "./use-auth-dismiss": { useAuthDismiss: () => () => routes.push("back") },
       "expo-image": { Image: "Image" }, "expo-haptics": { selectionAsync() {} },
       "react-native-keyboard-controller": { KeyboardAwareScrollView: "KeyboardScrollView", KeyboardController: { setFocusTo() {} } },
-      "react-native-safe-area-context": { useSafeAreaInsets: () => ({ bottom: 34 }) },
+      "react-native-safe-area-context": { useSafeAreaInsets: () => ({ top: 59, bottom: 34 }) },
       "react-native-reanimated": { default: { View: "AnimatedView" }, useReducedMotion: () => true },
       "@/components/account": {}, "@/components/ui": ui,
-      "@/components/ui/sheet-header": { SheetHeader: "SheetHeader" }, "@/hooks/use-settings": { useSettings: () => ({}) },
+      "@/components/ui/sheet-header": { sheetScreenOptions: () => ({ presentation: "formSheet" }) }, "@/hooks/use-settings": { useSettings: () => ({}) },
       "@/lib/format": { isValidPhone: () => false }, "@/theme": theme(),
       "./form-message": { FormMessage: "FormMessage" }, "./legal-note": { LegalNote: "LegalNote" },
       "./use-auth-form": { useAuthForm: (receivedMode) => { assert.equal(receivedMode, mode); return { values, fieldErrors: {}, pending: false, clearErrors() {}, submit, patch: (patch) => changes.push(patch) }; } },
@@ -277,7 +277,7 @@ test("auth sheet keeps a reachable measured close, labeled fields and contiguous
     })("src/screens/auth/index.tsx");
     const tree = AuthScreen();
     assert.equal(tree.props.collapsable, false);
-    const scroll = tree.props.children[0];
+    const scroll = nodes(tree).find((node) => node.type === "KeyboardScrollView");
     assert.equal(scroll.type, "KeyboardScrollView", "Native sheet must find scrolling content before the fixed header");
     assert.equal(scroll.props.keyboardShouldPersistTaps, "handled");
     assert.equal(scroll.props.keyboardDismissMode, "interactive");
@@ -290,14 +290,23 @@ test("auth sheet keeps a reachable measured close, labeled fields and contiguous
     const primary = all.find((node) => node.type === "Button");
     assert.equal(primary.props.onPress, submit);
     assert.equal(primary.props.title, mode === "register" ? "Создать аккаунт" : "Войти");
-    const header = all.find((node) => node.type === "SheetHeader");
-    assert.equal(flatten(tree.props.children[1].props.style).position, "absolute");
-    header.props.onLayout({ nativeEvent: { layout: { height: 92 } } });
-    assert.deepEqual(measurements, [92]);
-    header.props.onClose();
+    const intrinsic = all.find((node) => node.type === "View" && node.props.onLayout);
+    assert.ok(nodes(scroll).includes(intrinsic), "Measure the inner content, not the changing sheet viewport");
+    assert.equal(flatten(intrinsic.props.style).flexGrow, undefined);
+    assert.equal(flatten(intrinsic.props.style).paddingBottom, 54);
+    intrinsic.props.onLayout({ nativeEvent: { layout: { height: 592 } } });
+    assert.deepEqual(measurements, [592]);
+    const close = all.find((node) => node.type === "IconButton");
+    assert.equal(close.props.name.ios, "xmark");
+    assert.equal(close.props.name.android, "close");
+    assert.equal(close.props.name.web, "close");
+    assert.ok(flatten(close.props.style).minHeight >= 44);
+    close.props.onPress();
     assert.deepEqual(routes, ["back"]);
-    assert.equal(header.props.leading.props.contentFit, "contain");
-    assert.equal(header.props.leading.props.source, 1);
+    const brand = all.find((node) => node.type === "Image");
+    assert.equal(brand.props.contentFit, "contain");
+    assert.equal(brand.props.source, 1);
+    assert.equal(flatten(brand.props.style).height, 48);
     assert.equal(all.filter((node) => node.type === "View").some((node) => flatten(node.props.style).flex === 1), true, "Root still fills the native sheet");
     assert.equal(mode === "register", all.some((node) => node.type === "LegalNote"));
   }
