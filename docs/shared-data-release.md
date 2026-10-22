@@ -415,7 +415,13 @@ ordering is outside this integration; the existing website retains those flows.
   ZIP integrity, bundle/build identifiers, production API origin, signature and
   distribution entitlements verified. Private keys/environment/dependencies
   were excluded from the source upload. Native run verification is not implied.
-- EAS submission `62cfdda0-84b6-492b-bbc5-ec69ebf3373c` is in progress; Apple
-  processing/group membership will be recorded only after read-back confirmation.
+- EAS submission `62cfdda0-84b6-492b-bbc5-ec69ebf3373c` finished. Apple build
+  `09e2134b-59fa-4f06-9b05-ec2efc29bac6` is VALID and IN_BETA_TESTING. Membership
+  in existing internal group and Russian test notes were read back successfully.
+  Build 9 is also associated with the existing external group/public invitation;
+  external state remains READY_FOR_BETA_SUBMISSION. Apple rejected its review
+  submission with ANOTHER_BUILD_IN_REVIEW because build 8 is still in review.
+  Build 9 must not be described as externally approved/available. Internal testing
+  is available now; no monitoring or future review submission is implied.
   Evidence: `/tmp/hayat-acceptance-20261022/production-verification.json`,
   `server-rollout-checks.log`, `ipa-verification.json` and protected EAS records.
