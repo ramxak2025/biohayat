@@ -374,3 +374,48 @@ ordering is outside this integration; the existing website retains those flows.
   the initial legal settings/catalog response. Compiled server/static assets
   and mounted database/uploads are retained. Independent review approved this
   scoped image change; first cold-start settings/categories/consent require read-back.
+
+### Authorized backend rollout and build 9 artifacts — 2026-10-23
+
+- User explicitly authorized the backend rollout and asked to test build 9 in
+  TestFlight personally. They declined restarting simulators belonging to other
+  projects. Final native visual/interaction verification remains **blocked by
+  Simulator/CoreSimulator**; no other project's device or chat was interrupted.
+  Automated implementation checks and independent review are complete.
+- Backend source `e1a6b81` is live in image
+  `biohayat-app:refinement-20261022-e1a6b81`, image ID
+  `sha256:20e15410ecb63f96db023187440a24e645d7a44e53c37d4cdd44395840776de5`.
+  Additive consent SQL was applied once; only the app container was recreated.
+  Existing runtime environment, published ports, uploads volume, database,
+  Caddy and paused autodeploy configuration were preserved. Compose retains
+  the previous environment/base files with the image-only override at
+  `/root/biohayat-releases/20261022-e1a6b81/compose.refinement.yml`.
+- Protected backup `/root/biohayat-backups/20261023-e1a6b81` contains a full
+  PostgreSQL custom dump (fully decoded without restoring), uploaded files,
+  runtime environment/container metadata, compose files and crontab snapshot.
+  Roll back the app image to `biohayat-app:shared-20261006-b1be149` if required;
+  retain the nullable consent column and current database, rather than restoring
+  an old dump over new customer activity.
+- Live checks passed at `2026-10-22T21:05:18Z`: real operator INN present on the
+  first cold settings/consent responses, 10 categories, evidence version
+  `2026-10-22` with 32 component notes and 7 unique pair records, missing consent
+  rejected before registration, both pre-rollout QA bearer/cookie sessions still
+  valid, first 24 product IDs/slugs/prices unchanged. Crontab hashes match.
+- Two explicitly requested operator-created QA customer profiles were created
+  and authenticated on the shared production backend, with empty order history
+  and no administrator access. No real customer was impersonated and no order,
+  CRM message or advertising consent was created. No human consent receipt was
+  fabricated for these fixtures. Credentials are delivered privately outside
+  this repository.
+- Mobile source `0b40da9bf0d733faa24131b177670ed2387b70a0`; all **295 mobile files**
+  match the primary copy and inspected EAS archive. EAS production build
+  `c1f76191-966d-49f0-97e2-e4b403d3eefb` finished as **1.0.0 (9)**.
+  IPA 22,875,693 bytes, SHA-256
+  `9b9dd759878a1646c6d676e7075a318cade6f02b2977b28fdf4f8cafe4147275`.
+  ZIP integrity, bundle/build identifiers, production API origin, signature and
+  distribution entitlements verified. Private keys/environment/dependencies
+  were excluded from the source upload. Native run verification is not implied.
+- EAS submission `62cfdda0-84b6-492b-bbc5-ec69ebf3373c` is in progress; Apple
+  processing/group membership will be recorded only after read-back confirmation.
+  Evidence: `/tmp/hayat-acceptance-20261022/production-verification.json`,
+  `server-rollout-checks.log`, `ipa-verification.json` and protected EAS records.
