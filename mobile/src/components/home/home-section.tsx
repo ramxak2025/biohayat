@@ -1,12 +1,11 @@
 import { type ReactNode } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import Animated, { FadeInDown, useReducedMotion } from "react-native-reanimated";
 
 import { SectionHeader } from "@/components/ui";
-import { Duration, Ease, spacing, staggerDelay } from "@/theme";
+import { spacing } from "@/theme";
 
 export interface HomeSectionProps {
-  /** Порядковый номер секции — задаёт задержку появления (каскад сверху вниз). */
+  /** Сохраняется для совместимости с существующим порядком секций. */
   index: number;
   title?: string;
   subtitle?: string;
@@ -22,7 +21,6 @@ export interface HomeSectionProps {
  * показывает, что ленту можно листать).
  */
 export function HomeSection({
-  index,
   title,
   subtitle,
   actionLabel,
@@ -30,19 +28,8 @@ export function HomeSection({
   children,
   style,
 }: HomeSectionProps) {
-  const reduced = useReducedMotion();
-
   return (
-    <Animated.View
-      entering={
-        reduced
-          ? undefined
-          : FadeInDown.delay(staggerDelay(index, 70, 7))
-              .duration(Duration.reveal)
-              .easing(Ease.power3Out)
-      }
-      style={[styles.section, style]}
-    >
+    <View style={[styles.section, style]}>
       {title ? (
         <View style={styles.header}>
           <SectionHeader
@@ -54,7 +41,7 @@ export function HomeSection({
         </View>
       ) : null}
       {children}
-    </Animated.View>
+    </View>
   );
 }
 

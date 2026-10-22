@@ -48,7 +48,7 @@ export function Chip({ label, selected = false, onPress, icon, count, disabled, 
   }, [target, reduced, progress, pop]);
 
   const idle = colors.surface;
-  const active = colors.brand;
+  const active = colors.actionFill;
   const idleBorder = colors.line;
 
   const containerStyle = useAnimatedStyle(() => ({
@@ -78,7 +78,7 @@ export function Chip({ label, selected = false, onPress, icon, count, disabled, 
           {label}
         </AppText>
         {count !== undefined ? (
-          <AppText variant="caption" weight="700" style={{ color: tint, opacity: 0.7 }}>
+          <AppText variant="caption" weight="700" style={{ color: tint }}>
             {count}
           </AppText>
         ) : null}

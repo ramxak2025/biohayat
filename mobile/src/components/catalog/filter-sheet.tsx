@@ -22,7 +22,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { plural } from "@/lib/format";
-import { HIT_SLOP, MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
+import { SheetHeader } from "@/components/ui/sheet-header";
+import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 
 import { SORT_OPTIONS } from "./sort";
 import { useCatalogCount } from "./use-catalog-products";
@@ -206,27 +207,7 @@ export function CatalogFilterSheet({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={[styles.sheet, { backgroundColor: colors.surface }]}
       >
-        <View style={styles.bar}>
-          <View style={styles.barSide} />
-
-          <AppText variant="headline" accessibilityRole="header">
-            Фильтры
-          </AppText>
-
-          <View style={[styles.barSide, styles.barTrailing]}>
-            <PressableScale
-              onPress={onClose}
-              hitSlop={HIT_SLOP}
-              accessibilityRole="button"
-              accessibilityLabel="Закрыть фильтры без применения"
-              style={styles.barAction}
-            >
-              <AppText variant="callout" color="brand" weight="600">
-                Закрыть
-              </AppText>
-            </PressableScale>
-          </View>
-        </View>
+        <SheetHeader title="Фильтры" onClose={onClose} closeLabel="Закрыть фильтры без применения" />
 
         <Divider />
 
@@ -484,19 +465,6 @@ function ChipSkeletons({ count = SKELETON_WIDTHS.length }: { count?: number }) {
 
 const styles = StyleSheet.create({
   sheet: { flex: 1 },
-  bar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.base,
-    // лист презентуется системой, своей безопасной зоны сверху у него нет
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  // без выравнивания заголовок съезжает с центра листа
-  barSide: { flex: 1, alignItems: "flex-start" },
-  barTrailing: { alignItems: "flex-end" },
-  barAction: { minHeight: MIN_TAP_SIZE, justifyContent: "center" },
   body: { paddingHorizontal: spacing.base, paddingTop: spacing.lg, paddingBottom: spacing.xl },
   section: { marginBottom: spacing.xl },
   sectionTitle: { marginBottom: spacing.md, letterSpacing: 0.6 },

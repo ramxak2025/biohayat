@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { useRouter } from "expo-router";
+import { Platform, StyleSheet, View, type LayoutChangeEvent } from "react-native";
+import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
 import { KeyboardAwareScrollView, KeyboardController } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,12 +15,12 @@ import { openExternalUrl, telHref } from "@/components/account";
 import {
   AppText,
   Button,
-  IconButton,
   Input,
   PasswordInput,
   PhoneInput,
   PressableScale,
 } from "@/components/ui";
+import { SheetHeader } from "@/components/ui/sheet-header";
 import { useSettings } from "@/hooks/use-settings";
 import { isValidPhone } from "@/lib/format";
 import { Duration, Ease, MIN_TAP_SIZE, spacing, useColors } from "@/theme";
@@ -28,6 +28,7 @@ import { Duration, Ease, MIN_TAP_SIZE, spacing, useColors } from "@/theme";
 import { FormMessage } from "./form-message";
 import { LegalNote } from "./legal-note";
 import { useAuthForm } from "./use-auth-form";
+import { useAuthDismiss } from "./use-auth-dismiss";
 import type { AuthMode } from "./types";
 
 /**
@@ -42,18 +43,18 @@ import type { AuthMode } from "./types";
  * у него нет — заголовок и кнопку закрытия рисуем сами.
  */
 export function AuthScreen() {
-  const router = useRouter();
+  const close = useAuthDismiss();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
 
   const [mode, setMode] = useState<AuthMode>("login");
+  const [headerHeight, setHeaderHeight] = useState(72);
+  const onHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    const next = Math.ceil(event.nativeEvent.layout.height);
+    setHeaderHeight((previous) => previous === next ? previous : next);
+  }, []);
   const isRegister = mode === "register";
-
-  const close = useCallback(() => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }, [router]);
 
   const { patch, clearErrors, submit, values, fieldErrors, formError, pending } = useAuthForm(
     mode,
@@ -104,7 +105,7 @@ export function AuthScreen() {
   const vanish = reduced ? undefined : FadeOut.duration(Duration.instant);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.surface }]}>
+    <View collapsable={false} style={[styles.root, { backgroundColor: colors.surface }]}>
       <KeyboardAwareScrollView
         bottomOffset={spacing["2xl"]}
         contentInsetAdjustmentBehavior="never"
@@ -113,25 +114,19 @@ export function AuthScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: Math.max(insets.bottom, spacing.base) },
+          { paddingTop: headerHeight + spacing.md, paddingBottom: Math.max(insets.bottom, spacing.base) },
         ]}
       >
-        <View style={styles.header}>
-          <AppText variant="title1" style={styles.title}>
-            {isRegister ? "Регистрация" : "Вход"}
-          </AppText>
-          <IconButton name="xmark" label="Закрыть" variant="soft" size={15} onPress={close} />
-        </View>
+        <AppText variant="callout" color="muted">
+          {isRegister ? "Заказы, избранное, курсы приёма и консультации — в одном месте." : "Войти по номеру телефона и паролю"}
+        </AppText>
 
-        {/* Поля без подписей: в форме из трёх строк подпись над каждой — лишний
-            шум, роль поля видна по placeholder'у, а VoiceOver читает
-            accessibilityLabel. Пустой label — это осознанное «подписи нет».
-            collapsable={false} — иначе exiting-анимация поля «Имя» не доигрывает. */}
+        {/* Видимые подписи сохраняют смысл поля после ввода; значения и валидация — в useAuthForm. */}
         <View style={styles.form} collapsable={false}>
           {isRegister ? (
             <Animated.View entering={appear} exiting={vanish} layout={flow}>
               <Input
-                label=""
+                label="Имя"
                 accessibilityLabel="Имя"
                 placeholder="Имя"
                 value={values.name}
@@ -149,7 +144,7 @@ export function AuthScreen() {
 
           <Animated.View layout={flow}>
             <PhoneInput
-              label=""
+              label="Телефон"
               accessibilityLabel="Телефон"
               value={values.phone}
               onChangeText={onPhoneChange}
@@ -159,7 +154,7 @@ export function AuthScreen() {
 
           <Animated.View layout={flow}>
             <PasswordInput
-              label=""
+              label="Пароль"
               accessibilityLabel="Пароль"
               placeholder={isRegister ? "Пароль от 6 символов" : "Пароль"}
               value={values.password}
@@ -199,16 +194,12 @@ export function AuthScreen() {
               onPress={callSupport}
               style={styles.textAction}
             >
-              <AppText variant="footnote" color="brand" weight="600">
+              <AppText variant="footnote" style={{ color: colors.brandText }} weight="600">
                 Не помните пароль?
               </AppText>
             </PressableScale>
           ) : null}
         </Animated.View>
-
-        {/* Подвал прижат к низу листа: на пустом месте между формой и краем он
-            выглядел бы потерянным, а у самого края читается как второстепенный. */}
-        <View style={styles.spacer} />
 
         <Animated.View layout={flow} style={styles.footer}>
           <PressableScale
@@ -222,7 +213,7 @@ export function AuthScreen() {
           >
             <AppText variant="subhead" color="muted">
               {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
-              <AppText variant="subhead" color="brand" weight="600">
+              <AppText variant="subhead" style={{ color: colors.brandText }} weight="600">
                 {isRegister ? "Войти" : "Зарегистрироваться"}
               </AppText>
             </AppText>
@@ -242,19 +233,25 @@ export function AuthScreen() {
           </PressableScale>
         </Animated.View>
       </KeyboardAwareScrollView>
+      <View style={styles.headerDock}>
+        <SheetHeader
+          title={isRegister ? "Регистрация" : "Вход в ХАЯТ"}
+          onClose={close}
+          onLayout={onHeaderLayout}
+          leading={<Image source={require("../../../assets/brand/logo-mark.png")} style={styles.brandMark} contentFit="contain" accessible={false} />}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  // flexGrow — чтобы распорка ниже могла прижать подвал к краю листа
-  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
-  header: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: MIN_TAP_SIZE },
-  title: { flex: 1 },
-  form: { gap: spacing.md, marginTop: spacing.xl },
-  actions: { gap: spacing.base, marginTop: spacing.xl },
-  spacer: { flex: 1, minHeight: spacing.xl },
-  footer: { alignItems: "center", marginTop: spacing.lg },
-  textAction: { minHeight: MIN_TAP_SIZE, justifyContent: "center", paddingHorizontal: spacing.sm },
+  content: { paddingHorizontal: spacing.base },
+  headerDock: { position: "absolute", top: 0, left: 0, right: 0 },
+  brandMark: { width: 36, height: 36, flexShrink: 0 },
+  form: { gap: spacing.base, marginTop: spacing.lg },
+  actions: { gap: spacing.md, marginTop: spacing.lg },
+  footer: { alignItems: "center", marginTop: spacing.base },
+  textAction: { minHeight: Platform.OS === "android" ? 48 : MIN_TAP_SIZE, justifyContent: "center", paddingHorizontal: spacing.sm },
 });

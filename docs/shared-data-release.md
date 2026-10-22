@@ -187,3 +187,41 @@ ordering is outside this integration; the existing website retains those flows.
   This establishes signed iOS delivery and group availability, not installation
   or runtime testing of the TestFlight binary on a physical device. Android
   distribution remains outside this delivery.
+
+## Mobile interface refinement — 2026-10-22
+
+- Operational screens now default to compact native navigation titles in every
+  content state. Explicit large-title opt-in remains available. Shared screen
+  wrappers preserve their first scroll descendant; loading/error grids and
+  article lists reserve the transparent header inset correctly.
+- Cards use calmer borders and smaller default corners; primary buttons and
+  selected filter chips use accessible action colors without an ambient glow.
+  The guest invitation is more compact and home sections appear immediately.
+  Official Hayat assets, product data, routes and business logic are preserved.
+- Authentication opens as a native sheet above its originating screen, with
+  normal-height and expanded detents, full-height accessibility/short-screen
+  fallback, persistent measured close header, original logo and visible field
+  labels. Registration shares the sheet. Filter and time-picker headers use the
+  same close treatment. Search retains its native full-height modal because its
+  fixed input plus interchangeable lists overlap under form-sheet frame rules;
+  this was reproduced and the corrected native presentation was verified.
+- Route-scoped auth dismissal is idempotent, observes removal/unmount and live
+  focus, and targets the exact auth route with a source/target-bound POP. A late
+  login response cannot pop the screen underneath a dismissed sheet. The
+  underlying authentication/session and checkout-resume logic was not changed.
+- Verification: 61 mobile tests and nonincremental TypeScript pass; independent
+  final review has no unresolved material findings. The Android close-symbol
+  regression was fixed and tested with the installed non-iOS Expo renderer.
+  Baseline tests reproduced expanded header defaults and insufficient selected
+  action contrast; the original late auth callback reproduced a double back.
+- Native QA used the existing iOS 26.5 development client on the dedicated Hayat
+  iPhone 17 Pro and compact iPhone SE simulators: light/normal text, dark/large
+  text, compact account header, auth and registration, sheet expansion, password
+  keyboard visibility and close-to-account, filter cancellation, and search
+  layout. Public catalog still showed 119 products. No live sign-ins, customer
+  writes, orders or backend deployments were performed.
+- Native screenshots: the task's visualization folder `hayat-ui-20261022/`
+  contains `account.png`, `auth.png`, `registration-expanded.png`,
+  `compact-dark-account.png` and `search.png`. Detailed local test logs reside
+  in `/tmp/hayat-ui-20261022/`. Physical-device gestures/performance, Android
+  device rendering and authenticated native time-picker flows were not tested.

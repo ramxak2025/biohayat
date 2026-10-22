@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { spacing } from "@/theme";
+import { useHeaderInset } from "@/components/ui/screen";
 
 import { ProductCard } from "./product-card";
 
@@ -84,11 +85,12 @@ export function ProductGrid({
   keyboardShouldPersistTaps,
   style,
 }: ProductGridProps) {
+  const headerInset = useHeaderInset();
   const empty = products.length === 0;
 
   if (empty && isLoading) {
     return (
-      <View style={[styles.stateWrap, style]}>
+      <View style={[styles.stateWrap, { paddingTop: headerInset }, style]}>
         {ListHeaderComponent}
         <ListSkeleton variant="grid" count={numColumns * 3} />
       </View>
@@ -97,7 +99,7 @@ export function ProductGrid({
 
   if (empty && error) {
     return (
-      <View style={[styles.stateWrap, style]}>
+      <View style={[styles.stateWrap, { paddingTop: headerInset }, style]}>
         {ListHeaderComponent}
         <ErrorState error={error} onRetry={onRetry} />
       </View>

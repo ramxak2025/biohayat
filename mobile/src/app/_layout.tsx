@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useWindowDimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -12,6 +13,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 // из закрытого приложения некому обработать.
 import "@/lib/notifications";
 import { AppErrorScreen } from "@/components/ui/app-error-screen";
+import { sheetScreenOptions } from "@/components/ui/sheet-header";
 import { FlyToCartProvider } from "@/components/fx/flight";
 import { queryClient, queryPersister, shouldPersistQuery } from "@/lib/query-client";
 import { useAuth } from "@/store/auth";
@@ -48,6 +50,8 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const theme = useTheme();
+  const { height, fontScale } = useWindowDimensions();
+  const sheetOptions = sheetScreenOptions(height, fontScale, theme.colors.surface);
   const hydrate = useAuth((s) => s.hydrate);
   const hydrating = useAuth((s) => s.hydrating);
 
@@ -75,12 +79,12 @@ export default function RootLayout() {
             <FlyToCartProvider>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
-              {/* Вход — лист на всю высоту сразу: половинчатый детент заставлял
-                  дотягивать окно пальцем прежде, чем начать вводить телефон. */}
+              {/* Короткие задачи открываются нативным листом поверх текущего экрана. */}
               <Stack.Screen
                 name="auth"
-                options={{ presentation: "formSheet", sheetAllowedDetents: [1], sheetGrabberVisible: true }}
+                options={sheetOptions}
               />
+              {/* Поиску нужна полная высота для клавиатуры и длинной выдачи. */}
               <Stack.Screen name="search" options={{ presentation: "modal" }} />
             </Stack>
             </FlyToCartProvider>

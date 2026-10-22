@@ -54,10 +54,12 @@ export interface ColorScheme {
   textOnBrand: string;
 
   brand: string;
+  /** Заливка основного действия с контрастом текста не ниже 4.5:1. */
+  actionFill: string;
   /**
    * Брендовый цвет для МЕЛКОГО текста и ссылок. Основной #3a9447 на белом даёт
    * 3.81:1 — ниже порога WCAG AA (4.5:1) для текста меньше 18pt. На заливках
-   * кнопок это неважно (там белый текст на зелёном), а на подписях — важно.
+   * кнопок используем более контрастный actionFill, на подписях — brandText.
    */
   brandText: string;
   brandPressed: string;
@@ -98,6 +100,7 @@ export const lightColors: ColorScheme = {
   textOnBrand: "#ffffff",
 
   brand: palette.brand500,
+  actionFill: palette.brand600,
   brandText: palette.brand700,
   brandPressed: palette.brand600,
   brandSoft: palette.brand50,
@@ -131,6 +134,7 @@ export const darkColors: ColorScheme = {
 
   // светлее веб-брендового: контраст ≥ 4.5:1 на #0d100d
   brand: "#5fc06f",
+  actionFill: "#5fc06f",
   brandText: "#7ad189",
   brandPressed: "#4fae5e",
   brandSoft: "#16261a",

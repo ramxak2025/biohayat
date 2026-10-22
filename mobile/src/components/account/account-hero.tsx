@@ -30,9 +30,9 @@ export function AccountHero({ customer, onSignIn, onOpenProfile }: AccountHeroPr
   if (!customer) {
     return (
       <Animated.View entering={entering}>
-        <Card tone="brand" padded={spacing.lg}>
+        <Card tone="surface" padded={spacing.base}>
           <View style={styles.guestTop}>
-            <View style={[styles.avatar, { backgroundColor: colors.surface }]}>
+            <View style={[styles.avatar, styles.guestAvatar, { backgroundColor: colors.brandSoft }]}>
               <SymbolView name="person.crop.circle" size={28} tintColor={colors.brand} />
             </View>
             <View style={styles.guestTitles}>
@@ -95,8 +95,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   titles: { flex: 1, gap: 2 },
+  guestAvatar: { width: 48, height: 48 },
   guestTop: { flexDirection: "row", alignItems: "center", gap: spacing.base },
   guestTitles: { flex: 1 },
   guestSubtitle: { marginTop: 2 },
-  guestAction: { marginTop: spacing.lg },
+  guestAction: { marginTop: spacing.base },
 });

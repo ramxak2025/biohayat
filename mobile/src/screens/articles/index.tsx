@@ -8,6 +8,7 @@ import { qk } from "@/api/keys";
 import type { MaterialListItem } from "@/api/types";
 import { AppText, EmptyState, ErrorState, useDetailScreenOptions } from "@/components/ui";
 import { spacing, useColors } from "@/theme";
+import { useHeaderInset } from "@/components/ui/screen";
 
 import { ArticleCard, ArticleCardSkeleton } from "./article-card";
 
@@ -18,6 +19,7 @@ export function ArticlesScreen() {
   const colors = useColors();
   const router = useRouter();
   const detailOptions = useDetailScreenOptions();
+  const headerInset = useHeaderInset();
 
   const query = useQuery({
     queryKey: qk.materials,
@@ -42,7 +44,7 @@ export function ArticlesScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         {header}
-        <View style={styles.states}>
+        <View style={[styles.states, { paddingTop: headerInset + spacing.base }]}>
           {lead}
           <ArticleCardSkeleton variant="feature" />
           {[0, 1, 2].map((key) => (
@@ -57,7 +59,7 @@ export function ArticlesScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         {header}
-        <View style={styles.states}>
+        <View style={[styles.states, { paddingTop: headerInset + spacing.base }]}>
           <ErrorState error={query.error} onRetry={() => void query.refetch()} />
         </View>
       </View>

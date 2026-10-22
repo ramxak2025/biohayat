@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { datePickerStyle, labelsHidden } from "@expo/ui/swift-ui/modifiers";
 
-import { AppText, Button } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { SheetHeader } from "@/components/ui/sheet-header";
 import { radii, spacing, useColors, useTheme } from "@/theme";
 
 import { slotFromDate, slotToDate } from "./plan-utils";
@@ -58,9 +59,7 @@ export function TimePickerSheet({
       >
         <View style={[styles.grabber, { backgroundColor: colors.line }]} />
 
-        <AppText variant="headline" align="center" style={styles.title}>
-          {title}
-        </AppText>
+        <SheetHeader title={title} onClose={onCancel} closeLabel="Закрыть выбор времени" style={styles.header} />
 
         {/* key по initial: барабан всегда открывается на том времени, которое правим */}
         {visible ? (
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   grabber: { alignSelf: "center", width: 36, height: 5, borderRadius: radii.pill },
-  title: { marginTop: spacing.md },
+  header: { paddingHorizontal: 0 },
   host: { height: 196, marginTop: spacing.sm },
   actions: { flexDirection: "row", gap: spacing.md, marginTop: spacing.sm },
   action: { flex: 1 },

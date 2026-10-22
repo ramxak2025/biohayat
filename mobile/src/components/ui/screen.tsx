@@ -163,7 +163,7 @@ export function Screen({
     // Порядок детей важен: react-native-screens ищет скролл-вью, к которой
     // применяет scroll edge effect, обходя ТОЛЬКО первого потомка на каждом
     // уровне (RNSScrollViewFinder). Футер обязан оставаться вторым ребёнком.
-    <View testID={testID} style={[styles.flex, { backgroundColor }, style]}>
+    <View collapsable={false} testID={testID} style={[styles.flex, { backgroundColor }, style]}>
       {body}
       {footer ? (
         <View style={[styles.footer, { paddingBottom: bottomInset }]} pointerEvents="box-none">

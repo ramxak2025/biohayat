@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SymbolView, type SFSymbol } from "expo-symbols";
 
-import { MIN_TAP_SIZE, radii, shadows, spacing, useColors } from "@/theme";
+import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 
 import { AppText, type TextVariant } from "./app-text";
 import { PressableScale, type PressHaptic } from "./press-scale";
@@ -59,7 +59,7 @@ export function Button({
   const inactive = disabled || loading;
 
   const surface: Record<ButtonVariant, string> = {
-    primary: colors.brand,
+    primary: colors.actionFill,
     secondary: colors.brandSoft,
     outline: "transparent",
     ghost: "transparent",
@@ -67,9 +67,9 @@ export function Button({
   };
   const label: Record<ButtonVariant, string> = {
     primary: colors.textOnBrand,
-    secondary: colors.brand,
+    secondary: colors.brandText,
     outline: colors.text,
-    ghost: colors.brand,
+    ghost: colors.brandText,
     danger: colors.textOnBrand,
   };
   const outlineColor: Record<ButtonVariant, string | undefined> = {
@@ -110,8 +110,6 @@ export function Button({
         outlineColor[variant]
           ? { borderWidth: StyleSheet.hairlineWidth, borderColor: outlineColor[variant] }
           : null,
-        // мягкая зелёная тень только у главного действия — иначе экран «шумит»
-        variant === "primary" && !inactive ? shadows.brand : null,
         fullWidth ? styles.fullWidth : null,
         inactive ? styles.inactive : null,
         style,

@@ -21,9 +21,9 @@ export interface StackScreenOptionsConfig {
   /**
    * Крупный заголовок, сворачивающийся при скролле.
    *
-   * `true` — корень вкладки со списком или лентой: человек «стоит» в разделе,
-   * и крупный заголовок помогает не потеряться (HIG Toolbars: «Use a large
-   * title to help people stay oriented as they navigate and scroll»).
+   * По умолчанию `false`: компактный нативный бар оставляет место для задачи
+   * и одинаково работает со списком, ошибкой и пустым состоянием.
+   * `true` — явное включение для полноэкранного прокручиваемого содержимого.
    *
    * `false` — всё, что открыто пушем (товар, заказ, статья, форма) и любой
    * экран без скролла. Там сворачивать нечего: UIKit сворачивает крупный
@@ -50,9 +50,9 @@ export interface StackScreenOptionsConfig {
  *
  * ── Какой вариант для какого экрана ─────────────────────────────────────────
  *
- *   Корень вкладки со скроллом (Главная, Каталог, Корзина, Приём, Кабинет)
+   *   Корень вкладки (Каталог, Корзина, Приём, Кабинет)
  *       <Stack screenOptions={useStackScreenOptions()} />
- *       крупный заголовок + стекло.
+   *       компактный заголовок + стекло; главная использует свою марку поверх героя.
  *
  *   Пуш-экран: товар, заказ, статья, оформление, профиль, новый курс, списки
  *       <Stack.Screen options={{ ...useDetailScreenOptions(), title: "…" }} />
@@ -120,7 +120,7 @@ export function useStackScreenOptions(
 ): NativeStackNavigationOptions {
   const colors = useColors();
   const reduceTransparency = useReduceTransparency();
-  const { largeTitle: largeTitleRequested = true, transparent = true } = config;
+  const { largeTitle: largeTitleRequested = false, transparent = true } = config;
 
   /**
    * Крупный заголовок работает только вместе с прозрачным баром. Причина
