@@ -7,6 +7,7 @@ import { formatKopecks, normalizePhone } from "@/lib/format";
 import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 
 import { openExternal } from "./banner-link";
+import { SocialIcon, type SocialBrand } from "@/components/account/social-icon";
 
 export interface TrustBlockProps {
   settings: Settings | undefined;
@@ -14,17 +15,16 @@ export interface TrustBlockProps {
 }
 
 interface SocialLink {
-  key: keyof Settings["socials"];
+  key: SocialBrand;
   label: string;
-  icon: SFSymbol;
 }
 
 const SOCIALS: SocialLink[] = [
-  { key: "whatsapp", label: "WhatsApp", icon: "message.fill" },
-  { key: "telegram", label: "Telegram", icon: "paperplane.fill" },
-  { key: "instagram", label: "Instagram", icon: "camera.fill" },
-  { key: "vk", label: "ВКонтакте", icon: "bubble.left.fill" },
-  { key: "wildberries", label: "Wildberries", icon: "bag.fill" },
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "telegram", label: "Telegram" },
+  { key: "instagram", label: "Instagram" },
+  { key: "vk", label: "ВКонтакте" },
+  { key: "wildberries", label: "Wildberries" },
 ];
 
 /** Порог, пока настройки не приехали: тот же дефолт, что зашит на бэкенде. */
@@ -115,7 +115,7 @@ export function TrustBlock({ settings, isLoading }: TrustBlockProps) {
               accessibilityLabel={`Открыть ${social.label}`}
               style={[styles.social, { backgroundColor: colors.surface, borderColor: colors.line }]}
             >
-              <SymbolView name={social.icon} size={15} tintColor={colors.brand} />
+              <SocialIcon brand={social.key} size={18} color={colors.brandText} />
               <AppText variant="footnote" weight="600">
                 {social.label}
               </AppText>
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs + 2,
-    minHeight: MIN_TAP_SIZE - 6,
+    minHeight: MIN_TAP_SIZE + 4,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radii.pill,

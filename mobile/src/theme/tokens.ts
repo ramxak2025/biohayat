@@ -121,36 +121,36 @@ export const lightColors: ColorScheme = {
 };
 
 export const darkColors: ColorScheme = {
-  background: "#0d100d",
-  surface: "#161a16",
-  surfaceSoft: "#121612",
-  surfaceSunken: "#1d231d",
-  line: "#2a312a",
+  background: "#171917",
+  surface: "#222522",
+  surfaceSoft: "#1d201d",
+  surfaceSunken: "#2a2e29",
+  line: "#3a4038",
 
-  text: "#f2f5f1",
-  textMuted: "#a7b0a5",
-  textFaint: "#8b948a",
-  textOnBrand: "#08120a",
+  text: "#f2f1e9",
+  textMuted: "#bdc3b6",
+  textFaint: "#a0aa99",
+  textOnBrand: "#142012",
 
-  // светлее веб-брендового: контраст ≥ 4.5:1 на #0d100d
-  brand: "#5fc06f",
-  actionFill: "#5fc06f",
-  brandText: "#7ad189",
-  brandPressed: "#4fae5e",
-  brandSoft: "#16261a",
-  brandBorder: "#24402a",
+  // Естественный зелёный на тёплом угольном фоне; текст кнопок остаётся тёмным.
+  brand: "#8ac477",
+  actionFill: "#83bc70",
+  brandText: "#a6d895",
+  brandPressed: "#73ab61",
+  brandSoft: "#283725",
+  brandBorder: "#42583b",
 
-  accent: "#f0b44a",
-  accentSoft: "#2a2114",
+  accent: "#e6bf73",
+  accentSoft: "#3a3122",
 
-  success: "#5fc06f",
-  warning: "#f0b44a",
-  danger: "#ef6a6a",
-  info: "#6aa6e0",
-  sale: "#ef6a6a",
+  success: "#9acb83",
+  warning: "#efc77b",
+  danger: "#f09c91",
+  info: "#9cbee1",
+  sale: "#f1a09a",
 
-  tabInactive: "#98989f",
-  glassFallback: "rgba(22,26,22,0.78)",
+  tabInactive: "#adb3a7",
+  glassFallback: "rgba(34,37,34,0.94)",
   scrim: "rgba(0,0,0,0.5)",
 };
 

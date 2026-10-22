@@ -2,6 +2,12 @@
 export const HOME_CHROMA_MIN_HEIGHT = 52;
 export const HERO_FADE_RATIO = 0.3;
 
+/** NativeTabs may supply an automatic inset; zero is the actual resting content position. */
+export function homeScrollOffset(offsetY: number, insetTop: number): number {
+  "worklet";
+  return offsetY + insetTop;
+}
+
 export function homeHeroHeight(viewportHeight: number, contentHeight: number, topClearance: number): number {
   const baseline = Math.min(560, Math.max(340, viewportHeight * 0.55));
   // The bottom 30% is the fade; text must fit above it and below the header.

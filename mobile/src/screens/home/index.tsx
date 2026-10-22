@@ -21,6 +21,7 @@ import {
   useHeroHeight,
 } from "@/components/home";
 import { ProductStrip } from "@/components/product-card";
+import { homeScrollOffset } from "@/lib/display-layout";
 import { AppText, BadDisclaimer, ErrorState, useTabBarInset } from "@/components/ui";
 import { palette, spacing, useColors } from "@/theme";
 import { HOME_CHROMA_MIN_HEIGHT } from "@/lib/display-layout";
@@ -60,9 +61,9 @@ export function HomeScreen() {
 
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((event) => {
-    // contentInsetAdjustmentBehavior="never", поэтому в покое здесь ровно ноль —
-    // и параллакс героя с кроссфейдом хромы считаются от одной честной точки
-    scrollY.value = event.contentOffset.y;
+    // Домашняя вкладка владеет edge-to-edge inset; учитываем фактический native inset
+    // и при восстановлении экрана, чтобы порог хромы не зависел от отрицательного offset.
+    scrollY.value = homeScrollOffset(event.contentOffset.y, event.contentInset.top);
   });
 
   const openCatalog = () => router.push("/catalog");

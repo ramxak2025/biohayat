@@ -10,15 +10,12 @@ import { qk } from "@/api/keys";
 import {
   AccountHero,
   BonusCard,
-  ContactsCard,
-  LEGAL_URL,
   MenuGroup,
   MenuRow,
   ordersCountLabel,
-  useOpenBrowser,
   useOrders,
 } from "@/components/account";
-import { AppText, BadDisclaimer, ErrorState, Screen } from "@/components/ui";
+import { AppText, BadDisclaimer, Screen } from "@/components/ui";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useSettings } from "@/hooks/use-settings";
 import { useAuth } from "@/store/auth";
@@ -31,7 +28,6 @@ type RelativeHref = `./${string}`;
 export function AccountScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const openBrowser = useOpenBrowser();
 
   const token = useAuth((state) => state.token);
   const customer = useAuth((state) => state.customer);
@@ -110,15 +106,6 @@ export function AccountScreen() {
   const ordersCount = orders.data?.items.length ?? 0;
   const version = Application.nativeApplicationVersion ?? "1.0.0";
   const build = Application.nativeBuildVersion;
-  const legal = settingsQuery.data?.legal;
-
-  const copyright = [
-    `© ${new Date().getFullYear()} ${legal?.name ?? "ХАЯТ"}`,
-    legal?.inn ? `ИНН ${legal.inn}` : null,
-    legal?.ogrn ? `ОГРН ${legal.ogrn}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
 
   return (
     <>
@@ -190,35 +177,18 @@ export function AccountScreen() {
           />
         </MenuGroup>
 
-        {settingsQuery.isError && !settingsQuery.data ? (
-          <ErrorState
-            compact
-            error={settingsQuery.error}
-            title="Не удалось загрузить контакты"
-            onRetry={() => void settingsQuery.refetch()}
-          />
-        ) : (
-          <ContactsCard settings={settingsQuery.data} />
-        )}
-
-        <MenuGroup title="Документы" footer={copyright}>
+        <MenuGroup title="Информация">
           <MenuRow
-            icon="doc.plaintext"
+            icon={{ ios: "phone.fill", android: "contact_phone", web: "contact_phone" }}
             tone="neutral"
-            title="Публичная оферта"
-            onPress={() => void openBrowser(LEGAL_URL.offer)}
+            title="Контакты"
+            onPress={() => goRelative("./contacts")}
           />
           <MenuRow
-            icon="hand.raised.fill"
+            icon={{ ios: "doc.plaintext", android: "description", web: "description" }}
             tone="neutral"
-            title="Политика конфиденциальности"
-            onPress={() => void openBrowser(LEGAL_URL.privacy)}
-          />
-          <MenuRow
-            icon="box.truck"
-            tone="neutral"
-            title="Доставка и оплата"
-            onPress={() => void openBrowser(LEGAL_URL.delivery)}
+            title="Документы"
+            onPress={() => goRelative("./documents")}
           />
         </MenuGroup>
 

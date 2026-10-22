@@ -1,11 +1,12 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { Platform } from "react-native";
 
 import { useCartCount } from "@/store/cart";
 import { useColors } from "@/theme";
 
 /**
  * Нативный таб-бар iOS 26: настоящий UITabBar, поэтому Liquid Glass, размытие,
- * сворачивание при скролле и хаптика — системные, а не нарисованные.
+ * материалы и хаптика — системные, панель всегда остаётся развёрнутой.
  *
  * Цвета задаём только для содержимого (иконки, подписи, бейдж). backgroundColor
  * НЕ трогаем: сплошной фон отключает стекло и панель становится плоской.
@@ -22,14 +23,15 @@ export default function TabsLayout() {
 
   return (
     <NativeTabs
-      minimizeBehavior="onScrollDown"
+      minimizeBehavior="never"
       tintColor={colors.brand}
       iconColor={colors.tabInactive}
       labelStyle={{ color: colors.tabInactive, selected: { color: colors.brand } }}
       badgeBackgroundColor={colors.brand}
       badgeTextColor={colors.textOnBrand}
     >
-      <NativeTabs.Trigger name="(home)">
+      {/* Герой сам учитывает iOS inset; Android сохраняет нативный SafeAreaView. */}
+      <NativeTabs.Trigger name="(home)" disableAutomaticContentInsets={Platform.OS === "ios"}>
         <NativeTabs.Trigger.Label>Главная</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "house", selected: "house.fill" }} />
       </NativeTabs.Trigger>

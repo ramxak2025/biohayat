@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { SymbolView, type SFSymbol } from "expo-symbols";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
 import { AppText, PressableScale } from "@/components/ui";
 import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
@@ -8,7 +8,8 @@ import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 export type MenuRowTone = "brand" | "accent" | "neutral" | "danger";
 
 export interface MenuRowProps {
-  icon?: SFSymbol;
+  icon?: SymbolViewProps["name"];
+  iconElement?: ReactNode;
   tone?: MenuRowTone;
   title: string;
   subtitle?: string;
@@ -33,6 +34,7 @@ export const MENU_ROW_INSET = spacing.base + 30 + spacing.md;
  */
 export function MenuRow({
   icon,
+  iconElement,
   tone = "brand",
   title,
   subtitle,
@@ -62,18 +64,18 @@ export function MenuRow({
 
   const body = (
     <>
-      {icon ? (
+      {icon || iconElement ? (
         <View style={[styles.tile, { backgroundColor: tile[tone] }]}>
-          <SymbolView name={icon} size={17} tintColor={glyph[tone]} weight="semibold" />
+          {iconElement ?? (icon ? <SymbolView name={icon} size={17} tintColor={glyph[tone]} weight="semibold" /> : null)}
         </View>
       ) : null}
 
       <View style={styles.titles}>
-        <AppText variant="body" color={destructive ? "danger" : "text"} numberOfLines={2}>
+        <AppText variant="body" color={destructive ? "danger" : "text"}>
           {title}
         </AppText>
         {subtitle ? (
-          <AppText variant="footnote" color="muted" numberOfLines={2} style={styles.subtitle}>
+          <AppText variant="footnote" color="muted" style={styles.subtitle}>
             {subtitle}
           </AppText>
         ) : null}

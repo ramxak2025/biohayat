@@ -132,7 +132,7 @@ export function HomeChroma({ scrollY, heroHeight, barHeight, onBarHeightChange }
           />
         </Animated.View>
 
-        <Animated.View style={[StyleSheet.absoluteFill, glassStyle]} pointerEvents="none">
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface }, glassStyle]} pointerEvents="none">
           <GlassSurface style={StyleSheet.absoluteFill} />
           {/* волосок нужен откату на expo-blur и режиму «уменьшить прозрачность»:
               у настоящего Liquid Glass край рисует сама система */}

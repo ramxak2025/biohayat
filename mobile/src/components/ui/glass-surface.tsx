@@ -64,7 +64,7 @@ export function GlassSurface({
   const reduceTransparency = useReduceTransparency();
 
   if (reduceTransparency) {
-    return <View style={[styles.base, { backgroundColor: colors.glassFallback }, style]}>{children}</View>;
+    return <View style={[styles.base, { backgroundColor: colors.surface }, style]}>{children}</View>;
   }
 
   // isGlassEffectAPIAvailable(), а не проверка версии: в части бет iOS 26 API нет и рендер падает
