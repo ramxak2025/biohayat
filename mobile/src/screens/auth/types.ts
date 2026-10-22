@@ -7,13 +7,14 @@ export type AuthMode = "login" | "register";
  * (`email?` в RegisterBody), а дописать почту можно в профиле — просить её
  * в момент, когда человек хочет просто войти, значит терять этого человека.
  */
-export type AuthField = "name" | "phone" | "password";
+export type AuthField = "name" | "phone" | "password" | "consent";
 
 export interface AuthValues {
   name: string;
   /** Нормализованный "+7XXXXXXXXXX" — ровно в таком виде его ждёт API. */
   phone: string;
   password: string;
+  consent: boolean;
 }
 
 export type AuthFieldErrors = Partial<Record<AuthField, string>>;
@@ -32,4 +33,5 @@ export interface AuthFormError {
   field?: AuthField;
   /** 409: номер занят — под кнопкой показываем ссылку «Войти с этим номером». */
   offerLogin?: boolean;
+  credentialsRejected?: boolean;
 }

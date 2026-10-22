@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REGISTRATION_CONSENT_VERSION } from "@/lib/registration-consent";
 import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { apiRegister, serializeCustomer } from "@/lib/api/customer";
 import { clientIp } from "@/lib/api/rate-limit";
@@ -18,6 +19,7 @@ const schema = z.object({
   password: z.string().min(6),
   email: z.string().email().optional(),
   consent: z.literal(true),
+  consentVersion: z.literal(REGISTRATION_CONSENT_VERSION),
 });
 
 /**
@@ -32,6 +34,8 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => null);
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
+      const consentError = parsed.error.issues.some((issue) => ["consent", "consentVersion"].includes(String(issue.path[0])));
+      if (consentError) return apiError("Откройте актуальную форму регистрации и подтвердите отдельное согласие на обработку данных", 400, "CONSENT_REQUIRED");
       return apiError("Проверьте данные", 400, "VALIDATION");
     }
 
@@ -44,6 +48,7 @@ export async function POST(req: Request) {
       phone: parsed.data.phone,
       password: parsed.data.password,
       email: parsed.data.email,
+      consentChannel: "mobile-v2",
     });
 
     if (!result.ok) {

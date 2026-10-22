@@ -5,7 +5,7 @@
 import { apiFetch, normalizeImageUrl, qs } from "./client";
 import { localDay } from "@/lib/format";
 import { adaptPage, adaptProduct, adaptSettings } from "./legacy";
-import type {
+import type { CompatibilityEvidence,
   AuthResult, Banner, Category, CompatibilityRule, Consultation, CreateConsultationBody,
   CreateIntakePlanBody, CreateOrderBody, Customer, IntakeLog, IntakePlan, IntakeToggleResult,
   LoginBody, MaterialDetail, MaterialListItem, OkResult, Order, Paged, Product, ProductsQuery,
@@ -106,6 +106,8 @@ export const catalog = {
   async settings(signal?: AbortSignal): Promise<Settings> {
     return adaptSettings(await apiFetch<Settings>("/settings", { auth: false, signal }));
   },
+
+  compatibilityEvidence: (signal?: AbortSignal) => apiFetch<CompatibilityEvidence>("/compatibility/evidence", { auth: false, signal }),
 
   compatibilityRules: (signal?: AbortSignal) =>
     apiFetch<CompatibilityRule[]>("/compatibility/rules", { auth: false, signal }),

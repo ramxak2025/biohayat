@@ -1,81 +1,54 @@
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
+import { SymbolView } from "expo-symbols";
 import * as WebBrowser from "expo-web-browser";
 
 import { LEGAL_URL } from "@/components/account";
 import { AppText, PressableScale } from "@/components/ui";
-import { MIN_TAP_SIZE, spacing, useColors } from "@/theme";
+import { MIN_TAP_SIZE, radii, spacing, useColors } from "@/theme";
 
-export interface LegalNoteProps {
-  /** Подпись кнопки: текст согласия обязан называть её дословно. */
-  action: string;
+interface LegalNoteProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  error?: string;
+  disabled?: boolean;
 }
 
-/**
- * Согласие 152-ФЗ без чекбокса.
- *
- * Юридически значимым действием считается нажатие кнопки, а строка рядом с ней
- * говорит, на что человек соглашается, — так оформляют согласие Apple, банки и
- * маркетплейсы. Чекбокс ничего не добавляет к доказуемости, зато добавляет шаг
- * и ошибку «вы не поставили галочку» в самый неподходящий момент.
- * В запрос на регистрацию по-прежнему уходит `consent: true`.
- */
-export function LegalNote({ action }: LegalNoteProps) {
+/** A separate, initially unchecked choice. Reading a policy never checks consent. */
+export function LegalNote({ checked, onChange, error, disabled }: LegalNoteProps) {
   const colors = useColors();
-
-  // Документы открываем системным браузером поверх листа, а не вторым листом
-  // (HIG: одновременно показываем только один лист).
-  const open = (url: string) => {
-    void WebBrowser.openBrowserAsync(url, { controlsColor: colors.brand });
-  };
-
+  const open = (url: string) => { void WebBrowser.openBrowserAsync(url, { controlsColor: colors.brand }); };
   return (
     <View style={styles.wrap}>
-      <AppText variant="footnote" color="faint" align="center">
-        {`Нажимая «${action}», вы соглашаетесь на обработку персональных данных.`}
-      </AppText>
-
-      <View style={styles.links}>
-        <PressableScale
-          accessibilityRole="link"
-          accessibilityLabel="Открыть политику конфиденциальности"
-          haptic="none"
-          onPress={() => open(LEGAL_URL.privacy)}
-          style={styles.link}
-        >
-          <AppText variant="footnote" color="brand" weight="600">
-            Политика конфиденциальности
-          </AppText>
-        </PressableScale>
-
-        <AppText variant="footnote" color="faint" accessibilityElementsHidden>
-          ·
+      <PressableScale
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked, disabled }}
+        accessibilityLabel="Даю согласие на обработку персональных данных для регистрации и работы личного кабинета"
+        disabled={disabled}
+        onPress={() => onChange(!checked)}
+        haptic="light"
+        style={styles.choice}
+      >
+        <View style={[styles.box, { backgroundColor: checked ? colors.actionFill : colors.surface, borderColor: error ? colors.danger : checked ? colors.actionFill : colors.textFaint }]}>
+          {checked ? <SymbolView name={{ ios: "checkmark", android: "check", web: "check" }} size={14} tintColor={colors.textOnBrand} /> : null}
+        </View>
+        <AppText variant="footnote" color="muted" style={styles.copy}>
+          Даю согласие на обработку персональных данных для регистрации и работы личного кабинета.
         </AppText>
-
-        <PressableScale
-          accessibilityRole="link"
-          accessibilityLabel="Открыть оферту"
-          haptic="none"
-          onPress={() => open(LEGAL_URL.offer)}
-          style={styles.link}
-        >
-          <AppText variant="footnote" color="brand" weight="600">
-            Оферта
-          </AppText>
-        </PressableScale>
-      </View>
+      </PressableScale>
+      {error ? <AppText variant="footnote" color="danger" accessibilityLiveRegion="polite">{error}</AppText> : null}
+      <PressableScale accessibilityRole="link" onPress={() => open(LEGAL_URL.consent)} haptic="none" style={styles.link}>
+        <AppText variant="footnote" color="brand" weight="600">Прочитать согласие</AppText>
+      </PressableScale>
+      <PressableScale accessibilityRole="link" onPress={() => open(LEGAL_URL.privacy)} haptic="none" style={styles.link}>
+        <AppText variant="footnote" color="brand">Политика обработки данных</AppText>
+      </PressableScale>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  wrap: { alignItems: "center" },
-  links: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  // 44 pt на ссылку: мелкий текст мелкой зоной нажатия быть не обязан
-  link: { minHeight: MIN_TAP_SIZE, justifyContent: "center" },
+  wrap: { gap: spacing.xs },
+  choice: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", minHeight: Platform.OS === "android" ? 48 : MIN_TAP_SIZE, paddingVertical: spacing.sm },
+  box: { width: 24, height: 24, borderRadius: radii.sm, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  copy: { flex: 1 },
+  link: { minHeight: Platform.OS === "android" ? 48 : MIN_TAP_SIZE, justifyContent: "center", alignSelf: "flex-start" },
 });

@@ -26,7 +26,7 @@ export function ContactsCard({ settings }: ContactsCardProps) {
   // деструктуризация в const, чтобы сужение типов доживало до колбэков
   const { whatsapp, telegram, instagram, vk, wildberries } = settings.socials;
   const { phone, email, address, workingHours } = settings;
-  const footer = [address, workingHours].filter(Boolean).join(" · ");
+  const footer = [address, workingHours, instagram ? "Instagram — сервис Meta Platforms Inc., признанной экстремистской организацией; её деятельность в России запрещена." : null].filter(Boolean).join(" · ");
 
   return (
     <MenuGroup title="Связаться с нами" footer={footer || undefined}>

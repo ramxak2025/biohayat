@@ -26,6 +26,7 @@ export function validateAuth(mode: AuthMode, values: AuthValues): AuthFieldError
   const errors: AuthFieldErrors = {};
   const isRegister = mode === "register";
 
+  if (isRegister && !values.consent) errors.consent = "Подтвердите согласие на обработку данных";
   if (isRegister && values.name.trim().length < MIN_NAME_LENGTH) errors.name = "Укажите имя";
   if (!isValidPhone(values.phone)) errors.phone = "Номер из 11 цифр";
 
@@ -85,7 +86,7 @@ export function mapAuthError(error: unknown, mode: AuthMode): AuthFormError {
 
     case 401:
       // 401 БЕЗ code — это неверная пара телефон/пароль, а не протухшая сессия
-      return { message: "Неверный телефон или пароль", tone: "error", field: "password" };
+      return { message: "Неверный телефон или пароль", tone: "error", field: "password", credentialsRejected: mode === "login" };
 
     case 404:
       return { message: text ?? "Вход временно недоступен", tone: "info" };

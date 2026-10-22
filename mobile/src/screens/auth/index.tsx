@@ -54,7 +54,7 @@ export function AuthScreen() {
   const sheetOptions = useMemo(() => sheetScreenOptions(height, fontScale, colors.surface, contentHeight, insets.top), [height, fontScale, colors.surface, contentHeight, insets.top]);
   const isRegister = mode === "register";
 
-  const { patch, clearErrors, submit, values, fieldErrors, formError, pending } = useAuthForm(
+  const { patch, clearErrors, submit, values, fieldErrors, formError, pending, showRecovery } = useAuthForm(
     mode,
     close,
   );
@@ -125,6 +125,7 @@ export function AuthScreen() {
             <View>
               <Input
                 label="Имя"
+                editable={!pending}
                 accessibilityLabel="Имя"
                 placeholder="Имя"
                 value={values.name}
@@ -143,6 +144,7 @@ export function AuthScreen() {
           <View>
             <PhoneInput
               label="Телефон"
+              editable={!pending}
               accessibilityLabel="Телефон"
               value={values.phone}
               onChangeText={onPhoneChange}
@@ -153,6 +155,7 @@ export function AuthScreen() {
           <View>
             <PasswordInput
               label="Пароль"
+              editable={!pending}
               accessibilityLabel="Пароль"
               placeholder={isRegister ? "Пароль от 6 символов" : "Пароль"}
               value={values.password}
@@ -170,6 +173,8 @@ export function AuthScreen() {
         <View style={styles.actions}>
           {formError ? <FormMessage error={formError} onSwitchToLogin={goToLogin} /> : null}
 
+          {isRegister ? <LegalNote checked={values.consent} onChange={(consent) => patch({ consent })} error={fieldErrors.consent} disabled={pending} /> : null}
+
           <Button
             title={action}
             size="lg"
@@ -181,9 +186,7 @@ export function AuthScreen() {
             }
           />
 
-          {isRegister ? (
-            <LegalNote action={action} />
-          ) : supportPhone ? (
+          {!isRegister && showRecovery && supportPhone ? (
             <PressableScale
               accessibilityRole="button"
               accessibilityLabel="Не помните пароль?"
@@ -206,6 +209,7 @@ export function AuthScreen() {
               isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться"
             }
             haptic="none"
+            disabled={pending}
             onPress={toggleMode}
             style={styles.textAction}
           >
@@ -217,18 +221,6 @@ export function AuthScreen() {
             </AppText>
           </PressableScale>
 
-          {/* Каталогом и заказом можно пользоваться без профиля — выход обязан быть на виду */}
-          <PressableScale
-            accessibilityRole="button"
-            accessibilityLabel="Продолжить без входа"
-            haptic="none"
-            onPress={close}
-            style={styles.textAction}
-          >
-            <AppText variant="subhead" color="faint">
-              Продолжить без входа
-            </AppText>
-          </PressableScale>
         </View>
         </View>
       </KeyboardAwareScrollView>

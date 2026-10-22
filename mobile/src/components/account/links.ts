@@ -10,9 +10,10 @@ import { useColors } from "@/theme";
  * API смотрит в localhost, и ссылка на оферту оттуда открыла бы пустую страницу.
  */
 export const LEGAL_URL = {
-  offer: "https://biohayat.ru/oferta",
-  privacy: "https://biohayat.ru/privacy-policy",
-  delivery: "https://biohayat.ru/delivery",
+  offer: "https://new.biohayat.ru/oferta",
+  privacy: "https://new.biohayat.ru/privacy-policy",
+  consent: "https://new.biohayat.ru/personal-data-consent",
+  delivery: "https://new.biohayat.ru/delivery",
 } as const;
 
 export const telHref = (phone: string): string => `tel:${normalizePhone(phone) || phone}`;

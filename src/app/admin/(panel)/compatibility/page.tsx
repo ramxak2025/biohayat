@@ -27,7 +27,7 @@ export default async function CompatibilityPage() {
     <>
       <AdminHeader
         title="Совместимость БАД"
-        description={`Всего правил: ${rules.length}`}
+        description={`Архив и черновики: ${rules.length}. Публичный справочник использует проверенные правила со ссылками на источники; эти записи в него автоматически не публикуются.`}
         action={
           <Button asChild>
             <Link href="/admin/compatibility/new"><Plus className="h-4 w-4" /> Добавить правило</Link>

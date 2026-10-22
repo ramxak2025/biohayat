@@ -1,3 +1,4 @@
+import { registrationConsentReceipt, type RegistrationChannel } from "@/lib/registration-consent";
 import "server-only";
 import { cookieSecure } from "@/lib/cookie-secure";
 import { cookies } from "next/headers";
@@ -104,6 +105,7 @@ export async function registerCustomer(input: {
   phone: string;
   password: string;
   email?: string;
+  consentChannel: RegistrationChannel;
 }): Promise<AuthResult> {
   const phone = normalizePhone(input.phone);
   if (phone.replace(/\D/g, "").length < 11) return { ok: false, code: "invalid_phone" };
@@ -117,6 +119,7 @@ export async function registerCustomer(input: {
       phone,
       name: input.name.trim(),
       email: input.email?.trim() || null,
+      registrationConsent: registrationConsentReceipt(input.consentChannel),
       passwordHash: await bcrypt.hash(input.password, 12),
     },
   });

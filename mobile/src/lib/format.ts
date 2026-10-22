@@ -23,8 +23,9 @@ export function formatPhone(raw: string): string {
   const d = raw.replace(/\D/g, "").replace(/^8/, "7").replace(/^(?!7)/, "7").slice(0, 11);
   const p = d.slice(1);
   let out = "+7";
-  if (p.length) out += ` ${p.slice(0, 3)}`;
-  if (p.length > 3) out += ` ${p.slice(3, 6)}`;
+  if (p.length) out += ` (${p.slice(0, 3)}`;
+  if (p.length > 3) out += ")";
+  if (p.length > 3) out += p.slice(3, 6);
   if (p.length > 6) out += `-${p.slice(6, 8)}`;
   if (p.length > 8) out += `-${p.slice(8, 10)}`;
   return out;

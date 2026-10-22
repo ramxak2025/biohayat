@@ -3,6 +3,7 @@
 
 import { type NextRequest } from "next/server";
 import { z } from "zod";
+import { REGISTRATION_CONSENT_VERSION } from "@/lib/registration-consent";
 import { rateLimit, rateLimitRetryAfter } from "@/lib/rate-limit";
 import { normalizePhone } from "@/lib/utils";
 import { apiOk, apiError, zodMessage, withErrorHandling } from "../../_lib/response";
@@ -15,6 +16,8 @@ const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 15 * 60 * 1000;
 
 const bodySchema = z.object({
+  consent: z.literal(true),
+  consentVersion: z.literal(REGISTRATION_CONSENT_VERSION),
   name: z.string().min(2, "Укажите имя").max(120),
   phone: z.string().min(10, "Укажите корректный телефон").max(30),
   password: z.string().min(6, "Пароль не короче 6 символов").max(200),
@@ -40,6 +43,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     phone: parsed.data.phone,
     password: parsed.data.password,
     email: parsed.data.email || undefined,
+    consentChannel: "mobile-v1",
   });
   if (!result.ok) {
     const status = result.code === "PHONE_TAKEN" ? 409 : 400;

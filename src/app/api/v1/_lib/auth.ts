@@ -1,3 +1,4 @@
+import { registrationConsentReceipt, type RegistrationChannel } from "@/lib/registration-consent";
 // JWT Bearer-аутентификация для мобильного клиента (API v1).
 //
 // Токен подписывается тем же AUTH_SECRET (HS256, jose), payload совместим
@@ -113,6 +114,7 @@ export async function registerCustomerApi(input: {
   phone: string;
   password: string;
   email?: string;
+  consentChannel: RegistrationChannel;
 }): Promise<ApiAuthResult> {
   const phone = normalizePhone(input.phone);
   if (phone.replace(/\D/g, "").length < 11) {
@@ -136,6 +138,7 @@ export async function registerCustomerApi(input: {
       phone,
       name: input.name.trim(),
       email: input.email?.trim() || null,
+      registrationConsent: registrationConsentReceipt(input.consentChannel),
       passwordHash: await bcrypt.hash(input.password, 12),
     },
   });

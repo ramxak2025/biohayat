@@ -399,6 +399,8 @@ model Customer {
   email        String?
   city         String?
   isActive     Boolean   @default(true)
+  // Server-generated receipt of an explicit registration choice; historical accounts stay null.
+  registrationConsent Json?
   // Мягкое удаление аккаунта по запросу покупателя (152-ФЗ)
   deletedAt    DateTime?
   lastLoginAt  DateTime?

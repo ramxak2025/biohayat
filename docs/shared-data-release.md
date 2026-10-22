@@ -318,3 +318,53 @@ ordering is outside this integration; the existing website retains those flows.
 - Protected local evidence: `external-group.json`,
   `external-link-verification.json` and `external-review-submission.json` under
   `/tmp/hayat-redesign-20261022/`.
+
+## App refinement, consent and evidence reference — 2026-10-22
+
+- Acceptance: fixed `+7` phone prefix with `(988)444-44-36` subscriber format;
+  password recovery only after rejected credentials; guest-action link removed.
+  Preserve account identity on paste/overflow/backspace, session isolation and
+  source-bound auth dismissal. Dark surfaces are graded warm charcoal with
+  restrained green actions; native tabs remain expanded; scrolled home chrome
+  has an opaque semantic backing and owns its native content-inset behavior.
+- Public account contacts and documents now have separate native-stack routes.
+  Social marks use real vector silhouettes; the Instagram notice identifies
+  Meta Platforms Inc. and its prohibited extremist-organization status in Russia.
+  Document links use the actual shared backend/site origin `new.biohayat.ru`.
+- Registration has a separate initially unchecked choice and publicly readable
+  `/personal-data-consent`, version `2026-10-22`. Web, v1 and v2 reject absent,
+  false or stale consent/version. A server-generated version/time/channel receipt
+  is inserted atomically in nullable `Customer.registrationConsent`; historical
+  accounts remain null. Apply `prisma/changes/20261022-registration-consent.sql`
+  before switching the application image. Old app registrations without the
+  current explicit-choice contract are rejected; existing logins are preserved.
+  Rollback may retain this additive nullable column.
+- Legal sources: current [152-ФЗ, articles 6, 9 and 15](https://mintrud.gov.ru/docs/laws/130),
+  [72-ФЗ official publication](https://publication.pravo.gov.ru/document/0001202504070018),
+  [Prosecutor General notice about Meta](https://epp.genproc.gov.ru/ru/gprf/mass-media/news/archive/e470520/).
+  This implements scoped consent mechanics, not a certification of full legal
+  compliance. Account consent excludes marketing and special-category health data.
+- Medical reference: `src/lib/compatibility-evidence.ts` is the reviewed versioned
+  source for web and `/api/v2/compatibility/evidence`, plus legacy public adapters.
+  Seven unique conditional pair records and notes for all 32 offered components
+  cite NIH ODS/NCCIH, FDA and primary studies. Unreviewed admin table records remain
+  archived drafts and are no longer automatically published. No universal spacing,
+  blanket safe status, mandatory co-supplement or invented product dose is inferred.
+- Read-only live inventory found 119 products, all with placeholder composition;
+  only 31 have name-inferred nutrient tags. The user explicitly accepted limiting
+  this release to component evidence. Imports label every course's full composition
+  unassessed and warn about repeated components without claiming known total doses.
+  Unknown pairs remain visible even alongside described pairs. Private course
+  titles/selections remount on identity change; delayed imports check session epochs.
+- Checks completed before native QA: **94 mobile tests**, mobile/backend nonincremental
+  TypeScript, Next webpack production build; **6 grouped real HTTP/Prisma registration
+  and evidence checks**, **13 grouped shared-data regression checks** on a dedicated
+  local test DB with scoped fixture cleanup. Initial shared-data run hit stale
+  build-time fixture caches; clearing local generated Next cache and restarting
+  produced 13/13. Independent read-only QA/review found and verified fixes for
+  phone overflow, Android checkbox icon, private-import races and web overlap warnings.
+- Evidence: `/tmp/hayat-acceptance-20261022/`. Native iOS QA, final upload/source
+  inspection and production rollout are tracked separately; no production change
+  or new TestFlight delivery is claimed by this entry. Android/older-iOS runtime
+  checks remain unavailable. Personal review contacts and test passwords are absent
+  from the repository.

@@ -13,10 +13,13 @@ interface Rule {
   componentB: string;
   type: CompatibilityType;
   note: string | null;
+  sources: { title: string; url: string }[];
 }
 interface Component {
   name: string;
   group: string;
+  note: string;
+  sources: { title: string; url: string }[];
 }
 
 const TYPE_META: Record<
@@ -24,26 +27,28 @@ const TYPE_META: Record<
   { title: string; short: string; icon: React.ComponentType<{ className?: string }>; tone: string; bar: string; badge: string; dot: string }
 > = {
   SYNERGY: {
-    title: "Усиливают друг друга", short: "Синергия", icon: Sparkles,
+    title: "Связь усвоения", short: "Усвоение", icon: Sparkles,
     tone: "text-brand-600", bar: "border-l-brand-500", badge: "bg-brand-50 text-brand-700", dot: "bg-brand-500",
   },
   CAUTION: {
-    title: "С осторожностью", short: "Осторожно", icon: TriangleAlert,
+    title: "Учитывайте условия", short: "Осторожно", icon: TriangleAlert,
     tone: "text-accent-600", bar: "border-l-accent-400", badge: "bg-accent-50 text-accent-700", dot: "bg-accent-400",
   },
   ANTAGONIST: {
-    title: "Нельзя вместе", short: "Несовместимо", icon: OctagonAlert,
+    title: "Значимое взаимодействие", short: "Взаимодействие", icon: OctagonAlert,
     tone: "text-sale", bar: "border-l-sale", badge: "bg-sale-soft text-sale", dot: "bg-sale",
   },
 };
 const GROUP_ORDER = ["Витамины", "Минералы", "Жиры и кислоты", "Аминокислоты", "Растения и прочее", "Другое"];
 
 export function CompatibilityTool({
-  rules, components, preselected,
+  rules, components, preselected, unassessedCourses, overlappingComponents,
 }: {
   rules: Rule[];
   components: Component[];
   preselected: string[];
+  unassessedCourses: string[];
+  overlappingComponents: string[];
 }) {
   const names = useMemo(() => new Set(components.map((c) => c.name)), [components]);
   const [selected, setSelected] = useState<Set<string>>(
@@ -96,7 +101,7 @@ export function CompatibilityTool({
         Совместимость БАД
       </h1>
       <p className="mb-5 text-sm text-ink-muted">
-        Отметьте, что принимаете, — покажем, что усиливает друг друга, а что лучше развести по времени.
+        Сведения о компонентах с условиями и источниками. Дозировки, лекарства и полный состав товаров автоматически не проверяются.
       </p>
 
       {/* Сводка выбранного + быстрый сброс */}
@@ -197,10 +202,10 @@ export function CompatibilityTool({
               </span>
               <div className="min-w-0">
                 <div className="font-extrabold">
-                  {hasConflict ? "Есть несовместимые пары"
-                    : counts.CAUTION > 0 ? "Принимайте с осторожностью"
-                      : matched.length > 0 ? "Отличное сочетание!"
-                        : "Известных взаимодействий нет"}
+                  {hasConflict ? "Есть значимые взаимодействия"
+                    : counts.CAUTION > 0 ? "Учитывайте условия приёма"
+                      : matched.length > 0 ? "Есть сведения об усвоении"
+                        : "Недостаточно данных"}
                 </div>
                 <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs font-semibold">
                   {(["SYNERGY", "CAUTION", "ANTAGONIST"] as CompatibilityType[]).map((t) =>
@@ -211,12 +216,13 @@ export function CompatibilityTool({
                     ) : null,
                   )}
                   {matched.length === 0 ? (
-                    <span className="text-ink-faint">Для этих компонентов правил не найдено</span>
+                    <span className="text-ink-faint">Правил не найдено. Это не подтверждает безопасность.</span>
                   ) : null}
                 </div>
               </div>
             </div>
 
+            <p className="mb-5 text-sm text-ink-muted">Выбрано пар: {selected.size * (selected.size - 1) / 2}. Описано: {matched.length}. Недостаточно данных: {Math.max(0, selected.size * (selected.size - 1) / 2 - matched.length)}. Даже описанное сочетание нельзя оценить без дозировок.</p>
             {/* Парная матрица (при 3..8 компонентах) — наглядная сетка */}
             {selected.size >= 3 && selected.size <= 8 ? (
               <Matrix components={selectedList} rules={rules} />
@@ -247,6 +253,7 @@ export function CompatibilityTool({
                             </span>
                           </div>
                           {r.note ? <p className="mt-2 text-sm text-ink-muted">{r.note}</p> : null}
+                          {r.sources.map(source => <a key={source.url} className="mt-2 block py-2 text-sm text-brand-700 underline" href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a>)}
                         </div>
                       ))}
                     </div>
@@ -258,9 +265,15 @@ export function CompatibilityTool({
         )}
       </div>
 
+      {overlappingComponents.length > 0 ? <p className="mt-6 text-sm text-ink-muted">Повторяются в нескольких курсах: {overlappingComponents.join(", ")}. Суммарная доза неизвестна; проверьте этикетки.</p> : null}
+      {unassessedCourses.length > 0 ? <p className="mt-6 text-sm text-ink-muted">Полные составы курсов не оценены: {unassessedCourses.join(", ")}. Теги товара не заменяют этикетку; проверьте повторение веществ и суммарные дозы.</p> : null}
+      {components.filter(c => selected.has(c.name)).map(c => <section key={c.name} className="mt-6">
+        <h2 className="font-bold">{c.name}</h2><p className="mt-1 text-sm text-ink-muted">{c.note}</p>
+        {c.sources.map(source => <a key={source.url} className="block py-2 text-sm text-brand-700 underline" href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a>)}
+      </section>)}
       <div className="mt-8 flex items-start gap-2.5 rounded-2xl bg-surface-soft p-4 text-sm text-ink-muted ring-1 ring-line">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint" />
-        <p>Справочная информация о всасывании нутриентов, не медицинская рекомендация. Проконсультируйтесь со специалистом.</p>
+        <p>Справочная информация для взрослых, не назначение лечения. Отсутствие правила не подтверждает безопасность. При беременности, заболеваниях и приёме лекарств обратитесь к врачу. Редакция: 2026-10-22.</p>
       </div>
     </div>
   );

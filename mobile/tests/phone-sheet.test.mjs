@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { loader, loadCallback } from "./load-ts.mjs";
 
-const { normalizePhoneInput, phoneInputDisplay, PHONE_MASK } = loader()("src/lib/phone-input.ts");
+const { normalizePhoneInput, phoneInputDisplay, normalizePhoneSubscriberInput, phoneSubscriberDisplay, PHONE_MASK } = loader()("src/lib/phone-input.ts");
 const { normalizePhone, isValidPhone } = loader()("src/lib/format.ts");
 const { authSheetFraction, authSheetContentBottomInset } = loader()("src/lib/auth-sheet-layout.ts");
 
@@ -11,7 +11,7 @@ test("Russian typing, ten-digit paste and domestic/international formatting conv
     const model = normalizePhoneInput(raw);
     assert.equal(model, "+79991234567");
     assert.equal(isValidPhone(model), true);
-    assert.equal(phoneInputDisplay(model), "+7 999 123-45-67");
+    assert.equal(phoneInputDisplay(model), "+7 (999)123-45-67");
   }
   let model = "";
   for (const digit of "9991234567") model = normalizePhoneInput(phoneInputDisplay(model) + digit);
@@ -30,7 +30,7 @@ test("empty, country-only, delete and partial input retain model/display separat
   assert.equal(isValidPhone(normalizePhoneInput("999")), false);
   assert.equal(normalizePhoneInput("+7 999 123-45-6"), "+7999123456");
   assert.equal(normalizePhoneInput(""), "");
-  assert.equal(PHONE_MASK, "+7 ___ ___-__-__");
+  assert.equal(PHONE_MASK, "(___)___-__-__");
 });
 
 test("explicit foreign country codes and excess digits are preserved and rejected instead of changing accounts", () => {
@@ -93,4 +93,34 @@ test("phone completion advances focus once, resets after deletion and never adva
   callback("+79991234567");
   assert.deepEqual(focused, ["next", "next"]);
   assert.equal(patched[3], "+86123456789");
+});
+
+test("fixed +7 prefix accepts all subscriber initials, full paste, clear and repeated backspace", () => {
+  for (const digits of ["9884444436", "7999123456", "8999123456"]) {
+    let value = "+7";
+    for (const digit of digits) value = normalizePhoneSubscriberInput(phoneSubscriberDisplay(value) + digit);
+    assert.equal(value, `+7${digits}`);
+    assert.equal(isValidPhone(value), true);
+    let count = 0;
+    while (phoneSubscriberDisplay(value)) {
+      value = normalizePhoneSubscriberInput(phoneSubscriberDisplay(value).slice(0, -1));
+      assert.ok(++count < 15, "Automatic punctuation must never trap backspace");
+    }
+    assert.equal(value, "+7");
+  }
+  assert.equal(phoneSubscriberDisplay("+79884444436"), "(988)444-44-36");
+  assert.equal(normalizePhoneSubscriberInput("+7 (988)444-44-36"), "+79884444436");
+  assert.equal(normalizePhoneSubscriberInput("89884444436"), "+79884444436");
+  assert.equal(normalizePhoneSubscriberInput(""), "+7");
+  for (const raw of ["+1 999 123 4567", "0044 2071234567", "+7999123456789"]) assert.equal(isValidPhone(normalizePhoneSubscriberInput(raw)), false);
+});
+
+test("subscriber overflow never consumes a first 7/8 as a country code or changes the account", () => {
+  for (const phone of ["+77771234567", "+78771234567", "+79884444436"]) {
+    const over = normalizePhoneSubscriberInput(phoneSubscriberDisplay(phone) + "8");
+    assert.equal(over, phone + "8");
+    assert.equal(isValidPhone(over), false);
+    assert.equal(normalizePhoneSubscriberInput(phoneSubscriberDisplay(over) + "9"), phone + "89");
+    assert.equal(normalizePhoneSubscriberInput(phoneSubscriberDisplay(over).slice(0, -1)), phone);
+  }
 });

@@ -200,7 +200,7 @@ test("compatibility dictionary has no invented fallback and no-match copy stays 
 test("compatibility errors remain visible even when old rules are cached", () => {
   const error = new Error("Required rules unavailable");
   const { CompatibilityScreen } = loader({
-    react: reactHooks, "react-native": native, "expo-haptics": {}, "expo-symbols": {},
+    react: { ...reactHooks, useSyncExternalStore: (_, snapshot) => snapshot() }, "react-native": native, "expo-haptics": {}, "expo-symbols": {}, "expo-web-browser": {},
     "expo-router": { Stack: { Screen: "StackScreen" }, useRouter: () => router },
     "react-native-reanimated": { useReducedMotion: () => true }, "@/components/ui": ui, "@/theme": theme,
     "@/store/auth": { useIsAuthenticated: () => false },
@@ -209,7 +209,8 @@ test("compatibility errors remain visible even when old rules are cached", () =>
     "./clean-result": { CleanResult: "CleanResult" }, "./component-picker": { ComponentPicker: "ComponentPicker" },
     "./rule-group": { RuleGroupBlock: "RuleGroupBlock" }, "./scan-summary": { ScanSummary: "ScanSummary" },
   })("src/screens/compatibility/index.tsx");
-  const tree = CompatibilityScreen();
+  const root = CompatibilityScreen();
+  const tree = root.type(root.props);
   assert.equal(elements(tree, "ErrorState")[0].props.error, error);
   assert.equal(elements(tree, "CleanResult").length, 0);
 });

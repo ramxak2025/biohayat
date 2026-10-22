@@ -24,6 +24,7 @@ export function DocumentsScreen() {
       <MenuGroup footer={copyright}>
         <MenuRow icon={{ ios: "doc.plaintext", android: "description", web: "description" }} tone="neutral" title="Публичная оферта" onPress={() => void openBrowser(LEGAL_URL.offer)} />
         <MenuRow icon={{ ios: "hand.raised.fill", android: "privacy_tip", web: "privacy_tip" }} tone="neutral" title="Политика конфиденциальности" onPress={() => void openBrowser(LEGAL_URL.privacy)} />
+        <MenuRow icon={{ ios: "checkmark.shield", android: "verified_user", web: "verified_user" }} tone="neutral" title="Согласие на обработку данных" onPress={() => void openBrowser(LEGAL_URL.consent)} />
         <MenuRow icon={{ ios: "box.truck", android: "local_shipping", web: "local_shipping" }} tone="neutral" title="Доставка и оплата" onPress={() => void openBrowser(LEGAL_URL.delivery)} />
       </MenuGroup>
       {settings.isError ? <ErrorState error={settings.error} title="Не удалось обновить реквизиты" onRetry={() => void settings.refetch()} compact /> : null}

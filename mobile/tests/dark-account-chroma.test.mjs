@@ -111,6 +111,7 @@ test("contacts retain actual settings URLs and use distinct original social mark
   })("src/components/account/contacts-card.tsx");
   const tree = ContactsCard({ settings });
   const rows = nodes(tree).filter((node) => node.type === "Row");
+  assert.match(tree.props.footer, /Meta Platforms Inc.*экстремистской.*запрещена/);
   for (const row of rows) row.props.onPress();
   assert.deepEqual(opened, [`tel:${settings.phone}`, ...Object.values(settings.socials), `mailto:${settings.email}`]);
   assert.equal(rows.find((row) => row.props.title === "Написать на почту").props.subtitle, settings.email);
@@ -139,7 +140,7 @@ test("contacts/documents are public native-stack routes with error recovery and 
   const { DocumentsScreen } = loader({ ...shared, "@/components/account/links": { LEGAL_URL, useOpenBrowser: () => (url) => opened.push(url) }, "@/components/account/menu-group": { MenuGroup: "Group" }, "@/components/account/menu-row": { MenuRow: "Row" } })("src/screens/account/documents.tsx");
   const documents = DocumentsScreen();
   for (const row of nodes(documents).filter((node) => node.type === "Row")) row.props.onPress();
-  assert.deepEqual(opened, [LEGAL_URL.offer, LEGAL_URL.privacy, LEGAL_URL.delivery]);
+  assert.deepEqual(opened, [LEGAL_URL.offer, LEGAL_URL.privacy, LEGAL_URL.consent, LEGAL_URL.delivery]);
   assert.ok(nodes(documents).find((node) => node.type === "Group").props.footer.includes(settings.legal.inn));
   const layout = loader({ "expo-router": { Stack: "Stack" }, "@/components/ui/stack-options": {} })("src/app/(tabs)/account/_layout.tsx");
   assert.equal(layout.unstable_settings.initialRouteName, "index");

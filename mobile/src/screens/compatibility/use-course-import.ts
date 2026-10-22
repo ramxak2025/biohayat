@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/keys";
 import type { IntakePlan } from "@/api/types";
+import { sessionGeneration } from "@/lib/session-generation";
 import { localDay } from "@/lib/format";
 
 import { normalizeComponent } from "./rules";
@@ -63,7 +64,8 @@ export function collectCourseComponents(
 
     const title = normalizeComponent(plan.title);
     for (const [key, canonical] of canonicalByKey) {
-      if (title.includes(key)) found.add(canonical);
+      const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}($|[^\\p{L}\\p{N}])`, "u").test(title)) found.add(canonical);
     }
   }
 
@@ -74,6 +76,9 @@ export interface CourseImportResult {
   components: string[];
   /** Сколько активных курсов просмотрели — нужно для честного текста «из N курсов». */
   planCount: number;
+  /** No verified full label composition is present in the current catalog. */
+  unassessedPlans: string[];
+  overlappingComponents: string[];
 }
 
 export interface CourseImport {
@@ -91,6 +96,8 @@ export function useCourseImport(baseComponents: readonly string[]): CourseImport
   const [importing, setImporting] = useState(false);
 
   const run = useCallback(async (): Promise<CourseImportResult> => {
+    const generation = sessionGeneration();
+    const assertCurrent = () => { if (generation !== sessionGeneration()) throw new Error("Сессия изменилась"); };
     setImporting(true);
     try {
       const plans = await queryClient.fetchQuery({
@@ -100,6 +107,7 @@ export function useCourseImport(baseComponents: readonly string[]): CourseImport
         staleTime: 60 * 1000,
       });
 
+      assertCurrent();
       const active = plans.filter((plan) => plan.isActive);
       const needsCatalog = active.some((plan) => !!plan.productId);
 
@@ -111,12 +119,17 @@ export function useCourseImport(baseComponents: readonly string[]): CourseImport
           })
         : {};
 
+      assertCurrent();
+      const counts = new Map<string, number>();
+      for (const plan of active) for (const component of collectCourseComponents([plan], byId, baseComponents)) counts.set(component, (counts.get(component) ?? 0) + 1);
       return {
         components: collectCourseComponents(active, byId, baseComponents),
         planCount: active.length,
+        unassessedPlans: active.map(plan => plan.title),
+        overlappingComponents: [...counts].filter(([, count]) => count > 1).map(([name]) => name),
       };
     } finally {
-      setImporting(false);
+      if (generation === sessionGeneration()) setImporting(false);
     }
   }, [queryClient, baseComponents]);
 

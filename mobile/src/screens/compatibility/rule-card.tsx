@@ -14,8 +14,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import * as WebBrowser from "expo-web-browser";
 import type { CompatibilityRule, CompatibilityType } from "@/api/types";
-import { AppText, Card } from "@/components/ui";
+import { AppText, Card, PressableScale } from "@/components/ui";
 import { Duration, Ease, radii, spacing } from "@/theme";
 
 import { PairLink } from "./pair-link";
@@ -91,6 +92,9 @@ export function RuleCard({ rule, type, tint, soft, icon, groupTitle, delay }: Ru
           ) : null}
         </View>
 
+        {rule.sources?.map(source => <PressableScale key={source.url} accessibilityRole="link" onPress={() => { void WebBrowser.openBrowserAsync(source.url); }} haptic="none" style={{ minHeight: 44, justifyContent: "center", marginTop: spacing.xs }}>
+          <AppText variant="footnote" color="brand">{source.title} ↗</AppText>
+        </PressableScale>)}
         {type === "ANTAGONIST" ? <ConflictPulse tint={tint} delay={delay + 160} /> : null}
       </Card>
     </Animated.View>
@@ -142,7 +146,7 @@ function ConflictPulse({ tint, delay }: ConflictPulseProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderLeftWidth: 3 },
+  card: { borderLeftWidth: 1 },
   pair: { flexDirection: "row", alignItems: "center" },
   component: { flex: 1 },
   note: { marginTop: spacing.sm },

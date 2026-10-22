@@ -1,3 +1,4 @@
+import { REGISTRATION_CONSENT_VERSION } from "@/lib/registration-consent";
 import { type NextRequest } from "next/server";
 import { registerCustomer } from "@/lib/customer-auth";
 import { authRateLimited } from "@/lib/auth-throttle";
@@ -26,14 +27,14 @@ export async function POST(req: NextRequest) {
     const fail = (code: string) => redirectAfterPost(`/account?tab=register&error=${code}`);
 
     if (name.length < 2) return fail("no_name");
-    if (!consent) return fail("no_consent");
+    if (!consent || fd.get("consentVersion") !== REGISTRATION_CONSENT_VERSION) return fail("no_consent");
 
     const waitMin = await authRateLimited("register", phone);
     if (waitMin) {
       return redirectAfterPost(`/account?tab=register&error=rate_limit&min=${waitMin}`);
     }
 
-    const res = await registerCustomer({ name, phone, password, email });
+    const res = await registerCustomer({ name, phone, password, email, consentChannel: "web" });
     if (!res.ok) return fail(res.code);
 
     // Привязка по реферальному коду из ссылки (?ref=) — без срыва регистрации.

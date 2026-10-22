@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { StyleSheet, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter, type Href } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -14,10 +15,12 @@ import {
   EmptyState,
   ErrorState,
   ListSkeleton,
+  PressableScale,
   Screen,
   Skeleton,
   useDetailScreenOptions,
 } from "@/components/ui";
+import { onSessionChanged, sessionGeneration } from "@/lib/session-generation";
 import { plural } from "@/lib/format";
 import { useIsAuthenticated } from "@/store/auth";
 import { Duration, radii, spacing, useColors } from "@/theme";
@@ -34,16 +37,23 @@ import { useCourseImport } from "./use-course-import";
 const NO_IMPORTS: ReadonlyMap<string, number> = new Map();
 
 export function CompatibilityScreen() {
+  const generation = useSyncExternalStore(onSessionChanged, sessionGeneration, sessionGeneration);
+  return <CompatibilitySession key={generation} />;
+}
+
+/** Remount on every identity boundary: selections and course titles never survive logout/login. */
+function CompatibilitySession() {
   const colors = useColors();
   const router = useRouter();
   const detailOptions = useDetailScreenOptions();
   const reduced = useReducedMotion();
   const isAuthenticated = useIsAuthenticated();
 
-  const { dictionary: base, rules, isLoading, isRefetching, error, refetch } = useCompatibility();
+  const { dictionary: base, components = [], limitations = [], reviewedAt, rules, isLoading, isRefetching, error, refetch } = useCompatibility();
 
   const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(() => new Set<string>());
   const [courseComponents, setCourseComponents] = useState<readonly string[]>([]);
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   /** Очередь прилёта чипсов из курсов: ключ → позиция. Живёт до следующего действия пользователя. */
   const [importedRanks, setImportedRanks] = useState<ReadonlyMap<string, number>>(NO_IMPORTS);
@@ -71,14 +81,21 @@ export function CompatibilityScreen() {
 
   const clear = useCallback(() => {
     setSelectedKeys(new Set<string>());
+    setImportWarnings([]);
     setNotice(null);
     setImportedRanks(NO_IMPORTS);
   }, []);
 
   const importFromCourses = useCallback(() => {
     setNotice(null);
+    const generation = sessionGeneration();
     void runImport()
-      .then(({ components, planCount }) => {
+      .then(({ components, planCount, unassessedPlans = [], overlappingComponents = [] }) => {
+        if (generation !== sessionGeneration()) return;
+        setImportWarnings([
+          ...unassessedPlans.map(title => `Не оценён полный состав: ${title}`),
+          ...(overlappingComponents.length ? [`Повторяются в нескольких курсах: ${overlappingComponents.join(", ")}. Суммарная доза не рассчитана.`] : []),
+        ]);
         if (components.length === 0) {
           setNotice(
             planCount === 0
@@ -102,6 +119,7 @@ export function CompatibilityScreen() {
         );
       })
       .catch(() => {
+        if (generation !== sessionGeneration()) return;
         setNotice("Не удалось загрузить курсы приёма. Попробуйте ещё раз.");
       });
   }, [runImport]);
@@ -216,6 +234,7 @@ export function CompatibilityScreen() {
           onToggle={toggle}
         />
 
+        {importWarnings.map(message => <AppText key={message} variant="footnote" color="muted" style={{ marginTop: spacing.sm }}>{message}</AppText>)}
         <Divider style={styles.divider} />
 
         {selectedCount < 2 ? (
@@ -223,7 +242,7 @@ export function CompatibilityScreen() {
             compact
             icon="hand.tap"
             title="Выберите минимум два компонента"
-            subtitle="Совместимость считается по парам — отметьте хотя бы два, и результат появится здесь."
+            subtitle="Для парного сравнения отметьте два компонента. Сведения о каждом выбранном веществе приведены ниже."
           />
         ) : (
           <>
@@ -240,6 +259,21 @@ export function CompatibilityScreen() {
             )}
           </>
         )}
+
+        {selectedCount > 0 ? <View style={{ gap: spacing.lg, marginTop: spacing.xl }}>
+          <AppText variant="title3">Что ещё учитывать</AppText>
+          {components.filter(component => selectedKeys.has(normalizeComponent(component.name))).map(component => <View key={component.name}>
+            <AppText variant="headline">{component.name}</AppText>
+            <AppText variant="subhead" color="muted" style={{ marginTop: spacing.xs }}>{component.note}</AppText>
+            {component.sources.map(source => <PressableScale key={source.url} accessibilityRole="link" haptic="none" style={{ minHeight: 44, justifyContent: "center" }} onPress={() => { void WebBrowser.openBrowserAsync(source.url); }}>
+              <AppText variant="footnote" color="brand">{source.title} ↗</AppText>
+            </PressableScale>)}
+          </View>)}
+        </View> : null}
+        <View style={{ gap: spacing.sm, marginTop: spacing.xl }}>
+          {limitations.map(text => <AppText key={text} variant="footnote" color="muted">{text}</AppText>)}
+          {reviewedAt ? <AppText variant="caption" color="faint">Редакция справочника: {reviewedAt}</AppText> : null}
+        </View>
 
         <Card tone="soft" elevated={false} style={styles.disclaimer}>
           <SymbolView name="info.circle" size={15} tintColor={colors.textMuted} />

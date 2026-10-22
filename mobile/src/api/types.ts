@@ -278,7 +278,12 @@ export interface CompatibilityRule {
   componentB: string;
   type: CompatibilityType;
   note: string | null;
+  sources?: EvidenceSource[];
+  reviewedAt?: string;
 }
+export interface EvidenceSource { title: string; url: string }
+export interface ComponentEvidence { name: string; group: string; note: string; sources: EvidenceSource[] }
+export interface CompatibilityEvidence { version: string; reviewedAt: string; rules: CompatibilityRule[]; components: ComponentEvidence[]; limitations: string[] }
 
 /* ── 5.9 Покупатель ──────────────────────────────────────────────────────── */
 
@@ -377,7 +382,8 @@ export interface RegisterBody {
   phone: string;     // лучше уже "+7XXXXXXXXXX"
   password: string;  // >= 6
   email?: string;    // валидный email
-  consent: true;     // ровно true
+  consent: boolean; // сервер принимает только явное true
+  consentVersion: string;
 }
 
 export interface LoginBody {

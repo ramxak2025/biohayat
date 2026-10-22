@@ -1,23 +1,6 @@
-import { apiOk, apiPreflight, apiInternal } from "@/lib/api/response";
-import { prisma } from "@/lib/prisma";
-import { serializeCompatibility } from "@/lib/api/serializers";
-
-export const runtime = "nodejs";
+import { apiOk, apiPreflight } from "@/lib/api/response";
+import { EVIDENCE_RULES } from "@/lib/compatibility-evidence";
 export const dynamic = "force-dynamic";
-
-export function OPTIONS() {
-  return apiPreflight();
-}
-
-/** GET /api/v2/compatibility/rules — активные правила совместимости БАД. */
-export async function GET() {
-  try {
-    const rules = await prisma.compatibilityRule.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "asc" },
-    });
-    return apiOk(rules.map(serializeCompatibility));
-  } catch (e) {
-    return apiInternal("api/v2/compatibility/rules", e);
-  }
-}
+export function OPTIONS() { return apiPreflight(); }
+/** Compatibility adapter for older clients; unreviewed admin drafts are never served. */
+export function GET() { return apiOk(EVIDENCE_RULES); }

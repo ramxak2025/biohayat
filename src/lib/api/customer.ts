@@ -1,3 +1,4 @@
+import { registrationConsentReceipt, type RegistrationChannel } from "@/lib/registration-consent";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { normalizePhone } from "@/lib/utils";
@@ -39,6 +40,7 @@ export async function apiRegister(input: {
   phone: string;
   password: string;
   email?: string;
+  consentChannel: RegistrationChannel;
 }): Promise<ApiAuthOk | ApiAuthErr> {
   const phone = normalizePhone(input.phone);
   if (phone.replace(/\D/g, "").length < 11) return { ok: false, error: "Некорректный номер телефона", status: 400 };
@@ -53,6 +55,7 @@ export async function apiRegister(input: {
       phone,
       name: input.name.trim(),
       email: input.email?.trim() || null,
+      registrationConsent: registrationConsentReceipt(input.consentChannel),
       passwordHash: await bcrypt.hash(input.password, 12),
     },
   });

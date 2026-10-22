@@ -21,7 +21,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { normalizePhoneInput, phoneInputDisplay, PHONE_MASK } from "@/lib/phone-input";
+import { normalizePhoneSubscriberInput, phoneSubscriberDisplay, PHONE_MASK } from "@/lib/phone-input";
 import { Duration, Ease, MIN_TAP_SIZE, radii, spacing, typography, useColors } from "@/theme";
 
 import { AppText } from "./app-text";
@@ -33,6 +33,7 @@ export interface InputProps extends Omit<TextInputProps, "style"> {
   error?: string | null;
   hint?: string;
   leftIcon?: SFSymbol;
+  leftSlot?: ReactNode;
   /** Произвольный узел справа внутри поля (кнопка «показать пароль» и т.п.). */
   rightSlot?: ReactNode;
   containerStyle?: StyleProp<ViewStyle>;
@@ -44,6 +45,7 @@ export function Input({
   error,
   hint,
   leftIcon,
+  leftSlot,
   rightSlot,
   containerStyle,
   inputStyle,
@@ -82,6 +84,7 @@ export function Input({
           borderStyle,
         ]}
       >
+        {leftSlot}
         {leftIcon ? <SymbolView name={leftIcon} size={17} tintColor={colors.textFaint} /> : null}
         <TextInput
           editable={editable}
@@ -123,13 +126,15 @@ export interface PhoneInputProps extends Omit<InputProps, "value" | "onChangeTex
   onChangeText: (normalized: string) => void;
 }
 
-/** Телефон с маской «+7 XXX XXX-XX-XX»; наружу отдаёт нормализованный номер. */
+/** Fixed country code, editable subscriber digits; never truncates pasted invalid numbers. */
 export function PhoneInput({ value, onChangeText, label = "Телефон", ...rest }: PhoneInputProps) {
   return (
     <Input
       label={label}
-      value={phoneInputDisplay(value)}
-      onChangeText={(raw) => onChangeText(normalizePhoneInput(raw))}
+      leftSlot={!value || value.startsWith("+7") ? <AppText variant="body" accessible={false}>+7</AppText> : undefined}
+      value={phoneSubscriberDisplay(value)}
+      onChangeText={(raw) => onChangeText(normalizePhoneSubscriberInput(raw))}
+      clearButtonMode="never"
       keyboardType="phone-pad"
       textContentType="telephoneNumber"
       autoComplete="tel"

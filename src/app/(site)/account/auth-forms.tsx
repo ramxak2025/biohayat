@@ -172,10 +172,11 @@ export function AuthForms({ defaultTab = "login", error, retryMin }: AuthFormsPr
                 <Input id="rpass" name="password" type="password" autoComplete="new-password" placeholder="не короче 6 символов" />
               </div>
               <label className="flex items-start gap-2.5 text-sm text-ink-muted">
-                <Checkbox name="consent" className="mt-0.5" />
+                <Checkbox name="consent" required className="mt-0.5" />
+                <input type="hidden" name="consentVersion" value="2026-10-22" />
                 <span>
-                  Согласен на обработку персональных данных согласно{" "}
-                  <Link href="/privacy-policy" target="_blank" className="text-brand-700 underline">Политике</Link>.
+                  Даю отдельное <Link href="/personal-data-consent" target="_blank" className="text-brand-700 underline">согласие на обработку персональных данных</Link> для регистрации и работы личного кабинета.
+                  {" "}<Link href="/privacy-policy" target="_blank" className="text-brand-700 underline">Политика обработки данных</Link>.
                 </span>
               </label>
             </AuthForm>
