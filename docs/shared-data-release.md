@@ -225,3 +225,23 @@ ordering is outside this integration; the existing website retains those flows.
   `compact-dark-account.png` and `search.png`. Detailed local test logs reside
   in `/tmp/hayat-ui-20261022/`. Physical-device gestures/performance, Android
   device rendering and authenticated native time-picker flows were not tested.
+
+### TestFlight build 7 delivery
+
+- Source: `092bb2f85f6be5c554c0d16633f9294b660b06a9`. All 281 tracked mobile
+  files matched the primary checkout and inspected EAS archive. Local environment
+  files, private keys and installed dependencies were excluded from the archive.
+- EAS production build `f2ec35a7-4775-47e6-8a59-bab52264d3ea` and submission
+  `a078fa4f-e670-49a7-8c5d-50e8d0407f0d` finished successfully. Signing credentials
+  were reused. IPA version **1.0.0 (7)**, `ru.biohayat.app`, 22,864,036 bytes,
+  SHA-256 `004aba73ef6e3b0c3e84e6c669ed2281cae4c77fcb7e6cc649a39a525615af9b`.
+  ZIP integrity, embedded production API origin/version and binary entitlements
+  passed; `codesign --verify --deep --strict` passed. Android JS/Hermes export
+  also completed; this is not an Android native-device test or store release.
+- Apple build `84691dde-f39d-4cb7-87bf-e655e2ac76da` reports `VALID` and
+  `IN_BETA_TESTING`. Membership in existing internal group **Внутреннее тестирование**
+  (`9b913c5b-5f05-4e43-8660-9bd963cbf06c`) and Russian release notes were read back
+  successfully at 19:29 Moscow time on 2026-10-22. No external/public release
+  or tester permission change was made.
+- Delivery evidence is retained in `/tmp/hayat-ui-20261022/` as
+  `ipa-verification.json`, `testflight-verification.json` and EAS status records.
