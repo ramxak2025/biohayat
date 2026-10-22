@@ -29,6 +29,8 @@ FROM base AS runner
 ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
+# Never ship database fallback/settings values cached during an offline build.
+RUN rm -rf .next/cache/fetch-cache
 COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/prisma ./prisma

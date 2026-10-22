@@ -368,3 +368,9 @@ ordering is outside this integration; the existing website retains those flows.
   or new TestFlight delivery is claimed by this entry. Android/older-iOS runtime
   checks remain unavailable. Personal review contacts and test passwords are absent
   from the repository.
+
+- Rollout hardening: the runner discards only `.next/cache/fetch-cache` after
+  copying compiled output. Next's build-time database fallbacks must not become
+  the initial legal settings/catalog response. Compiled server/static assets
+  and mounted database/uploads are retained. Independent review approved this
+  scoped image change; first cold-start settings/categories/consent require read-back.
