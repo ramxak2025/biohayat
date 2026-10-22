@@ -299,3 +299,22 @@ ordering is outside this integration; the existing website retains those flows.
   successfully on 2026-10-22. No external/public release or tester access change.
 - Evidence is in `/tmp/hayat-redesign-20261022/`: `ipa-verification.json`,
   `testflight-verification.json`, EAS status records and final test/export logs.
+
+## External TestFlight setup — 2026-10-22
+
+- At the user's request, created external group **Внешнее тестирование**
+  (`3801c79a-7731-434a-8aed-b31bc6922690`) and associated build **1.0.0 (8)**.
+  Its enabled public invitation is https://testflight.apple.com/join/g8Egkeyr.
+  Internal testers and their existing group were preserved.
+- Saved the review contacts explicitly provided by the user in App Store Connect,
+  plus Russian beta information and feedback contact. Personal contact values
+  are intentionally absent from this repository. Guest access and account/order
+  behavior are described truthfully in the review notes; no demo account or
+  production customer/order was created.
+- Submitted build `43880609-9c4d-4dbd-8d02-61c3119fc646` for Beta App Review.
+  Read-back state at 20:55 Moscow time: **WAITING_FOR_REVIEW**. External installation
+  remains unavailable until Apple approves the build. The public link is generated
+  and enabled; it must not be described as an already approved external release.
+- Protected local evidence: `external-group.json`,
+  `external-link-verification.json` and `external-review-submission.json` under
+  `/tmp/hayat-redesign-20261022/`.
