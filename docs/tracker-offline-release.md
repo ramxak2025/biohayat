@@ -126,7 +126,7 @@ release checkout passes all124 checks and is the sole backend deployment/build s
   logs, installed QA binary and signed production IPA remain. Three existing agents were reused;
   the client has no close-agent tool, so they finished but were not reported as technically closed.
 
-The user subsequently authorized and completed both release actions:
+Following the user’s explicit authorization, both release actions completed:
 
 - VDS release directory: `/root/biohayat-releases/20261023-86856a6`.
 - Live image: `biohayat-app:tracker-20261023-86856a6`, ID
@@ -155,4 +155,3 @@ The user subsequently authorized and completed both release actions:
   tester. Russian test notes verified via betaBuildLocalizations.whatsNew. No external-group
   publication or Beta Review submission was performed; external state remains READY_FOR_BETA_SUBMISSION.
 - Native runtime/visual limitations remain as disclosed and accepted for this internal test release.
-
