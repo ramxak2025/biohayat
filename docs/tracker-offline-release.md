@@ -76,3 +76,31 @@ can still retry. Production backup files remain private and are never committed.
 Native AES uses the installed Expo57 iOS implementation backed by Apple's CryptoKit. The existing
 ITSAppUsesNonExemptEncryption=false remains consistent with OS-provided encryption; no custom
 crypto or SQLCipher implementation was added. Native dependency changes require a new binary.
+
+## Packaging / native evidence
+
+The first cloud attempt 1.0.0(10), dacc2352-5235-4bf4-b030-9e74b0a21687, failed before
+native compilation: Metro did not include the sibling shared calendar directory. The repository
+has separate package-manager projects, not declared workspaces, so mobile/metro.config.js now
+extends expo/metro-config and adds only ../shared to watchFolders. Actual iOS (6.2MB Hermes)
+and Android (6.4MB Hermes) production exports passed after this fix. Archive inspection found
+1059 source files, the shared calendar/vault present, no env/keys/native credentials/dependencies.
+
+Native simulator compilation passed on Xcode26.6 for the existing Hayat Shared Data QA device.
+An initial disk-full error corrupted the task's module cache. Only prior generated Hayat iOS
+build output and this task's module cache were cleared; no other projects or global simulator
+services were restarted. Runtime/appearance evidence follows the successful installation.
+
+Online expo-doctor recommended nine newer SDK57 patch packages already unchanged from the
+released baseline; its advisory check remains reported, not suppressed. The new expo-crypto
+57.0.4 matches the installed SDK57.0.23 manifest. Offline expo install --check reported up-to-date
+with its offline reliability caveat. No blanket SDK/dependency upgrade was attempted.
+
+Primary checkout integration: 315 tracked mobile/shared source files were byte-mirrored after
+verifying all295 previous mobile files still matched bb7cba2. Existing dirty backend edits were
+preserved. New Metro configuration was mirrored afterward. Primary mobile typecheck passed once
+Expo's generated route declaration was refreshed from the identical canonical mobile sources.
+The primary full test run passed119 tests but could not load the five pre-existing cross-backend
+compatibility checks: its older seed-data module lacks the released component dictionary and the
+reference evidence module is absent. That medical seed contract was not overwritten. The canonical
+release checkout passes all124 checks and is the sole backend deployment/build source.
