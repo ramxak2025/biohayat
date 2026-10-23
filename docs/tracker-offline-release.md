@@ -104,3 +104,28 @@ The primary full test run passed119 tests but could not load the five pre-existi
 compatibility checks: its older seed-data module lacks the released component dictionary and the
 reference evidence module is absent. That medical seed contract was not overwritten. The canonical
 release checkout passes all124 checks and is the sole backend deployment/build source.
+
+## Final candidate, awaiting release authorization
+
+- Code source: 86856a6f5a2310a7df0dfafb7c33f0f1aee8de47.
+- EAS production build: 6e96fdf7-a023-4744-85f2-a31d3788eb0d, FINISHED, 1.0.0(11).
+- IPA: 22,951,280 bytes; SHA256 27075f411807536af9bc451817fd459277c53c5551ff44234572c4a5324ffb7d.
+- Verified bundle ru.biohayat.app/version11, strict deep code signature, native ExpoCrypto code,
+  production API string and absence of the local QA API/Metro addresses in the packaged JS.
+- Source archive SHA256: 064aec97d4316f950fb908132b78bf6903d81e71aa7c0ffa37412001d8e367e2.
+- Primary source mirror: 316 files identical; its30 focused tracker tests and typecheck passed.
+- Canonical124 mobile tests, root/mobile typechecks, root lint, Next production build,
+  iOS/Android production JS exports, 12 tracker protocol and13 existing v2 groups passed.
+- Native runtime/appearance acceptance remains verification blocked: CUA opened an old generic
+  Simulator session, and reliable selection of the dedicated QA window could not be completed.
+  Those old screens are not evidence for this candidate. No other apps or global simulator
+  services were restarted. Do not claim native AES execution, closed-app notification delivery,
+  physical haptics, theme/large-type rendering or offline cold-restart acceptance as passed.
+- Only this task's local Next/Metro/Postgres were stopped after checks. Temporary UI worktree
+  removed after its clean UI commit was integrated. Generated native cache removed after install;
+  logs, installed QA binary and signed production IPA remain. Three existing agents were reused;
+  the client has no close-agent tool, so they finished but were not reported as technically closed.
+
+No VDS migration/deployment or App Store Connect upload/publication occurred for this candidate.
+The separate explicit authorization requirement applies to the new server protocol/schema and
+TestFlight upload, rather than reusing permission for the earlier build9 release.
