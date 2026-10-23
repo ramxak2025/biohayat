@@ -1,74 +1,24 @@
-import { StyleSheet, Switch, View } from "react-native";
-import { SymbolView } from "expo-symbols";
-
-import { AppText, Card } from "@/components/ui";
+import { Linking, StyleSheet, Switch, View } from "react-native";
+import { AppText, Button, Card } from "@/components/ui";
 import { plural } from "@/lib/format";
-import { radii, spacing, useColors } from "@/theme";
-
+import { spacing, useColors } from "@/theme";
 import type { RemindersState } from "./use-reminders";
 
-export interface RemindersCardProps {
-  /** Состояние из useIntakeReminders — живёт на экране, а не в карточке:
-   *  расписание нужно пересобирать и тогда, когда карточка не показана. */
-  state: RemindersState;
-}
-
-/** Тумблер локальных напоминаний. Разрешение запрашивается только по нажатию. */
+export interface RemindersCardProps { state: RemindersState & { nextAt?: string | null; scheduledUntil?: string | null; error?: string | null } }
+function reminderDate(value: string): string { return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)); }
 export function RemindersCard({ state }: RemindersCardProps) {
   const colors = useColors();
-  const { enabled, permission, scheduled, busy, toggle } = state;
-
-  const subtitle = !enabled
-    ? permission === "denied"
-      ? "Уведомления запрещены в системных настройках"
-      : "Напомним, когда придёт время приёма"
-    : scheduled > 0
-      ? `${scheduled} ${plural(scheduled, "напоминание", "напоминания", "напоминаний")} в день`
-      : "Добавьте курс — и напоминания появятся";
-
-  return (
-    <Card padded={spacing.base}>
-      <View style={styles.row}>
-        <View
-          style={[
-            styles.icon,
-            { backgroundColor: enabled ? colors.brandSoft : colors.surfaceSunken },
-          ]}
-        >
-          <SymbolView
-            name={enabled ? "bell.badge.fill" : "bell.slash"}
-            size={17}
-            tintColor={enabled ? colors.brand : colors.textFaint}
-          />
-        </View>
-
-        <View style={styles.text}>
-          <AppText variant="headline">Напоминания</AppText>
-          <AppText variant="footnote" color="muted" numberOfLines={2}>
-            {subtitle}
-          </AppText>
-        </View>
-
-        <Switch
-          value={enabled}
-          onValueChange={toggle}
-          disabled={busy}
-          trackColor={{ true: colors.brand, false: colors.surfaceSunken }}
-          accessibilityLabel="Напоминания о приёме"
-        />
-      </View>
-    </Card>
-  );
+  const denied = state.permission === "denied";
+  const subtitle = denied ? "Система не разрешает уведомления" : !state.enabled ? "Отметки и курсы сохраняются и без уведомлений" : state.scheduled > 0 ? `Запланировано ${state.scheduled} ${plural(state.scheduled, "напоминание", "напоминания", "напоминаний")}` : "Для ближайших дат напоминаний пока нет";
+  return <Card>
+    <View style={styles.row}>
+      <View style={styles.text}><AppText variant="headline">Напоминания</AppText><AppText variant="footnote" color="muted">{subtitle}</AppText></View>
+      <Switch value={state.enabled} disabled={state.busy} onValueChange={state.toggle} trackColor={{ true: colors.brand, false: colors.surfaceSunken }} accessibilityLabel="Напоминания о приёме" />
+    </View>
+    {denied ? <Button title="Открыть настройки устройства" size="sm" variant="ghost" onPress={() => void Linking.openSettings()} /> : null}
+    {state.nextAt ? <AppText variant="footnote" color="muted" style={styles.detail}>Ближайшее: {reminderDate(state.nextAt)}</AppText> : null}
+    {state.scheduledUntil ? <AppText variant="footnote" color="muted" style={styles.detail}>Расписание на устройстве — до {reminderDate(state.scheduledUntil)}. Открывайте приложение, чтобы продлить его.</AppText> : null}
+    {state.error ? <AppText variant="footnote" color="danger" style={styles.detail} accessibilityRole="alert">{state.error}. Сохранённые курсы и отметки остаются в трекере.</AppText> : null}
+  </Card>;
 }
-
-const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  icon: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.pill,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: { flex: 1, gap: 2 },
-});
+const styles = StyleSheet.create({ row: { flexDirection: "row", alignItems: "center", gap: spacing.md }, text: { flex: 1, gap: spacing.xs }, detail: { marginTop: spacing.sm } });

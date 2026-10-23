@@ -1,288 +1,69 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
-import { Stack, useFocusEffect, useRouter } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
-import * as Haptics from "expo-haptics";
-
-import type { IntakePlan } from "@/api/types";
-import {
-  AuthInvite,
-  DaySummary,
-  PlanCard,
-  RemindersCard,
-  TrackerSkeleton,
-  buildLogIndex,
-  computeStreak,
-  dayProgress,
-  logKey,
-  logWindow,
-  planDayState,
-  sortSlots,
-  useIntakeReminders,
-  weekDays,
-} from "@/components/tracker";
-import {
-  AppText,
-  BadDisclaimer,
-  Divider,
-  EmptyState,
-  ErrorState,
-  IconButton,
-  Screen,
-} from "@/components/ui";
-import { localDay, plural } from "@/lib/format";
-import { startIntakeNotificationRouting, watchPushToken } from "@/lib/notifications";
-import { useIsAuthenticated } from "@/store/auth";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { useTracker } from "@/tracker/provider";
+import { useTrackerClock } from "@/tracker/clock";
+import type { TrackerController } from "@/tracker/types";
+import { AppText, Button, Card, Divider, IconButton, Screen } from "@/components/ui";
+import { DaySummary } from "@/components/tracker/day-summary";
+import { IntakeRow } from "@/components/tracker/intake-row";
+import { TrackerState, TrackerConflicts } from "@/components/tracker/tracker-state";
+import { TrackerSkeleton } from "@/components/tracker/tracker-skeleton";
+import { RemindersCard } from "@/components/tracker/reminders-card";
+import { useIntakeReminders } from "@/components/tracker/use-reminders";
+import { nextTrackerDay, recentTrackerDays, selectedDayRows, trackerDate, type IntakeRowData } from "@/components/tracker/presentation";
 import { spacing } from "@/theme";
 
-import {
-  intakeLogsPrefix,
-  useDeleteIntakePlan,
-  useIntakeLogs,
-  useIntakePlans,
-  useToggleIntakeLog,
-  useUpdateIntakePlan,
-} from "./use-intake";
-
-/** Порядок карточек: сначала то, что нужно сделать сегодня. */
-const STATE_ORDER = { running: 0, upcoming: 1, finished: 2, paused: 3 } as const;
-
 export function TrackerScreen() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const isAuthenticated = useIsAuthenticated();
-
-  // день держим в состоянии: приложение может провисеть открытым через полночь
-  const [today, setToday] = useState(localDay);
-  const [selectedDay, setSelectedDay] = useState(today);
-
-  const range = useMemo(() => logWindow(today), [today]);
-
-  const plansQuery = useIntakePlans(isAuthenticated);
-  const logsQuery = useIntakeLogs(range, isAuthenticated);
-  const updatePlan = useUpdateIntakePlan();
-  const deletePlan = useDeleteIntakePlan();
-  const { toggle, isPending } = useToggleIntakeLog(range);
-
-  const plans = useMemo(() => plansQuery.data ?? [], [plansQuery.data]);
-  const logIndex = useMemo(() => buildLogIndex(logsQuery.data ?? []), [logsQuery.data]);
-  const days = useMemo(() => weekDays(today), [today]);
-
-  const progressOf = useCallback(
-    (day: string) => dayProgress(plans, logIndex, day),
-    [plans, logIndex],
-  );
-  const streak = useMemo(() => computeStreak(plans, logIndex, today), [plans, logIndex, today]);
-
-  // хук живёт на экране, а не в карточке: удалив последний курс, мы обязаны снять
-  // уже запланированные уведомления — а карточка к этому моменту размонтирована
-  const reminders = useIntakeReminders(plans, !isAuthenticated || plansQuery.isSuccess);
-
-  const sortedPlans = useMemo(
-    () =>
-      [...plans].sort((a, b) => {
-        const byState = STATE_ORDER[planDayState(a, selectedDay)] - STATE_ORDER[planDayState(b, selectedDay)];
-        if (byState !== 0) return byState;
-        return (sortSlots(a.times)[0] ?? "").localeCompare(sortSlots(b.times)[0] ?? "");
-      }),
-    [plans, selectedDay],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      const current = localDay();
-      if (current !== today) {
-        setToday(current);
-        setSelectedDay(current);
-      }
-      // отметку могли поставить из уведомления, пока экран был в фоне
-      void queryClient.invalidateQueries({ queryKey: intakeLogsPrefix });
-    }, [today, queryClient]),
-  );
-
-  useEffect(() => {
-    // нажатие «Принял» в уведомлении пишет лог мимо экрана — перечитываем кэш
-    const stopRouting = startIntakeNotificationRouting(() => {
-      void queryClient.invalidateQueries({ queryKey: intakeLogsPrefix });
-    });
-    // APNs изредка меняет токен на живом приложении — иначе накопим мёртвые записи
-    const stopToken = watchPushToken();
-    return () => {
-      stopRouting();
-      stopToken();
-    };
-  }, [queryClient]);
-
-  const goCreate = useCallback(() => {
-    router.push("./new" as `./${string}`, { relativeToDirectory: true });
-  }, [router]);
-
-  const onTogglePause = useCallback(
-    (plan: IntakePlan) => {
-      void Haptics.selectionAsync();
-      updatePlan.mutate({ planId: plan.id, body: { isActive: !plan.isActive } });
-    },
-    [updatePlan],
-  );
-
-  const onDelete = useCallback(
-    (plan: IntakePlan) => {
-      Alert.alert(
-        "Удалить курс?",
-        `«${plan.title}» и вся история отметок по нему будут удалены безвозвратно — восстановить их не получится.`,
-        [
-          { text: "Отмена", style: "cancel" },
-          { text: "Удалить", style: "destructive", onPress: () => deletePlan.mutate(plan.id) },
-        ],
-      );
-    },
-    [deletePlan],
-  );
-
-  const busyPlanId = updatePlan.isPending
-    ? updatePlan.variables?.planId
-    : deletePlan.isPending
-      ? deletePlan.variables
-      : undefined;
-
-  const header = (
-    <Stack.Screen
-      options={{
-        title: "Трекер",
-        headerRight: () =>
-          isAuthenticated ? (
-            <IconButton name="plus" label="Добавить курс" size={20} onPress={goCreate} />
-          ) : null,
-      }}
-    />
-  );
-
-  if (!isAuthenticated) {
-    return (
-      <>
-        {header}
-        <AuthInvite subtitle="Курсы приёма и отметки хранятся в личном кабинете, поэтому для трекера нужен вход." />
-      </>
-    );
-  }
-
-  if (plansQuery.isLoading) {
-    return (
-      <>
-        {header}
-        <Screen scroll>
-          <TrackerSkeleton />
-        </Screen>
-      </>
-    );
-  }
-
-  if (plansQuery.isError) {
-    return (
-      <>
-        {header}
-        <Screen>
-          <View style={styles.center}>
-            <ErrorState error={plansQuery.error} onRetry={() => void plansQuery.refetch()} />
-          </View>
-        </Screen>
-      </>
-    );
-  }
-
-  if (plans.length === 0) {
-    return (
-      <>
-        {header}
-        <Screen>
-          <View style={styles.center}>
-            <EmptyState
-              icon="pills"
-              title="Заведите первый курс"
-              subtitle="Трекер напомнит о приёме, посчитает дни курса и покажет, сколько раз подряд вы ничего не пропустили. Добавки работают только тогда, когда их принимают регулярно."
-              actionLabel="Добавить курс"
-              onAction={goCreate}
-            />
-          </View>
-        </Screen>
-      </>
-    );
-  }
-
-  const progress = progressOf(selectedDay);
-
-  return (
-    <>
-      {header}
-      <Screen
-        scroll
-        refreshing={plansQuery.isRefetching || logsQuery.isRefetching}
-        onRefresh={() => {
-          void plansQuery.refetch();
-          void logsQuery.refetch();
-        }}
-      >
-        <View style={styles.content}>
-          <DaySummary
-            day={selectedDay}
-            today={today}
-            progress={progress}
-            streak={streak}
-            days={days}
-            progressOf={progressOf}
-            onSelectDay={setSelectedDay}
-          />
-
-          {logsQuery.isError ? (
-            <ErrorState
-              error={logsQuery.error}
-              title="Не удалось загрузить отметки"
-              onRetry={() => void logsQuery.refetch()}
-              compact
-            />
-          ) : null}
-
-          <RemindersCard state={reminders} />
-
-          <View style={styles.sectionHeader}>
-            <AppText variant="title3">Курсы</AppText>
-            <AppText variant="footnote" color="faint">
-              {plans.length} {plural(plans.length, "курс", "курса", "курсов")}
-            </AppText>
-          </View>
-
-          {sortedPlans.map((plan, index) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              day={selectedDay}
-              today={today}
-              index={index}
-              busy={busyPlanId === plan.id}
-              isTaken={(slot) => logIndex.has(logKey(plan.id, selectedDay, slot))}
-              isPending={(slot) => isPending(plan.id, selectedDay, slot)}
-              onToggle={(target, slot) => toggle({ planId: target.id, day: selectedDay, slot })}
-              onTogglePause={onTogglePause}
-              onDelete={onDelete}
-            />
-          ))}
-
-          <Divider style={styles.divider} />
-          <BadDisclaimer variant="compact" />
-        </View>
-      </Screen>
-    </>
-  );
+  const tracker: TrackerController & { partitionKey: string } = useTracker();
+  return <TrackerBody key={tracker.partitionKey} tracker={tracker} />;
 }
-
-const styles = StyleSheet.create({
-  content: { gap: spacing.md },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    marginTop: spacing.sm,
-  },
-  divider: { marginTop: spacing.sm },
-  center: { flex: 1, justifyContent: "center" },
-});
+export function TrackerBody({ tracker }: { tracker: TrackerController }) {
+  const router = useRouter();
+  const { today } = useTrackerClock();
+  const [day, setDay] = useState(today);
+  const previousToday = useRef(today);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const reminders = useIntakeReminders(tracker.plans, tracker.hydrated && !tracker.storageError);
+  useEffect(() => {
+    if (day === previousToday.current) setDay(today);
+    previousToday.current = today;
+  }, [today, day]);
+  const refresh = async () => {
+    setRefreshing(true); setRefreshError(null);
+    try { await (tracker.access === "account" ? tracker.sync() : tracker.reload()); }
+    catch (error) { setRefreshError(error instanceof Error ? error.message : "Не удалось обновить трекер"); }
+    finally { setRefreshing(false); }
+  };
+  const add = () => router.push("/tracker/new");
+  const header = <Stack.Screen options={{ title: "Приём", headerRight: () => <IconButton name={{ ios: "plus", android: "add", web: "add" }} label="Добавить курс" disabled={!tracker.hydrated || !!tracker.storageError} onPress={add} /> }} />;
+  if (!tracker.hydrated) return <>{header}<Screen scroll contentContainerStyle={styles.content}><TrackerState tracker={tracker} />{!tracker.storageError ? <TrackerSkeleton /> : null}</Screen></>;
+  const known = tracker.isDayKnown(day);
+  const rows = selectedDayRows(tracker.plans, tracker.logs, day, today);
+  const scheduled = rows.filter((row) => row.scheduled);
+  const groups = new Map<string, IntakeRowData[]>();
+  for (const row of rows) groups.set(row.slot, [...(groups.get(row.slot) ?? []), row]);
+  const next = nextTrackerDay(tracker.plans, today);
+  const emptyKnown = known && tracker.plansKnown;
+  return <>{header}<Screen scroll refreshing={refreshing} onRefresh={() => void refresh()} contentContainerStyle={styles.content}>
+    <TrackerState tracker={tracker} />
+    <DaySummary day={day} today={today} known={known && (day !== today || tracker.plansKnown)} planned={scheduled.length} taken={scheduled.filter((row) => row.taken).length} recorded={rows.filter((row) => row.taken).length} days={recentTrackerDays(today)} onSelectDay={setDay} />
+    <TrackerConflicts tracker={tracker} />
+    {!tracker.plansKnown ? <Card tone="soft"><AppText variant="subhead" color="muted">Список курсов загружен не полностью. Сохранённые на телефоне данные доступны.</AppText><Button title="Обновить список" size="sm" variant="ghost" onPress={() => void refresh()} /></Card> : null}
+    {!known ? <View style={styles.notice}><AppText variant="subhead" color="muted">История за этот день пока неизвестна. Это не означает, что приёмов не было.</AppText>{tracker.access === "account" ? <Button title="Обновить историю" size="sm" variant="ghost" disabled={!tracker.online} onPress={() => void refresh()} /> : null}</View> : null}
+    {rows.length === 0 && emptyKnown ? <Card tone="soft">
+      <AppText variant="headline">{day !== today ? "Нет сохранённых отметок" : tracker.plans.length === 0 ? "Добавьте первый курс" : "Сегодня свободный день"}</AppText>
+      <AppText variant="subhead" color="muted" style={styles.copy}>{day !== today ? "Здесь показываются только реальные отметки. Прошлые пропуски по текущему расписанию не рассчитываются." : tracker.plans.length === 0 ? "Укажите название, дни и время приёма. Курс можно сохранить без сети." : next ? `Ближайший приём — ${trackerDate(next, true)}.` : "Активных приёмов нет. Можно возобновить курс или добавить новый."}</AppText>
+      {day === today && tracker.plans.length === 0 ? <Button title="Добавить курс" onPress={add} disabled={!!tracker.storageError} /> : null}
+    </Card> : null}
+    {[...groups].map(([slot, items]) => <Card key={slot}>
+      <AppText variant="title3" accessibilityRole="header">{slot}</AppText>
+      {items.map((row, index) => <View key={row.key}>{index > 0 ? <Divider /> : null}<IntakeRow row={row} tracker={tracker} known={known} /></View>)}
+    </Card>)}
+    <Button title="Мои курсы" variant="secondary" fullWidth onPress={() => router.push("/tracker/courses")} />
+    <RemindersCard state={reminders} />
+    {refreshError ? <AppText variant="footnote" color="danger" accessibilityRole="alert">{refreshError}</AppText> : null}
+  </Screen></>;
+}
+const styles = StyleSheet.create({ content: { gap: spacing.base, paddingTop: spacing.md }, copy: { marginVertical: spacing.md }, notice: { gap: spacing.xs } });

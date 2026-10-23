@@ -14,10 +14,11 @@ export interface TimeListProps {
   onAdd: () => void;
   /** Достигнут предел количества времён — кнопку «Добавить» гасим. */
   addDisabled?: boolean;
+  disabled?: boolean;
 }
 
 /** Список времён приёма: тап по строке — изменить, крестик — убрать. */
-export function TimeList({ times, onEdit, onRemove, onAdd, addDisabled }: TimeListProps) {
+export function TimeList({ times, onEdit, onRemove, onAdd, addDisabled, disabled }: TimeListProps) {
   const colors = useColors();
   const reduced = useReducedMotion();
 
@@ -36,6 +37,7 @@ export function TimeList({ times, onEdit, onRemove, onAdd, addDisabled }: TimeLi
             <View style={styles.row}>
               <PressableScale
                 onPress={() => onEdit(time)}
+                disabled={disabled}
                 haptic="none"
                 accessibilityRole="button"
                 accessibilityLabel={`Время приёма ${time}`}
@@ -43,7 +45,7 @@ export function TimeList({ times, onEdit, onRemove, onAdd, addDisabled }: TimeLi
                 style={styles.rowMain}
               >
                 <View style={[styles.icon, { backgroundColor: colors.surfaceSunken }]}>
-                  <SymbolView name={SLOT_PERIOD_ICON[period]} size={15} tintColor={colors.brand} />
+                  <SymbolView name={{ ios: SLOT_PERIOD_ICON[period], android: "schedule", web: "schedule" }} size={15} tintColor={colors.brand} />
                 </View>
                 <AppText variant="headline" weight="600">
                   {time}
@@ -54,11 +56,12 @@ export function TimeList({ times, onEdit, onRemove, onAdd, addDisabled }: TimeLi
               </PressableScale>
 
               <IconButton
-                name="xmark"
+                name={{ ios: "xmark", android: "close", web: "close" }}
                 label={`Убрать время ${time}`}
                 size={14}
                 variant="soft"
                 onPress={() => onRemove(time)}
+                disabled={disabled}
               />
             </View>
           </Animated.View>
@@ -69,13 +72,13 @@ export function TimeList({ times, onEdit, onRemove, onAdd, addDisabled }: TimeLi
 
       <PressableScale
         onPress={onAdd}
-        disabled={addDisabled}
+        disabled={disabled || addDisabled}
         accessibilityRole="button"
         accessibilityLabel="Добавить время приёма"
         style={[styles.add, addDisabled ? styles.disabled : null]}
       >
-        <SymbolView name="plus.circle.fill" size={20} tintColor={colors.brand} />
-        <AppText variant="callout" color="brand" weight="600">
+        <SymbolView name={{ ios: "plus.circle.fill", android: "add_circle", web: "add_circle" }} size={20} tintColor={colors.brandText} />
+        <AppText variant="callout" style={{ color: colors.brandText }} weight="600">
           Добавить время
         </AppText>
       </PressableScale>
