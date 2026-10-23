@@ -7,6 +7,9 @@ import { useTrackerClock } from "@/tracker/clock";
 import type { IntakePlan } from "@/api/types";
 import {
   areRemindersEnabled,
+  notificationScope,
+  onReminderPreferenceChanged,
+  isNotificationScopeCurrent,
   cancelIntakeReminders,
   reminderSummary,
   getPermissionState,
@@ -23,6 +26,7 @@ export interface RemindersState {
   /** Сколько ближайших разовых напоминаний стоит в системе. */
   scheduled: number;
   busy: boolean;
+  ready: boolean;
   nextAt: string | null;
   scheduledUntil: string | null;
   error: string | null;
@@ -44,6 +48,7 @@ export interface RemindersState {
 export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): RemindersState {
   const { partitionKey } = useTracker();
   const { today, timeZone } = useTrackerClock();
+  const [readyState, setReadyState] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [nextAt, setNextAt] = useState<string | null>(null);
   const [scheduledUntil, setUntil] = useState<string | null>(null);
@@ -55,13 +60,16 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
 
   useEffect(() => {
     let alive = true;
+    setReadyState(false);
+    const scope = notificationScope();
     void (async () => {
       const [on, state, count] = await Promise.all([
-        areRemindersEnabled(),
+        areRemindersEnabled(scope),
         getPermissionState(),
         reminderSummary(),
       ]);
-      if (!alive) return;
+      if (!alive || !isNotificationScopeCurrent(scope)) return;
+      setReadyState(true);
       setEnabled(on);
       setPermission(state);
       setScheduled(count.scheduled); setNextAt(count.nextAt); setUntil(count.scheduledUntil);
@@ -70,6 +78,8 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
       alive = false;
     };
   }, [partitionKey, refresh]);
+
+  useEffect(() => onReminderPreferenceChanged(who => { if (notificationScope().owner === who) setRefresh(v => v + 1); }), []);
 
   useEffect(() => { const sub = AppState.addEventListener("change", s => { if (s === "active") setRefresh(v => v + 1); }); return () => sub.remove(); }, []);
 
@@ -86,12 +96,15 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
 
   const toggle = useCallback(
     (next: boolean) => {
+      const scope = notificationScope();
       void (async () => {
         setBusy(true); setError(null);
         try {
           if (!next) {
-            await setRemindersEnabled(false);
-            await cancelIntakeReminders();
+            await setRemindersEnabled(false, scope);
+            if (!isNotificationScopeCurrent(scope)) return;
+            await cancelIntakeReminders(scope);
+            if (!isNotificationScopeCurrent(scope)) return;
             setEnabled(false);
             setScheduled(0); setNextAt(null); setUntil(null);
             void Haptics.selectionAsync();
@@ -100,6 +113,7 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
 
           let state = permission;
           if (state !== "granted") state = await requestNotificationPermission();
+          if (!isNotificationScopeCurrent(scope)) return;
           setPermission(state);
 
           if (state !== "granted") {
@@ -114,22 +128,24 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
             return;
           }
 
-          await setRemindersEnabled(true);
+          await setRemindersEnabled(true, scope);
+          if (!isNotificationScopeCurrent(scope)) return;
           setEnabled(true);
-          await syncIntakeReminders(plans);
-          const summary = await reminderSummary(); setScheduled(summary.scheduled); setNextAt(summary.nextAt); setUntil(summary.scheduledUntil);
+          await syncIntakeReminders(plans, scope);
+          if (!isNotificationScopeCurrent(scope)) return;
+          const summary = await reminderSummary(); if (!isNotificationScopeCurrent(scope)) return; setScheduled(summary.scheduled); setNextAt(summary.nextAt); setUntil(summary.scheduledUntil);
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           // пуш-токен регистрируем только теперь: разрешение уже выдано
           void registerPushToken();
         } catch (e) {
-          setError(e instanceof Error ? e.message : "Не удалось настроить напоминания");
+          if (isNotificationScopeCurrent(scope)) setError(e instanceof Error ? e.message : "Не удалось настроить напоминания");
         } finally {
-          setBusy(false);
+          if (isNotificationScopeCurrent(scope)) setBusy(false);
         }
       })();
     },
     [permission, plans],
   );
 
-  return { enabled, permission, scheduled, busy, toggle, nextAt, scheduledUntil, error };
+  return { enabled, permission, scheduled, busy, ready: readyState, toggle, nextAt, scheduledUntil, error };
 }

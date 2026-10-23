@@ -37,7 +37,7 @@ export type TrackerOperation =
   | (OperationBase & { action: "log"; body: { day: string; slot: string; taken: boolean } });
 export interface TrackerAck {
   operationId: string;
-  /** Original acknowledgment revision, even if a later writer has already changed/deleted the entity. */
+  /** Own write revision (or unchanged expected revision for a convergent no-op), never a foreign writer's revision. Receipt replays preserve this value. */
   acknowledgedRevision: number;
   currentPlan: TrackerPlan | null;
   currentCell: TrackerCell | null;

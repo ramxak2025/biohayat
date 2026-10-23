@@ -13,7 +13,7 @@ export function RemindersCard({ state }: RemindersCardProps) {
   return <Card>
     <View style={styles.row}>
       <View style={styles.text}><AppText variant="headline">Напоминания</AppText><AppText variant="footnote" color="muted">{subtitle}</AppText></View>
-      <Switch value={state.enabled} disabled={state.busy} onValueChange={state.toggle} trackColor={{ true: colors.brand, false: colors.surfaceSunken }} accessibilityLabel="Напоминания о приёме" />
+      <Switch value={state.enabled} disabled={state.busy || state.ready === false} onValueChange={state.toggle} trackColor={{ true: colors.brand, false: colors.surfaceSunken }} accessibilityLabel="Напоминания о приёме" />
     </View>
     {denied ? <Button title="Открыть настройки устройства" size="sm" variant="ghost" onPress={() => void Linking.openSettings()} /> : null}
     {state.nextAt ? <AppText variant="footnote" color="muted" style={styles.detail}>Ближайшее: {reminderDate(state.nextAt)}</AppText> : null}

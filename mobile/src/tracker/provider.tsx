@@ -3,8 +3,8 @@ import { AppState } from 'react-native';
 import { onlineManager } from '@tanstack/react-query';
 import { useAuth } from '@/store/auth';
 import { apiFetch } from '@/api/client';
-import { sessionGeneration } from '@/lib/session-generation';
-import { setIntakeActionHandler, syncIntakeReminders } from '@/lib/notifications';
+import { sessionGeneration, onSessionChanged } from '@/lib/session-generation';
+import { setIntakeActionHandler, syncIntakeReminders, removeLegacyIntakeReminders, retryIntakeNotificationResponses } from '@/lib/notifications';
 import { localDay } from '@/lib/format';
 import { createTrackerStore } from './store';
 import { project } from './engine';
@@ -16,7 +16,7 @@ import type { TrackerAck, TrackerSnapshot } from '../../../shared/tracker-contra
 const Context = createContext<TrackerController | null>(null);
 export function TrackerProvider({ children }: { children: ReactNode }) {
   const customerId = useAuth(s => s.customer?.id ?? null); const hydrating = useAuth(s => s.hydrating);
-  const epoch = sessionGeneration();
+  const epoch = useSyncExternalStore(onSessionChanged, sessionGeneration, sessionGeneration);
   const owner = customerId ?? 'guest'; const partitionKey = partitionFor(owner);
   const store = useMemo(() => createTrackerStore({
     guest: owner === 'guest', current: () => epoch === sessionGeneration() && !useAuth.getState().hydrating && (useAuth.getState().customer?.id ?? 'guest') === owner,
@@ -25,12 +25,13 @@ export function TrackerProvider({ children }: { children: ReactNode }) {
     snapshot: (from, to, timeZone) => apiFetch<TrackerSnapshot>('/tracker/snapshot', { method: 'POST', body: { from, to, timeZone } }),
     send: (operation, timeZone) => apiFetch<TrackerAck>('/tracker/operations', { method: 'POST', body: { operation, timeZone } }),
   }), [owner, partitionKey, epoch]);
+  useEffect(() => { void removeLegacyIntakeReminders().catch(() => undefined); }, []);
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
   const online = useSyncExternalStore(onlineManager.subscribe.bind(onlineManager), () => onlineManager.isOnline(), () => true);
   useEffect(() => { if (!hydrating) void store.reload().then(() => store.sync()); }, [store, hydrating]);
   useEffect(() => { if (online && !hydrating) void store.sync(); }, [store, online, hydrating]);
   useEffect(() => {
-    const listener = AppState.addEventListener('change', s => { if (s === 'active') void store.reload().then(() => store.sync()); });
+    const listener = AppState.addEventListener('change', s => { if (s === 'active') void store.reload().then(() => { retryIntakeNotificationResponses(); return store.sync(); }); });
     const timer = setInterval(() => { if (AppState.currentState === 'active' && onlineManager.isOnline()) void store.sync(); }, 60_000);
     return () => { listener.remove(); clearInterval(timer); };
   }, [store]);

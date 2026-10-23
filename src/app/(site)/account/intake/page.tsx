@@ -96,6 +96,7 @@ export default async function IntakePage() {
   // Сериализуем только нужные поля, чтобы клиентский компонент получил простые данные.
   const plansData = plans.map((p) => ({
     id: p.id,
+    isActive: p.isActive,
     dueToday: isDueOn({ ...p, anchorDay: p.anchorDay ?? toDayStr(p.startDate) }, today),
     anchorDay: p.anchorDay ?? toDayStr(p.startDate),
     intervalDays: p.intervalDays,

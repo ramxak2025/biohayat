@@ -379,11 +379,14 @@ async function tests(): Promise<void> {
     status(await http(`/api/v2/intake/${planId}?day=${day}`, { method: "PATCH", token: alice, body: { title: `${prefix} edited`, note: "updated" } }), 200);
     assert.equal(await prisma.intakeLog.count({ where: { planId } }), 1, "Editing a course preserves its logs");
     const page = await web("/account/intake", aliceCookie); assert.equal(page.status, 200); assert(page.html.includes(`${prefix} edited`));
-    const unmarked = await http(`/api/v2/intake/${planId}/logs`, { method: "POST", token: alice, body: { day, slot: "09:00" } }); status(unmarked, 200); assert.equal(value(unmarked).taken, false); assert.equal(await prisma.intakeLog.count({ where: { planId } }), 0);
+    const unmarked = await http(`/api/v2/intake/${planId}/logs`, { method: "POST", token: alice, body: { day, slot: "09:00" } }); status(unmarked, 200); assert.equal(value(unmarked).taken, false); assert.equal(await prisma.intakeLog.count({ where: { planId, taken: true } }), 0);
+    const negative = await prisma.intakeLog.findFirstOrThrow({ where: { planId, day, slot: "09:00" } }); assert.equal(negative.taken, false); assert.equal(negative.revision, 2);
+    const positiveRead = await http(`/api/v2/intake/${planId}/logs?from=${day}&to=${day}`, { token: alice }); status(positiveRead, 200); assert.equal(values(positiveRead).length, 0);
     const pair = await Promise.all([1, 2].map(() => http(`/api/v2/intake/${planId}/logs`, { method: "POST", token: alice, body: { day, slot: "21:00" } })));
     for (const response of pair) status(response, 200);
     assert.deepEqual(pair.map(response => value(response).taken).sort(), [false, true]);
-    assert.equal(await prisma.intakeLog.count({ where: { planId, day, slot: "21:00" } }), 0);
+    assert.equal(await prisma.intakeLog.count({ where: { planId, day, slot: "21:00", taken: true } }), 0);
+    assert.equal((await prisma.intakeLog.findFirstOrThrow({ where: { planId, day, slot: "21:00" } })).revision, 2);
 
   });
   await check("consultations create the same customer-linked record used by web", async () => {

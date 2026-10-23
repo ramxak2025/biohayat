@@ -41,12 +41,6 @@ function toDayStr(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function addDays(base: Date, delta: number): Date {
-  const d = new Date(base);
-  d.setDate(d.getDate() + delta);
-  return d;
-}
-
 export default async function AccountPage({
   searchParams,
 }: {
@@ -82,8 +76,9 @@ export default async function AccountPage({
         product: { select: { name: true, slug: true, volume: true } },
       },
     }),
-    prisma.intakeLog.count({
+    prisma.intakeLog.findMany({
       where: { taken: true, day: today, plan: { customerId: session.sub, isActive: true } },
+      select: { planId: true, slot: true },
     }),
     prisma.customer.findUnique({
       where: { id: session.sub },
@@ -99,7 +94,7 @@ export default async function AccountPage({
   const todayTotal = activePlans.reduce((sum, p) => {
     return sum + (isScheduledDay({ ...p, anchorDay: p.anchorDay ?? toDayStr(p.startDate) }, today) ? p.times.length : 0);
   }, 0);
-  const takenToday = Math.min(takenTodayRaw, todayTotal);
+  const takenToday = activePlans.reduce((sum, p) => sum + (isScheduledDay({ ...p, anchorDay: p.anchorDay ?? toDayStr(p.startDate) }, today) ? p.times.filter(slot => takenTodayRaw.some(log => log.planId === p.id && log.slot === slot)).length : 0), 0);
   const progress = todayTotal > 0 ? Math.round((takenToday / todayTotal) * 100) : 0;
 
   // «Банка заканчивается»: ёмкость берём из product.volume («60 капсул» → 60),

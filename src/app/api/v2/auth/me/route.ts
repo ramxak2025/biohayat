@@ -1,3 +1,4 @@
+import { withTrackerLock, TrackerError } from "@/lib/tracker-service";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
 
     return apiOk(serializeCustomer(customer));
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/auth/me", e);
   }
 }
@@ -57,6 +59,7 @@ export async function PATCH(req: Request) {
     });
     return apiOk(serializeCustomer(updated));
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/auth/me", e);
   }
 }
@@ -106,18 +109,18 @@ export async function DELETE(req: Request) {
     const deadHash = await bcrypt.hash(randomUUID(), 12);
     const id = customer.id;
 
-    await prisma.$transaction([
-      prisma.order.updateMany({ where: { customerId: id }, data: { customerId: null } }),
-      prisma.consultationRequest.updateMany({
+    await withTrackerLock(id, async tx => { await Promise.all([
+      tx.order.updateMany({ where: { customerId: id }, data: { customerId: null } }),
+      tx.consultationRequest.updateMany({
         where: { customerId: id },
         data: { customerId: null },
       }),
-      prisma.favorite.deleteMany({ where: { customerId: id } }),
-      prisma.device.deleteMany({ where: { customerId: id } }),
-      prisma.customerAddress.deleteMany({ where: { customerId: id } }),
+      tx.favorite.deleteMany({ where: { customerId: id } }),
+      tx.device.deleteMany({ where: { customerId: id } }),
+      tx.customerAddress.deleteMany({ where: { customerId: id } }),
       // IntakeLog уходит каскадом по planId.
-      prisma.intakePlan.deleteMany({ where: { customerId: id } }),
-      prisma.customer.update({
+      tx.intakePlan.deleteMany({ where: { customerId: id } }),
+      tx.customer.update({
         where: { id },
         data: {
           isActive: false,
@@ -132,10 +135,12 @@ export async function DELETE(req: Request) {
           passwordHash: deadHash,
         },
       }),
-    ]);
+      tx.intakeMutation.deleteMany({ where: { customerId: id } }),
+    ]); });
 
     return apiOk({ ok: true });
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/auth/me", e);
   }
 }

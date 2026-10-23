@@ -113,7 +113,8 @@ export async function applyTrackerOperation(customerId: string, op: TrackerOpera
         if (op.body.taken && op.body.day === today && !existing && (!isDueOn({ ...plan, anchorDay: plan.anchorDay! }, today) || !plan.times.includes(op.body.slot))) throw new TrackerError("Расписание этого приёма изменилось", "SCHEDULE_CHANGED", 409);
         if ((existing?.revision ?? 0) !== op.expectedRevision && (existing?.taken ?? false) !== op.body.taken) throw new TrackerError("Эту отметку изменили на другом устройстве", "REVISION_CONFLICT", 409);
         if (!existing && !op.body.taken) revision = 0;
-        else if (existing && existing.taken === op.body.taken) revision = existing.revision;
+        // A semantic no-op must not lend a foreign writer's revision to queued dependent edits.
+        else if (existing && existing.taken === op.body.taken) revision = op.expectedRevision;
         else {
           const row = await tx.intakeLog.upsert({ where: { planId_day_slot: key }, create: { ...key, taken: op.body.taken }, update: { taken: op.body.taken, takenAt: new Date(), revision: { increment: 1 } } });
           revision = row.revision;

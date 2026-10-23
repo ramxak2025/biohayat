@@ -38,7 +38,7 @@ export function ProfileScreen() {
           <EmptyState
             icon="person.crop.circle"
             title="Войдите в аккаунт"
-            subtitle="Профиль, заказы и курсы приёма доступны после входа по номеру телефона."
+            subtitle="Профиль и заказы доступны после входа по номеру телефона. Трекером можно пользоваться без аккаунта."
             actionLabel="Войти"
             onAction={() => router.push("/auth" as Href)}
           />
@@ -96,6 +96,7 @@ export function ProfileScreen() {
             }
           />
         </MenuGroup>
+        {reminders.error ? <AppText variant="footnote" color="danger" accessibilityRole="alert">{reminders.error}</AppText> : null}
 
         <DangerZone />
 

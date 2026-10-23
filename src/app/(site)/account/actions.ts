@@ -1,5 +1,6 @@
 "use server";
 
+import { withTrackerLock } from "@/lib/tracker-service";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
@@ -83,11 +84,11 @@ export async function deleteAccount(_prev: DeleteAccountState, fd: FormData): Pr
   const ok = await bcrypt.compare(password, customer.passwordHash);
   if (!ok) return { error: "Неверный пароль" };
 
-  await prisma.$transaction([
-    prisma.favorite.deleteMany({ where: { customerId: session.sub } }),
-    prisma.intakePlan.deleteMany({ where: { customerId: session.sub } }), // логи удалятся каскадно
-    prisma.customerAddress.deleteMany({ where: { customerId: session.sub } }),
-    prisma.customer.update({
+  await withTrackerLock(session.sub, async tx => { await Promise.all([
+    tx.favorite.deleteMany({ where: { customerId: session.sub } }),
+    tx.intakePlan.deleteMany({ where: { customerId: session.sub } }), // логи удалятся каскадно
+    tx.customerAddress.deleteMany({ where: { customerId: session.sub } }),
+    tx.customer.update({
       where: { id: session.sub },
       data: {
         deletedAt: new Date(),
@@ -99,7 +100,8 @@ export async function deleteAccount(_prev: DeleteAccountState, fd: FormData): Pr
         city: null,
       },
     }),
-  ]);
+    tx.intakeMutation.deleteMany({ where: { customerId: session.sub } }),
+    ]); });
 
   await destroyCustomerSession();
   redirect("/");

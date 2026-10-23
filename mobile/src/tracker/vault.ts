@@ -51,5 +51,9 @@ export function transactTracker(partition: string, reduce: (data: TrackerData) =
 }
 export function purgeTracker(partition: string) {
   purged.add(partition);
-  return serialized(partition, async () => { const k = await keys(partition); await AsyncStorage.removeItem(k.data); await SecureStore.deleteItemAsync(k.key); });
+  return serialized(partition, async () => {
+    const k = await keys(partition);
+    const results = await Promise.allSettled([AsyncStorage.removeItem(k.data), SecureStore.deleteItemAsync(k.key)]);
+    if (results.some(r => r.status === 'rejected')) throw new Error('Не удалось полностью очистить данные на телефоне. Повторите очистку после перезапуска приложения.');
+  });
 }

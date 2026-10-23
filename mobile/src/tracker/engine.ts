@@ -1,7 +1,7 @@
 import type { TrackerAck, TrackerCell, TrackerOperation, TrackerPlan, TrackerPlanInput, TrackerRange, TrackerSnapshot } from '../../../shared/tracker-contract';
-import { isCalendarDay, isDueOn, isSlot } from './calendar';
+import { addCalendarDays, isCalendarDay, isDueOn, isSlot } from './calendar';
 
-export interface Pending { operation: TrackerOperation; sent: boolean; after?: string; conflict?: string }
+export interface Pending { operation: TrackerOperation; sent: boolean; after?: string; conflict?: string; draft?: TrackerPlan }
 export interface TrackerData {
   schema: 1; plansKnown: boolean; plans: TrackerPlan[]; cells: TrackerCell[];
   ranges: TrackerRange[]; pending: Pending[]; imports: Record<string, string>;
@@ -33,20 +33,27 @@ function apply(data: Pick<TrackerData, 'plans' | 'cells'>, op: TrackerOperation,
 }
 export function project(data: TrackerData) {
   const view = { plans: data.plans.map(p => ({ ...p })), cells: [...data.cells] };
-  for (const p of data.pending) apply(view, p.operation, '1970-01-01T00:00:00.000Z');
+  for (const p of data.pending) {
+    if (p.draft && p.operation.action !== 'delete' && !view.plans.some(v => v.id === p.operation.planId)) view.plans.push({ ...p.draft });
+    apply(view, p.operation, p.draft?.startDate ?? '1970-01-01T00:00:00.000Z');
+  }
   return view;
 }
 export function enqueue(data: TrackerData, op: TrackerOperation, guest: boolean, now: string) {
   if (guest) { apply(data, op, now); data.plansKnown = true; return; }
   const previous = data.pending.findLast(p => entityKey(p.operation) === entityKey(op));
-  data.pending.push({ operation: op, sent: false, ...(previous ? { after: previous.operation.operationId } : {}) });
+  const draft = project(data).plans.find(p => p.id === op.planId);
+  data.pending.push({ operation: op, sent: false, ...(draft ? { draft } : {}), ...(previous ? { after: previous.operation.operationId } : {}) });
 }
-export function savePlan(data: TrackerData, body: TrackerPlanInput, planId: string, operationId: string, guest: boolean, now: string) {
+export function savePlan(data: TrackerData, body: TrackerPlanInput, planId: string, operationId: string, guest: boolean, now: string, expectedRevision?: number) {
   validatePlan(body);
   const previous = project(data).plans.find(p => p.id === planId);
-  enqueue(data, previous
-    ? { action: 'update', planId, operationId, expectedRevision: previous.revision, body }
+  const editing = !!previous || (!guest && expectedRevision !== undefined);
+  enqueue(data, editing
+    ? { action: 'update', planId, operationId, expectedRevision: expectedRevision ?? previous!.revision, body }
     : { action: 'create', planId, operationId, expectedRevision: 0, body }, guest, now);
+  if (editing && !previous && !guest) data.pending[data.pending.length - 1].draft = { ...body, id: planId, revision: expectedRevision!, startDate: now, scheduleVersion: 2, logs: [] };
+
 }
 export function markTaken(data: TrackerData, planId: string, day: string, slot: string, taken: boolean, operationId: string, guest: boolean, now: string, today: string) {
   if (!isCalendarDay(day) || !isSlot(slot) || (taken && day > today)) throw new Error('Нельзя отмечать будущий приём');
@@ -60,17 +67,29 @@ export function markTaken(data: TrackerData, planId: string, day: string, slot: 
 export function mergeSnapshot(data: TrackerData, snapshot: TrackerSnapshot, now: string) {
   if (snapshot.protocol !== 1 || !snapshot.complete || !Array.isArray(snapshot.plans) || !Array.isArray(snapshot.cells)) throw new Error('Не удалось получить полную историю');
   data.plans = snapshot.plans;
-  const ids = new Set(data.plans.map(p => p.id));
-  data.cells = data.cells.filter(c => ids.has(c.planId) && (c.day < snapshot.range.from || c.day > snapshot.range.to)).concat(snapshot.cells);
-  data.ranges.push(snapshot.range); data.plansKnown = true; data.lastSyncedAt = now;
+  const remoteIds = new Set(data.plans.map(p => p.id));
+  const pendingIds = new Set(data.pending.map(p => p.operation.planId));
+  data.cells = data.cells.filter(c => (!remoteIds.has(c.planId) && pendingIds.has(c.planId)) || (remoteIds.has(c.planId) && (c.day < snapshot.range.from || c.day > snapshot.range.to))).concat(snapshot.cells);
+  const sorted = [...data.ranges, snapshot.range].sort((a,b) => a.from.localeCompare(b.from));
+  data.ranges = [];
+  for (const range of sorted) {
+    const last = data.ranges[data.ranges.length - 1];
+    if (last && range.from <= addCalendarDays(last.to, 1)) last.to = last.to > range.to ? last.to : range.to;
+    else data.ranges.push({ ...range });
+  }
+  data.plansKnown = true; data.lastSyncedAt = now;
 }
 export function acknowledge(data: TrackerData, ack: TrackerAck) {
   const p = data.pending.find(p => p.operation.operationId === ack.operationId);
   if (!p) return;
   const op = p.operation;
+  const recoverable = project(data).cells.filter(c => c.planId === op.planId);
   data.plans = data.plans.filter(p => p.id !== op.planId);
   if (ack.currentPlan) data.plans.push(ack.currentPlan);
-  else data.cells = data.cells.filter(c => c.planId !== op.planId);
+  else {
+    const hasLaterWork = data.pending.some(p => p.operation.operationId !== ack.operationId && p.operation.planId === op.planId);
+    data.cells = data.cells.filter(c => c.planId !== op.planId).concat(hasLaterWork ? recoverable : []);
+  }
   if (op.action === 'log' && ack.currentPlan) {
     const key = cellKey({ planId: op.planId, ...op.body });
     data.cells = data.cells.filter(c => cellKey(c) !== key);

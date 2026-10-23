@@ -16,6 +16,7 @@ interface Fields { title?: string; interval?: string; duration?: string; anchor?
 export function PlanForm({ tracker, today, plan, productId, initialTitle, onDone }: PlanFormProps) {
   const colors = useColors();
   const navigation = useNavigation();
+  const [editRevision] = useState(plan?.revision);
   const [draftId] = useState<string>(() => newTrackerId());
   const [title, setTitle] = useState(plan?.title ?? initialTitle ?? "");
   const [interval, setInterval] = useState(String(plan?.intervalDays ?? 1));
@@ -49,7 +50,7 @@ export function PlanForm({ tracker, today, plan, productId, initialTitle, onDone
     if (Object.keys(next).length > 0) return;
     running.current = true; setSaving(true);
     try {
-      await tracker.savePlan(candidate, plan?.id ?? draftId);
+      await tracker.savePlan(candidate, plan?.id ?? draftId, editRevision);
       if (mounted.current && navigation.isFocused()) onDone();
     } catch (cause) { if (mounted.current) setSaveError(cause instanceof Error ? cause.message : "Курс не сохранён на устройстве. Попробуйте ещё раз."); }
     finally { running.current = false; if (mounted.current) setSaving(false); }

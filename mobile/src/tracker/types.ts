@@ -23,7 +23,7 @@ export interface TrackerController {
   isDayKnown: (day: string) => boolean;
   planSyncState: (planId: string) => TrackerSyncState;
   /** Resolve only after durable local write. Network/reminder failures do not reject a successful save. */
-  savePlan: (body: TrackerPlanInput, planId?: string) => Promise<string>;
+  savePlan: (body: TrackerPlanInput, planId?: string, expectedRevision?: number) => Promise<string>;
   setActive: (planId: string, active: boolean) => Promise<void>;
   removePlan: (planId: string) => Promise<void>;
   setTaken: (planId: string, day: string, slot: string, taken: boolean) => Promise<void>;

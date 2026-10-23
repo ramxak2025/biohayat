@@ -57,7 +57,7 @@ export function TrackerConflicts({ tracker }: { tracker: TrackerController }) {
       <AppText variant="headline">Нужно выбрать версию</AppText>
       <AppText variant="body" style={styles.copy}>{conflict.title}</AppText>
       <AppText variant="subhead" color="muted" style={styles.copy}>{conflict.message}</AppText>
-      {conflict.deletedRemotely ? <AppText variant="footnote" color="muted">Ваш вариант можно сохранить отдельным новым курсом. Удалённый курс не восстановится.</AppText> : null}
+      {conflict.deletedRemotely ? <AppText variant="footnote" color="muted">Ваш вариант с сохранёнными на телефоне отметками можно сохранить отдельным новым курсом. Удалённый курс не восстановится.</AppText> : null}
       <View style={styles.actions}>
         <Button title={conflict.deletedRemotely ? "Принять удаление" : "Принять версию из аккаунта"} variant="secondary" fullWidth loading={busy === conflict.id} disabled={busy !== null} onPress={() => void resolve(conflict.id, "server")} />
         <Button title={conflict.deletedRemotely ? "Сохранить отдельным курсом" : "Оставить мой вариант"} variant="outline" fullWidth disabled={busy !== null} onPress={() => void resolve(conflict.id, "local")} />

@@ -90,9 +90,11 @@ export function DangerZone() {
     try {
       const owner = useAuth.getState().customer?.id;
       await api.auth.deleteAccount(password);
-      if (owner) await purgeAccountTracker(owner);
+      let cleanupError: string | null = null;
+      try { if (owner) await purgeAccountTracker(owner); }
+      catch { cleanupError = "Аккаунт удалён на сервере. Локальные данные не удалось полностью очистить. Перезапустите приложение и повторите очистку в настройках устройства."; }
       if (epoch !== sessionGeneration()) return;
-      Alert.alert("Аккаунт удалён", "Данные стёрты. Спасибо, что были с нами.");
+      Alert.alert("Аккаунт удалён", cleanupError ?? "Данные стёрты. Спасибо, что были с нами.");
       await finishLogout(epoch);
     } catch (deleteError) {
       if (epoch !== sessionGeneration()) return;

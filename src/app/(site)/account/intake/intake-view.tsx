@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import {
   PillBottle, Check, Plus, Trash2, Power, Clock, X, CalendarDays,
-  Flame, Sunrise, Sun, Moon, MoreVertical,
+  Sunrise, Sun, Moon, MoreVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Select, Label } from "@/components/ui/field";
@@ -32,6 +32,7 @@ interface PlanData {
   anchorDay: string;
   intervalDays: number;
   dueToday: boolean;
+  isActive: boolean;
   takenSlots: string[];
 }
 
@@ -55,31 +56,6 @@ function courseDay(startDateIso: string, today: string): number {
   const start = new Date(startDateIso.slice(0, 10) + "T00:00:00").getTime();
   const now = new Date(today + "T00:00:00").getTime();
   return Math.max(1, Math.floor((now - start) / 86_400_000) + 1);
-}
-
-/** Русское склонение: 1 день, 2 дня, 5 дней. */
-function pluralDays(n: number): string {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return "день";
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return "дня";
-  return "дней";
-}
-
-/**
- * Стрик: сколько дней подряд (заканчивая сегодня или вчера) выполнены ВСЕ
- * приёмы. Незавершённый сегодняшний день серию не рвёт — просто не считается.
- */
-function calcStreak(history: IntakeHistoryDay[]): number {
-  let streak = 0;
-  for (let i = history.length - 1; i >= 0; i--) {
-    const d = history[i];
-    const complete = d.total > 0 && d.taken >= d.total;
-    if (i === history.length - 1 && !complete) continue; // сегодня ещё впереди
-    if (complete) streak += 1;
-    else break;
-  }
-  return streak;
 }
 
 /* ── Кольцо прогресса дня (как в нативных трекерах) ──────────── */
@@ -335,7 +311,7 @@ function PlanCard({ plan, today, index }: { plan: PlanData; today: string; index
   const [pendingAction, startAction] = useTransition();
   const takenCount = plan.times.filter((t) => plan.takenSlots.includes(t)).length;
   const total = plan.times.length;
-  const allDone = total > 0 && takenCount === total;
+  const allDone = plan.dueToday && total > 0 && takenCount === total;
   const day = courseDay(plan.anchorDay, today);
   const dayCapped = plan.durationDays ? Math.min(day, plan.durationDays) : day;
 
@@ -376,11 +352,11 @@ function PlanCard({ plan, today, index }: { plan: PlanData; today: string; index
               disabled={pendingAction}
               onClick={(e) => {
                 closeMenu(e);
-                startAction(async () => { await setPlanActive(plan.id, false); });
+                startAction(async () => { await setPlanActive(plan.id, !plan.isActive); });
               }}
               className="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-ink transition hover:bg-surface-soft disabled:opacity-60"
             >
-              <Power className="h-4 w-4 text-ink-muted" /> Приостановить
+              <Power className="h-4 w-4 text-ink-muted" /> {plan.isActive ? "Приостановить" : "Возобновить"}
             </button>
             <button
               type="button"
@@ -400,7 +376,7 @@ function PlanCard({ plan, today, index }: { plan: PlanData; today: string; index
       </div>
 
       {/* Прогресс курса «День X из Y» — тонкий бар */}
-      <p className="mt-2 text-sm text-ink-muted">{plan.intervalDays === 1 ? "Ежедневно" : `Каждые ${plan.intervalDays} дней`}{!plan.dueToday ? " · сегодня приёма нет" : ""}</p>
+      <p className="mt-2 text-sm text-ink-muted">{plan.intervalDays === 1 ? "Ежедневно" : `Каждые ${plan.intervalDays} дней`}{!plan.isActive ? " · на паузе" : !plan.dueToday ? " · сегодня приёма нет" : ""}</p>
       {plan.durationDays ? (
         <div className="mt-3">
           <div className="mb-1 flex items-center justify-between text-xs font-semibold">
@@ -748,20 +724,21 @@ export function IntakeView({
   const effectivePlans = useMemo(
     () => plans.map((p) => ({
       ...p,
-      takenSlots: p.times.filter((t) => optimisticTaken.get(`${p.id}|${t}`)),
+      takenSlots: [...new Set([...p.takenSlots.filter(t => !p.times.includes(t)), ...p.times.filter((t) => optimisticTaken.get(`${p.id}|${t}`))])],
     })),
     [plans, optimisticTaken],
   );
 
   const totalSlots = effectivePlans.filter(p => p.dueToday).reduce((s, p) => s + p.times.length, 0);
-  const takenSlots = effectivePlans.reduce((s, p) => s + p.takenSlots.length, 0);
+  const takenSlots = effectivePlans.filter(p => p.dueToday).reduce((s, p) => s + p.times.filter(t => p.takenSlots.includes(t)).length, 0);
+  const actualTakenToday = effectivePlans.reduce((sum, p) => sum + p.takenSlots.length, 0);
 
   // Сегодняшний день в истории — живой (оптимистичный), остальное с сервера.
   const effectiveHistory = useMemo(
     () => history.map((d) =>
-      d.day === today ? { day: d.day, taken: takenSlots, total: totalSlots } : d,
+      d.day === today ? { day: d.day, taken: actualTakenToday, total: actualTakenToday } : d,
     ),
-    [history, today, takenSlots, totalSlots],
+    [history, today, actualTakenToday],
   );
 
 

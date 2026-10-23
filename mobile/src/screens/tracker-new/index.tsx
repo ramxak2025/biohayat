@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useTracker } from "@/tracker/provider";
 import { useTrackerClock } from "@/tracker/clock";
@@ -9,12 +10,18 @@ import { AppText, Button, Screen } from "@/components/ui";
 import { spacing } from "@/theme";
 
 export function TrackerNewScreen() {
-  const tracker: TrackerController & { partitionKey: string } = useTracker();
+  const tracker = useTracker();
+  const params = useLocalSearchParams<{ planId?: string; productId?: string; title?: string }>();
+  return <TrackerNewBody key={`${tracker.partitionKey}:${params.planId ?? "new"}`} tracker={tracker} params={params} />;
+}
+function TrackerNewBody({ tracker, params }: { tracker: TrackerController; params: { planId?: string; productId?: string; title?: string } }) {
   const { today } = useTrackerClock();
   const router = useRouter();
-  const params = useLocalSearchParams<{ planId?: string; productId?: string; title?: string }>();
   const planId = typeof params.planId === "string" ? params.planId : undefined;
-  const plan = tracker.plans.find((item) => item.id === planId);
+  const current = tracker.plans.find((item) => item.id === planId);
+  const [initialPlan, setInitialPlan] = useState(current);
+  if (!initialPlan && current) setInitialPlan(current);
+  const plan = initialPlan ?? current;
   const done = () => { if (router.canGoBack()) router.back(); else router.replace("/tracker"); };
   const header = <Stack.Screen options={{ title: planId ? "Изменить курс" : "Новый курс", headerLargeTitleEnabled: false }} />;
   if (!tracker.hydrated) return <>{header}<Screen scroll><TrackerState key={tracker.partitionKey} tracker={tracker} />{!tracker.storageError ? <TrackerSkeleton /> : null}</Screen></>;
