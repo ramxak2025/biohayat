@@ -16,6 +16,7 @@ import { AppErrorScreen } from "@/components/ui/app-error-screen";
 import { sheetScreenOptions } from "@/components/ui/sheet-header";
 import { FlyToCartProvider } from "@/components/fx/flight";
 import { queryClient, queryPersister, shouldPersistQuery } from "@/lib/query-client";
+import { TrackerProvider } from "@/tracker/provider";
 import { useAuth } from "@/store/auth";
 import { useTheme } from "@/theme";
 
@@ -76,6 +77,7 @@ export default function RootLayout() {
             <StatusBar style={theme.dark ? "light" : "dark"} />
             {/* Оверлей полёта товара в корзину: живёт над всей навигацией,
                 иначе копия картинки обрезалась бы границами экрана-источника. */}
+            <TrackerProvider>
             <FlyToCartProvider>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
@@ -88,6 +90,7 @@ export default function RootLayout() {
               <Stack.Screen name="search" options={{ presentation: "modal" }} />
             </Stack>
             </FlyToCartProvider>
+            </TrackerProvider>
           </PersistQueryClientProvider>
         </KeyboardProvider>
       </SafeAreaProvider>

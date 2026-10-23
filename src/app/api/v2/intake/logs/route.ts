@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 
     // Фильтр по связи: выбираются только курсы текущего покупателя.
     const logs = await prisma.intakeLog.findMany({
-      where: { plan: { customerId: session.sub }, day: { gte: from, lte: to } },
+      where: { taken: true, plan: { customerId: session.sub, ...(new URL(req.url).searchParams.get("capabilities") === "interval-v1" ? {} : { scheduleVersion: 1, intervalDays: 1 }) }, day: { gte: from, lte: to } },
       orderBy: [{ day: "asc" }, { slot: "asc" }],
       take: MAX_LOGS,
       select: { planId: true, day: true, slot: true, takenAt: true },

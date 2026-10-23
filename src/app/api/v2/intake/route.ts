@@ -1,3 +1,4 @@
+import { withTrackerLock, TrackerError } from "@/lib/tracker-service";
 import { z } from "zod";
 import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getApiCustomer } from "@/lib/api/token";
@@ -28,13 +29,14 @@ export async function GET(req: Request) {
     if (!day.ok) return day.res;
 
     const plans = await prisma.intakePlan.findMany({
-      where: { customerId: session.sub },
+      where: { customerId: session.sub, ...(new URL(req.url).searchParams.get("capabilities") === "interval-v1" ? {} : { scheduleVersion: 1, intervalDays: 1 }) },
       orderBy: { createdAt: "desc" },
-      include: { logs: { where: { day: day.value } } },
+      include: { logs: { where: { day: day.value, taken: true } } },
     });
 
     return apiOk(plans.map(serializeIntakePlan), { headers: { "X-Intake-Day": day.value } });
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/intake", e);
   }
 }
@@ -45,7 +47,7 @@ const schema = z.object({
   times: z.array(z.unknown()).min(1).max(MAX_TIMES),
   durationDays: z.number().int().min(1).max(3650).nullish(),
   note: z.string().max(1000).nullish(),
-});
+}).strict();
 
 /** POST /api/v2/intake — создать курс приёма. */
 export async function POST(req: Request) {
@@ -92,7 +94,7 @@ export async function POST(req: Request) {
       return apiError("Укажите название курса или выберите товар", 400, "VALIDATION");
     }
 
-    const plan = await prisma.intakePlan.create({
+    const plan = await withTrackerLock(session.sub, tx => tx.intakePlan.create({
       data: {
         customerId: session.sub,
         productId,
@@ -101,14 +103,15 @@ export async function POST(req: Request) {
         durationDays: data.durationDays ?? null,
         note: data.note?.trim() || null,
       },
-      include: { logs: { where: { day: day.value } } },
-    });
+      include: { logs: { where: { day: day.value, taken: true } } },
+    }));
 
     return apiOk(serializeIntakePlan(plan), {
       status: 201,
       headers: { "X-Intake-Day": day.value },
     });
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/intake", e);
   }
 }

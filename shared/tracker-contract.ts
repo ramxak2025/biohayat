@@ -31,7 +31,7 @@ export interface TrackerSnapshot {
 }
 interface OperationBase { operationId: string; planId: string; expectedRevision: number }
 export type TrackerOperation =
-  | (OperationBase & { action: "create"; body: TrackerPlanInput })
+  | (OperationBase & { action: "create"; body: TrackerPlanInput; initialLogs?: { day: string; slot: string; takenAt: string }[] })
   | (OperationBase & { action: "update"; body: Partial<TrackerPlanInput> })
   | (OperationBase & { action: "delete" })
   | (OperationBase & { action: "log"; body: { day: string; slot: string; taken: boolean } });

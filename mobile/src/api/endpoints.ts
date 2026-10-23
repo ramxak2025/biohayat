@@ -166,7 +166,7 @@ export const intake = {
    * и с полуночи до 3 ночи по Москве пользователь видит вчерашние отметки.
    */
   plans: (day: string = localDay(), signal?: AbortSignal) =>
-    apiFetch<IntakePlan[]>(`/intake${qs({ day })}`, { signal }),
+    apiFetch<IntakePlan[]>(`/intake${qs({ day, capabilities: "interval-v1" })}`, { signal }),
   create: (body: CreateIntakePlanBody) => apiFetch<IntakePlan>("/intake", { method: "POST", body }),
   update: (planId: string, body: UpdateIntakePlanBody) =>
     apiFetch<IntakePlan>(`/intake/${encodeURIComponent(planId)}`, { method: "PATCH", body }),
@@ -174,11 +174,11 @@ export const intake = {
 
   /** Единственный корректный источник отметок: локальные даты, без UTC-сдвига. */
   logs: (planId: string, from: string, to: string, signal?: AbortSignal) =>
-    apiFetch<IntakeLog[]>(`/intake/${encodeURIComponent(planId)}/logs${qs({ from, to })}`, { signal }),
+    apiFetch<IntakeLog[]>(`/intake/${encodeURIComponent(planId)}/logs${qs({ from, to, capabilities: "interval-v1" })}`, { signal }),
 
   /** Отметки сразу по всем курсам за период — один запрос вместо N (календарь, стрик). */
   allLogs: (from: string, to: string, signal?: AbortSignal) =>
-    apiFetch<IntakeLogRow[]>(`/intake/logs${qs({ from, to })}`, { signal }),
+    apiFetch<IntakeLogRow[]>(`/intake/logs${qs({ from, to, capabilities: "interval-v1" })}`, { signal }),
 
   /** POST-переключатель: НЕ идемпотентен, вслепую не повторять. */
   toggleLog: (planId: string, body: ToggleIntakeLogBody) =>

@@ -4,6 +4,7 @@ export type { TrackerPlan, TrackerPlanInput, TrackerRange } from "../../../share
 export type TrackerSyncState = "local" | "synced" | "queued" | "syncing" | "conflict";
 export interface TrackerConflict { id: string; planId: string; title: string; message: string; deletedRemotely: boolean }
 export interface TrackerController {
+  partitionKey: string;
   access: "guest" | "account";
   hydrated: boolean;
   plansKnown: boolean;

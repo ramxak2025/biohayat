@@ -17,6 +17,7 @@ import {
 } from "@/components/ui";
 import { useSettings } from "@/hooks/use-settings";
 import { useAuth } from "@/store/auth";
+import { purgeAccountTracker } from "@/tracker/provider";
 import { sessionGeneration } from "@/lib/session-generation";
 import { Duration, MIN_TAP_SIZE, spacing, useColors } from "@/theme";
 
@@ -87,7 +88,9 @@ export function DangerZone() {
     setPending(true);
     setError(null);
     try {
+      const owner = useAuth.getState().customer?.id;
       await api.auth.deleteAccount(password);
+      if (owner) await purgeAccountTracker(owner);
       if (epoch !== sessionGeneration()) return;
       Alert.alert("Аккаунт удалён", "Данные стёрты. Спасибо, что были с нами.");
       await finishLogout(epoch);

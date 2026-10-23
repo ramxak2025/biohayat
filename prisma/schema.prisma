@@ -410,6 +410,7 @@ model Customer {
   orders        Order[]
   favorites     Favorite[]
   intakePlans   IntakePlan[]
+  intakeMutations IntakeMutation[]
   consultations ConsultationRequest[]
   devices       Device[]
   addresses     CustomerAddress[]
@@ -493,6 +494,10 @@ model IntakePlan {
   title        String // название курса/добавки
   times        String[] // времена приёма, напр. ["09:00","21:00"]
   startDate    DateTime @default(now())
+  anchorDay    String? // Stable civil day; bound once for legacy daily plans.
+  intervalDays Int @default(1)
+  revision Int @default(1)
+  scheduleVersion Int @default(1) // 2 = modern schedule; gated from legacy clients.
   durationDays Int? // длительность курса (null = бессрочно)
   note         String?  @db.Text
   isActive     Boolean  @default(true)
@@ -511,6 +516,8 @@ model IntakeLog {
   day     String // дата приёма YYYY-MM-DD
   slot    String // время-слот, напр. "09:00"
   takenAt DateTime   @default(now())
+  taken Boolean @default(true)
+  revision Int @default(1)
 
   @@unique([planId, day, slot])
   @@index([planId, day])
@@ -712,4 +719,18 @@ model Device {
   createdAt  DateTime @default(now())
 
   @@index([customerId])
+}
+
+// Minimal idempotency metadata survives plan deletion; no course/note payload is retained.
+model IntakeMutation {
+  customerId String
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  operationId String
+  action String
+  planId String
+  requestHash String
+  result Json
+  createdAt DateTime @default(now())
+  @@id([customerId, operationId])
+  @@index([customerId, planId, action])
 }

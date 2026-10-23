@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Linking } from "react-native";
+import { Alert, Linking, AppState } from "react-native";
 import * as Haptics from "expo-haptics";
 
+import { useTracker } from "@/tracker/provider";
+import { useTrackerClock } from "@/tracker/clock";
 import type { IntakePlan } from "@/api/types";
 import {
   areRemindersEnabled,
   cancelIntakeReminders,
-  countScheduledReminders,
+  reminderSummary,
   getPermissionState,
   registerPushToken,
   requestNotificationPermission,
@@ -18,9 +20,12 @@ import {
 export interface RemindersState {
   enabled: boolean;
   permission: PermissionState;
-  /** Сколько напоминаний в сутки реально стоит в системе. */
+  /** Сколько ближайших разовых напоминаний стоит в системе. */
   scheduled: number;
   busy: boolean;
+  nextAt: string | null;
+  scheduledUntil: string | null;
+  error: string | null;
   toggle: (next: boolean) => void;
 }
 
@@ -37,6 +42,12 @@ export interface RemindersState {
  * же поставила обратно.
  */
 export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): RemindersState {
+  const { partitionKey } = useTracker();
+  const { today, timeZone } = useTrackerClock();
+  const [refresh, setRefresh] = useState(0);
+  const [nextAt, setNextAt] = useState<string | null>(null);
+  const [scheduledUntil, setUntil] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
   const [permission, setPermission] = useState<PermissionState>("undetermined");
   const [scheduled, setScheduled] = useState(0);
@@ -48,39 +59,41 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
       const [on, state, count] = await Promise.all([
         areRemindersEnabled(),
         getPermissionState(),
-        countScheduledReminders(),
+        reminderSummary(),
       ]);
       if (!alive) return;
       setEnabled(on);
       setPermission(state);
-      setScheduled(count);
-    })();
+      setScheduled(count.scheduled); setNextAt(count.nextAt); setUntil(count.scheduledUntil);
+    })().catch(e => { if (alive) setError(e instanceof Error ? e.message : "Не удалось проверить напоминания"); });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [partitionKey, refresh]);
+
+  useEffect(() => { const sub = AppState.addEventListener("change", s => { if (s === "active") setRefresh(v => v + 1); }); return () => sub.remove(); }, []);
 
   useEffect(() => {
     if (!ready || !enabled || permission !== "granted") return;
     let alive = true;
-    void syncIntakeReminders(plans).then((count) => {
-      if (alive) setScheduled(count);
-    });
+    void syncIntakeReminders(plans).then(() => reminderSummary()).then(summary => {
+      if (alive) { setScheduled(summary.scheduled); setNextAt(summary.nextAt); setUntil(summary.scheduledUntil); setError(null); }
+    }).catch(e => { if (alive) setError(e instanceof Error ? e.message : "Не удалось настроить напоминания"); });
     return () => {
       alive = false;
     };
-  }, [plans, ready, enabled, permission]);
+  }, [plans, ready, enabled, permission, today, timeZone, refresh, partitionKey]);
 
   const toggle = useCallback(
     (next: boolean) => {
       void (async () => {
-        setBusy(true);
+        setBusy(true); setError(null);
         try {
           if (!next) {
             await setRemindersEnabled(false);
             await cancelIntakeReminders();
             setEnabled(false);
-            setScheduled(0);
+            setScheduled(0); setNextAt(null); setUntil(null);
             void Haptics.selectionAsync();
             return;
           }
@@ -103,10 +116,13 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
 
           await setRemindersEnabled(true);
           setEnabled(true);
-          setScheduled(await syncIntakeReminders(plans));
+          await syncIntakeReminders(plans);
+          const summary = await reminderSummary(); setScheduled(summary.scheduled); setNextAt(summary.nextAt); setUntil(summary.scheduledUntil);
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           // пуш-токен регистрируем только теперь: разрешение уже выдано
           void registerPushToken();
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Не удалось настроить напоминания");
         } finally {
           setBusy(false);
         }
@@ -115,5 +131,5 @@ export function useIntakeReminders(plans: readonly IntakePlan[], ready = true): 
     [permission, plans],
   );
 
-  return { enabled, permission, scheduled, busy, toggle };
+  return { enabled, permission, scheduled, busy, toggle, nextAt, scheduledUntil, error };
 }

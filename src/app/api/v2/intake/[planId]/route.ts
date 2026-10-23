@@ -1,3 +1,4 @@
+import { mutateLegacyPlan, TrackerError } from "@/lib/tracker-service";
 import { z } from "zod";
 import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
 import { getApiCustomer } from "@/lib/api/token";
@@ -90,14 +91,13 @@ export async function PATCH(
       return apiError("Нет полей для изменения", 400, "VALIDATION");
     }
 
-    const updated = await prisma.intakePlan.update({
-      where: { id: own.id },
-      data,
-      include: { logs: { where: { day: day.value } } },
-    });
+    const updated = await mutateLegacyPlan(session.sub, own.id, data);
+    if (!updated) return planNotFound();
+    const logs = await prisma.intakeLog.findMany({ where: { planId: own.id, day: day.value, taken: true } });
 
-    return apiOk(serializeIntakePlan(updated), { headers: { "X-Intake-Day": day.value } });
+    return apiOk(serializeIntakePlan({ ...updated, logs }), { headers: { "X-Intake-Day": day.value } });
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/intake/[planId]", e);
   }
 }
@@ -115,9 +115,10 @@ export async function DELETE(
     const own = await findOwnPlan(planId, session.sub);
     if (!own) return planNotFound();
 
-    await prisma.intakePlan.delete({ where: { id: own.id } });
+    await mutateLegacyPlan(session.sub, own.id, "delete");
     return apiOk({ ok: true });
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     return apiInternal("api/v2/intake/[planId]", e);
   }
 }

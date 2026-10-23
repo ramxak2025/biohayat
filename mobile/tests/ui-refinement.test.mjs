@@ -218,7 +218,7 @@ test("auth uses adaptive native sheets while search retains room for its fixed f
     "react-native-keyboard-controller": { KeyboardProvider: "KeyboardProvider" }, "react-native-safe-area-context": { SafeAreaProvider: "SafeAreaProvider" },
     "@tanstack/react-query-persist-client": { PersistQueryClientProvider: "QueryProvider" }, "@/lib/notifications": {}, "@/components/ui/app-error-screen": {},
     "@/components/ui/sheet-header": { sheetScreenOptions }, "@/components/fx/flight": { FlyToCartProvider: "FlyProvider" },
-    "@/lib/query-client": {}, "@/store/auth": { useAuth: (select) => select({ hydrate() {}, hydrating: false }) }, "@/theme": theme(),
+    "@/tracker/provider": { TrackerProvider: "TrackerProvider" }, "@/lib/query-client": {}, "@/store/auth": { useAuth: (select) => select({ hydrate() {}, hydrating: false }) }, "@/theme": theme(),
   })("src/app/_layout.tsx");
   const routes = nodes(RootLayout()).filter((node) => node.type === "StackScreen");
   const auth = routes.find((route) => route.props.name === "auth").props.options;

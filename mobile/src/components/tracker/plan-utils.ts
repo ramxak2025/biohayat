@@ -9,6 +9,7 @@
 import type { SFSymbol } from "expo-symbols";
 
 import type { IntakeLog, IntakeLogRow, IntakePlan } from "@/api/types";
+import { calendarDaysBetween, isScheduledDay } from "@/tracker/calendar";
 import { addDays, formatDate, localDay } from "@/lib/format";
 
 /** Формат слота, о котором договорились с вебом: строго "HH:MM", 24 часа. */
@@ -74,7 +75,7 @@ function toDate(day: string): Date {
 
 /** Разница в днях между двумя локальными датами (to - from). */
 export function daysBetween(from: string, to: string): number {
-  return Math.round((toDate(to).getTime() - toDate(from).getTime()) / 86_400_000);
+  return calendarDaysBetween(from, to);
 }
 
 /** "12 сентября" из локальной даты. Через instant, чтобы не словить UTC-сдвиг. */
@@ -90,7 +91,7 @@ export function dayTitle(day: string, today = localDay()): string {
 
 /** startDate приходит ISO-моментом — день считаем в локальной зоне пользователя. */
 export function planStartDay(plan: IntakePlan): string {
-  return localDay(new Date(plan.startDate));
+  return plan.anchorDay ?? localDay(new Date(plan.startDate));
 }
 
 /** Последний день курса включительно; null — курс бессрочный. */
@@ -101,9 +102,7 @@ export function planEndDay(plan: IntakePlan): string | null {
 
 /** Идёт ли курс в этот день (границы включительно). */
 export function isPlanRunningOn(plan: IntakePlan, day: string): boolean {
-  if (day < planStartDay(plan)) return false;
-  const end = planEndDay(plan);
-  return end === null || day <= end;
+  return isScheduledDay({ anchorDay: planStartDay(plan), intervalDays: plan.intervalDays ?? 1, durationDays: plan.durationDays, times: plan.times, isActive: plan.isActive }, day);
 }
 
 /** Сколько дней курса осталось, считая указанный. null — бессрочный курс. */
@@ -162,7 +161,7 @@ export function dayProgress(
   let planned = 0;
   let taken = 0;
   for (const plan of plans) {
-    if (planDayState(plan, day) !== "running") continue;
+    if (planDayState(plan, day) !== "running" || !isPlanRunningOn(plan, day)) continue;
     for (const slot of plan.times) {
       if (!isValidSlot(slot)) continue;
       planned += 1;

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { withTrackerLock, mutateLegacyPlan } from "@/lib/tracker-service";
 import { toggleIntakeLog } from "@/lib/intake-log";
 import { normalizeTimes } from "@/app/api/v2/intake/_lib";
 import { prisma } from "@/lib/prisma";
@@ -48,7 +49,7 @@ export async function createIntakePlan(_prev: IntakeState, fd: FormData): Promis
   const durationDays = durationRaw ? Math.max(1, parseInt(durationRaw, 10)) : null;
   const note = String(fd.get("note") || "").trim() || null;
 
-  await prisma.intakePlan.create({
+  await withTrackerLock(session.sub, tx => tx.intakePlan.create({
     data: {
       customerId: session.sub,
       productId,
@@ -57,7 +58,7 @@ export async function createIntakePlan(_prev: IntakeState, fd: FormData): Promis
       durationDays: Number.isNaN(durationDays as number) ? null : durationDays,
       note,
     },
-  });
+  }));
 
   revalidatePath("/account/intake");
   return { ok: true };
@@ -69,7 +70,7 @@ export async function toggleIntake(planId: string, day: string, slot: string): P
   // Защита от IDOR: лог можно ставить/снимать только на собственном курсе.
   await assertOwnPlan(planId, session.sub);
 
-  await toggleIntakeLog(session.sub, planId, day, slot);
+  await toggleIntakeLog(session.sub, planId, day, slot, true);
 
   revalidatePath("/account/intake");
 }
@@ -78,11 +79,7 @@ export async function toggleIntake(planId: string, day: string, slot: string): P
 export async function setPlanActive(planId: string, isActive: boolean): Promise<void> {
   const session = await requireCustomer();
   // Атомарно по владельцу: обновляем только если курс принадлежит клиенту.
-  const res = await prisma.intakePlan.updateMany({
-    where: { id: planId, customerId: session.sub },
-    data: { isActive },
-  });
-  if (res.count === 0) throw new Error("FORBIDDEN");
+  await mutateLegacyPlan(session.sub, planId, { isActive }, true);
   revalidatePath("/account/intake");
 }
 
@@ -90,9 +87,6 @@ export async function setPlanActive(planId: string, isActive: boolean): Promise<
 export async function deleteIntakePlan(planId: string): Promise<void> {
   const session = await requireCustomer();
   // Атомарно по владельцу: удаляем только собственный курс (cascade на логи).
-  const res = await prisma.intakePlan.deleteMany({
-    where: { id: planId, customerId: session.sub },
-  });
-  if (res.count === 0) throw new Error("FORBIDDEN");
+  await mutateLegacyPlan(session.sub, planId, "delete", true);
   revalidatePath("/account/intake");
 }

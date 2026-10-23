@@ -1,3 +1,4 @@
+import { isDueOn } from "../../../../../shared/intake-calendar";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/account-shell";
@@ -32,10 +33,10 @@ export default async function IntakePage() {
 
   // Активные курсы клиента + логи за сегодня.
   const plans = await prisma.intakePlan.findMany({
-    where: { customerId: session.sub, isActive: true },
+    where: { customerId: session.sub, },
     orderBy: { createdAt: "desc" },
     include: {
-      logs: { where: { day: today } },
+      logs: { where: { day: today, taken: true } },
     },
   });
 
@@ -46,7 +47,7 @@ export default async function IntakePage() {
   const planIds = plans.map((p) => p.id);
   const historyLogs = planIds.length
     ? await prisma.intakeLog.findMany({
-        where: { planId: { in: planIds }, day: { gte: days[0], lte: today } },
+        where: { taken: true, planId: { in: planIds }, day: { gte: days[0], lte: today } },
         select: { day: true },
       })
     : [];
@@ -55,21 +56,8 @@ export default async function IntakePage() {
     takenByDay.set(log.day, (takenByDay.get(log.day) ?? 0) + 1);
   }
 
-  // Окно активности курса: от startDate до startDate + durationDays − 1 (или бессрочно).
-  const planWindows = plans.map((p) => ({
-    slots: p.times.length,
-    start: toDayStr(p.startDate),
-    end: p.durationDays ? toDayStr(addDays(p.startDate, p.durationDays - 1)) : null,
-  }));
-
-  const history: IntakeHistoryDay[] = days.map((day) => {
-    const total = planWindows.reduce(
-      (s, w) => s + (day >= w.start && (!w.end || day <= w.end) ? w.slots : 0),
-      0,
-    );
-    const taken = Math.min(takenByDay.get(day) ?? 0, total);
-    return { day, taken, total };
-  });
+  // History records actual intake; current prescriptions cannot reconstruct old expectations.
+  const history: IntakeHistoryDay[] = days.map(day => ({ day, taken: takenByDay.get(day) ?? 0, total: takenByDay.get(day) ?? 0 }));
 
   // Товары каталога для привязки нового курса.
   const products = await prisma.product.findMany({
@@ -108,6 +96,9 @@ export default async function IntakePage() {
   // Сериализуем только нужные поля, чтобы клиентский компонент получил простые данные.
   const plansData = plans.map((p) => ({
     id: p.id,
+    dueToday: isDueOn({ ...p, anchorDay: p.anchorDay ?? toDayStr(p.startDate) }, today),
+    anchorDay: p.anchorDay ?? toDayStr(p.startDate),
+    intervalDays: p.intervalDays,
     title: p.title,
     times: p.times,
     durationDays: p.durationDays,

@@ -166,7 +166,7 @@ export function normalizeTimes(raw: unknown[]): string[] | null {
 export async function findOwnPlan(planId: string, customerId: string) {
   return prisma.intakePlan.findFirst({
     where: { id: planId, customerId },
-    select: { id: true, times: true },
+    select: { id: true, times: true, scheduleVersion: true, intervalDays: true },
   });
 }
 

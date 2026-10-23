@@ -1,3 +1,4 @@
+import { isDueOn } from "../shared/intake-calendar";
 // Запускается один раз при старте сервера Next.js (см. docs: app/api-reference/file-conventions/instrumentation).
 // Планировщик push-напоминаний о приёме БАД: каждую минуту смотрит активные курсы
 // и шлёт уведомление, если наступило время слота и приём ещё не отмечен.
@@ -70,23 +71,17 @@ export async function register(): Promise<void> {
 
       const plans = await prisma.intakePlan.findMany({
         where: { isActive: true, times: { has: hhmm } },
-        select: { id: true, title: true, customerId: true, startDate: true, durationDays: true },
+        select: { id: true, title: true, customerId: true, startDate: true, durationDays: true, anchorDay: true, intervalDays: true, isActive: true },
       });
       if (plans.length === 0) return;
 
       // Курс активен сегодня: startDate <= сегодня <= startDate + durationDays − 1 (или бессрочно).
-      const due = plans.filter((p) => {
-        const start = mskDay(p.startDate);
-        if (day < start) return false;
-        if (p.durationDays == null) return true;
-        const end = mskDay(new Date(p.startDate.getTime() + (p.durationDays - 1) * 86_400_000));
-        return day <= end;
-      });
+      const due = plans.filter(p => isDueOn({ ...p, anchorDay: p.anchorDay ?? mskDay(p.startDate), times: [hhmm] }, day));
       if (due.length === 0) return;
 
       // Уже отмеченные приёмы за этот слот — не напоминаем.
       const logs = await prisma.intakeLog.findMany({
-        where: { planId: { in: due.map((p) => p.id) }, day, slot: hhmm },
+        where: { planId: { in: due.map((p) => p.id) }, day, slot: hhmm, taken: true },
         select: { planId: true },
       });
       const logged = new Set(logs.map((l) => l.planId));

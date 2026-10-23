@@ -1,3 +1,4 @@
+import { isScheduledDay } from "../../../../shared/intake-calendar";
 import type { Metadata } from "next";
 import { ListLink as Link } from "@/components/ui/list-link";
 import {
@@ -77,12 +78,12 @@ export default async function AccountPage({
         id: true,
         times: true,
         startDate: true,
-        durationDays: true,
+        durationDays: true, anchorDay: true, intervalDays: true, isActive: true,
         product: { select: { name: true, slug: true, volume: true } },
       },
     }),
     prisma.intakeLog.count({
-      where: { day: today, plan: { customerId: session.sub, isActive: true } },
+      where: { taken: true, day: today, plan: { customerId: session.sub, isActive: true } },
     }),
     prisma.customer.findUnique({
       where: { id: session.sub },
@@ -96,9 +97,7 @@ export default async function AccountPage({
   // Сколько приёмов запланировано на сегодня: суммируем слоты курсов,
   // чьё окно (startDate … startDate + durationDays − 1) включает сегодня.
   const todayTotal = activePlans.reduce((sum, p) => {
-    const start = toDayStr(p.startDate);
-    const end = p.durationDays ? toDayStr(addDays(p.startDate, p.durationDays - 1)) : null;
-    return sum + (today >= start && (!end || today <= end) ? p.times.length : 0);
+    return sum + (isScheduledDay({ ...p, anchorDay: p.anchorDay ?? toDayStr(p.startDate) }, today) ? p.times.length : 0);
   }, 0);
   const takenToday = Math.min(takenTodayRaw, todayTotal);
   const progress = todayTotal > 0 ? Math.round((takenToday / todayTotal) * 100) : 0;
@@ -113,7 +112,7 @@ export default async function AccountPage({
   if (candidates.length > 0) {
     const takenByPlan = await prisma.intakeLog.groupBy({
       by: ["planId"],
-      where: { planId: { in: candidates.map((p) => p.id) } },
+      where: { taken: true, planId: { in: candidates.map((p) => p.id) } },
       _count: { _all: true },
     });
     const takenMap = new Map(takenByPlan.map((g) => [g.planId, g._count._all]));
@@ -122,7 +121,7 @@ export default async function AccountPage({
         const capacity = Number(capacityRe.exec(p.product!.volume!)![1]);
         const perDay = p.times.length;
         const left = capacity - (takenMap.get(p.id) ?? 0);
-        const daysLeft = Math.floor(left / perDay);
+        const daysLeft = Math.floor(left / perDay) * p.intervalDays;
         if (daysLeft > 7 || daysLeft <= -1) return [];
         return [{ name: p.product!.name, slug: p.product!.slug, daysLeft }];
       })

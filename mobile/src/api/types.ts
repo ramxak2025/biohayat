@@ -248,6 +248,10 @@ export interface IntakePlan {
   times: string[];
   /** ISO-дата старта, проставляется сервером при создании. */
   startDate: string;
+  anchorDay?: string | null;
+  intervalDays?: number;
+  revision?: number;
+  scheduleVersion?: number;
   /** null = бессрочно */
   durationDays: number | null;
   note: string | null;

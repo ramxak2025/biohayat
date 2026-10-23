@@ -29,6 +29,9 @@ interface PlanData {
   durationDays: number | null;
   note: string | null;
   startDate: string;
+  anchorDay: string;
+  intervalDays: number;
+  dueToday: boolean;
   takenSlots: string[];
 }
 
@@ -333,7 +336,7 @@ function PlanCard({ plan, today, index }: { plan: PlanData; today: string; index
   const takenCount = plan.times.filter((t) => plan.takenSlots.includes(t)).length;
   const total = plan.times.length;
   const allDone = total > 0 && takenCount === total;
-  const day = courseDay(plan.startDate, today);
+  const day = courseDay(plan.anchorDay, today);
   const dayCapped = plan.durationDays ? Math.min(day, plan.durationDays) : day;
 
   function closeMenu(e: React.MouseEvent<HTMLElement>) {
@@ -397,6 +400,7 @@ function PlanCard({ plan, today, index }: { plan: PlanData; today: string; index
       </div>
 
       {/* Прогресс курса «День X из Y» — тонкий бар */}
+      <p className="mt-2 text-sm text-ink-muted">{plan.intervalDays === 1 ? "Ежедневно" : `Каждые ${plan.intervalDays} дней`}{!plan.dueToday ? " · сегодня приёма нет" : ""}</p>
       {plan.durationDays ? (
         <div className="mt-3">
           <div className="mb-1 flex items-center justify-between text-xs font-semibold">
@@ -449,7 +453,7 @@ function HistoryCalendar({ history, today }: { history: IntakeHistoryDay[]; toda
           <CalendarDays className="h-5 w-5 text-brand-500" /> История за 28 дней
         </h2>
         <span className="tnum text-sm font-semibold text-ink-muted">
-          {takenTotal} из {slotsTotal} приёмов
+          {takenTotal} отмеченных приёмов
         </span>
       </div>
 
@@ -464,7 +468,7 @@ function HistoryCalendar({ history, today }: { history: IntakeHistoryDay[]; toda
           return (
             <div
               key={d.day}
-              title={d.total > 0 ? `${label}: ${d.taken} из ${d.total}` : `${label}: курсов не было`}
+              title={d.total > 0 ? `${label}: отмечено ${d.taken}` : `${label}: нет отметок`}
               className={cn(
                 "tnum relative mx-auto flex aspect-square w-full max-w-11 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 sm:text-sm",
                 full && "bg-brand-500 text-white shadow-xs",
@@ -749,7 +753,7 @@ export function IntakeView({
     [plans, optimisticTaken],
   );
 
-  const totalSlots = effectivePlans.reduce((s, p) => s + p.times.length, 0);
+  const totalSlots = effectivePlans.filter(p => p.dueToday).reduce((s, p) => s + p.times.length, 0);
   const takenSlots = effectivePlans.reduce((s, p) => s + p.takenSlots.length, 0);
 
   // Сегодняшний день в истории — живой (оптимистичный), остальное с сервера.
@@ -760,10 +764,10 @@ export function IntakeView({
     [history, today, takenSlots, totalSlots],
   );
 
-  const streak = calcStreak(effectiveHistory);
+
   const weekDays = effectiveHistory.slice(-7);
 
-  const todaySlots: TodaySlot[] = effectivePlans.flatMap((p) =>
+  const todaySlots: TodaySlot[] = effectivePlans.filter(p => p.dueToday).flatMap((p) =>
     p.times.map((t) => ({
       planId: p.id,
       planTitle: p.title,
@@ -823,17 +827,7 @@ export function IntakeView({
                 {subtitle}
               </div>
               <div className="mt-2.5">
-                {streak > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1.5 text-sm font-bold text-accent-700">
-                    <Flame className="h-4 w-4 text-accent-500" />
-                    <span className="tnum">{streak}</span> {pluralDays(streak)} подряд
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted">
-                    <Flame className="h-4 w-4 text-ink-faint" />
-                    Отметьте все приёмы — начнётся серия
-                  </span>
-                )}
+                <span className="text-sm text-ink-muted">История хранит ваши отметки приёма</span>
               </div>
             </div>
           </div>

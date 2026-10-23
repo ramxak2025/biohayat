@@ -1,3 +1,4 @@
+import { TrackerError } from "@/lib/tracker-service";
 import { toggleIntakeLog, IntakeLogError } from "@/lib/intake-log";
 import { z } from "zod";
 import { apiOk, apiError, apiPreflight, apiInternal } from "@/lib/api/response";
@@ -39,6 +40,7 @@ export async function POST(
     const { planId } = await params;
     const plan = await findOwnPlan(planId, session.sub);
     if (!plan) return planNotFound();
+    if ((plan.scheduleVersion > 1 || plan.intervalDays !== 1) && new URL(req.url).searchParams.get("capabilities") !== "interval-v1") return apiError("Обновите приложение для этого расписания", 409, "UPGRADE_REQUIRED");
 
     const body = await req.json().catch(() => null);
     const parsed = postSchema.safeParse(body);
@@ -58,6 +60,7 @@ export async function POST(
 
     return apiOk(await toggleIntakeLog(session.sub, plan.id, day, slot));
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     if (e instanceof IntakeLogError) return apiError(e.message, e.code === "NOT_FOUND" ? 404 : 400, e.code);
     return apiInternal("api/v2/intake/[planId]/logs", e);
   }
@@ -78,13 +81,14 @@ export async function GET(
     const { planId } = await params;
     const plan = await findOwnPlan(planId, session.sub);
     if (!plan) return planNotFound();
+    if ((plan.scheduleVersion > 1 || plan.intervalDays !== 1) && new URL(req.url).searchParams.get("capabilities") !== "interval-v1") return apiError("Обновите приложение для этого расписания", 409, "UPGRADE_REQUIRED");
 
     const range = parseRange(new URL(req.url));
     if (!range.ok) return range.res;
     const { from, to } = range.value;
 
     const logs = await prisma.intakeLog.findMany({
-      where: { planId: plan.id, day: { gte: from, lte: to } },
+      where: { planId: plan.id, taken: true, day: { gte: from, lte: to } },
       orderBy: [{ day: "asc" }, { slot: "asc" }],
       take: MAX_LOGS,
     });
@@ -94,6 +98,7 @@ export async function GET(
       { headers: { "X-Intake-From": from, "X-Intake-To": to } },
     );
   } catch (e) {
+    if (e instanceof TrackerError) return apiError(e.message, e.status, e.code);
     if (e instanceof IntakeLogError) return apiError(e.message, e.code === "NOT_FOUND" ? 404 : 400, e.code);
     return apiInternal("api/v2/intake/[planId]/logs", e);
   }

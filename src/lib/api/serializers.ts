@@ -140,10 +140,14 @@ export function serializeIntakePlan(p: IntakePlan & { logs?: IntakeLog[] }) {
     productId: p.productId,
     times: p.times,
     startDate: p.startDate,
+    anchorDay: p.anchorDay,
+    intervalDays: p.intervalDays,
+    revision: p.revision,
+    scheduleVersion: p.scheduleVersion,
     durationDays: p.durationDays,
     note: p.note,
     isActive: p.isActive,
-    logs: (p.logs ?? []).map((l) => ({ day: l.day, slot: l.slot, takenAt: l.takenAt })),
+    logs: (p.logs ?? []).filter(l => l.taken).map((l) => ({ day: l.day, slot: l.slot, takenAt: l.takenAt })),
   };
 }
 
