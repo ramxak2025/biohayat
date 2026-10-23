@@ -1,5 +1,11 @@
 # Shared website/mobile backend — deployed release
 
+> Current tracker release (2026-10-23): code86856a6, image `biohayat-app:tracker-20261023-86856a6`.
+> See [tracker rollout](tracker-offline-release.md) for current evidence and active compose override.
+> Historical pre-tracker image rollback instructions below are superseded: negative cells,
+> revisions, immutable receipts and schedule gates must remain compatible. Do not restore a
+> whole database over subsequent orders; keep the old auto-deploy paused until its source is updated.
+
 ## Status and result
 
 Prepared from live commit `6db05438be3ace0e6b70c53add745ceeee1fc69d` in the managed

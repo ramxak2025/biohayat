@@ -1,4 +1,4 @@
-# Tracker candidate — 2026-10-23
+# Tracker release — 2026-10-23
 
 ## Behavior and contracts
 
@@ -54,10 +54,10 @@ lint tooling/dependencies were installed; TypeScript and behavior checks run ins
 
 ## Server rollout boundary
 
-No production changes are authorized by this implementation task yet. Deployment/publication
-requires separate explicit user approval under docs/codex-workflow.md. Prepare the committed
-candidate, its source hash, migration and backup plan before requesting that approval. Never
-copy a local .env or credentials into an image/source archive or deploy the dirty primary checkout.
+The user explicitly approved the VDS deployment with backup and internal TestFlight upload on
+2026-10-23. The committed candidate, source hash, additive migration and signed binary were
+verified before approval under docs/codex-workflow.md. No local .env or credentials were copied
+into the source/image, and the dirty primary backend checkout was not used for deployment.
 
 The additive migration is `prisma/changes/20261023-offline-tracker.sql`. Validate current schema,
 backup the live database in custom format, prove the backup decodes, preserve uploads and current
@@ -105,7 +105,7 @@ compatibility checks: its older seed-data module lacks the released component di
 reference evidence module is absent. That medical seed contract was not overwritten. The canonical
 release checkout passes all124 checks and is the sole backend deployment/build source.
 
-## Final candidate, awaiting release authorization
+## Verified build and rollout
 
 - Code source: 86856a6f5a2310a7df0dfafb7c33f0f1aee8de47.
 - EAS production build: 6e96fdf7-a023-4744-85f2-a31d3788eb0d, FINISHED, 1.0.0(11).
@@ -126,6 +126,33 @@ release checkout passes all124 checks and is the sole backend deployment/build s
   logs, installed QA binary and signed production IPA remain. Three existing agents were reused;
   the client has no close-agent tool, so they finished but were not reported as technically closed.
 
-No VDS migration/deployment or App Store Connect upload/publication occurred for this candidate.
-The separate explicit authorization requirement applies to the new server protocol/schema and
-TestFlight upload, rather than reusing permission for the earlier build9 release.
+The user subsequently authorized and completed both release actions:
+
+- VDS release directory: `/root/biohayat-releases/20261023-86856a6`.
+- Live image: `biohayat-app:tracker-20261023-86856a6`, ID
+  `sha256:6401dde5403ebf81dc71f6a8e9f416b9fa8326f8eb5514a7447230f9bf5c7719`.
+- Private backup: `/root/biohayat-backups/20261023-tracker-86856a6`; fresh pre-cutover custom
+  dump SHA256 `81e4ad41d136681a9a6d442aa403a11a3851b56c0b43e40a4b21b0a1304b0832`.
+  The dump fully decoded and the uploads archive was readable.
+- Migration applied with ON_ERROR_STOP, one transaction, lock_timeout5s/statement_timeout30s.
+  Candidate Prisma introspection found zero schema differences before switching only app.
+- Exact effective environment, ports and uploads mounts remained unchanged. DB/Caddy container
+  IDs and crontab remained unchanged; the legacy Hayat auto-deploy remains paused.
+- Seven grouped production checks passed: cold settings/catalog/v1 envelope; pre-cutover bearer
+  token validity and anonymous rejection; four-day create/replay/ownership; old-client gates;
+  mark/unmark/tombstone revisions/stale conflict/immutable ACK; schedule edit retaining cells;
+  exact synthetic cleanup and no resurrection on lost-create replay.
+- Counts before/after:119 products,4 customers,4 original courses,5 original logs. Six immutable
+  receipts from the scoped synthetic course remain by design; its plan/logs were removed.
+  No production order/CRM writes were performed. Catalog validation proves total and envelope,
+  not every price; session validation covers bearer tokens, not a separate website-cookie test.
+- Independent read-only evidence review found no material bounded server acceptance gap.
+  Sanitized `deployment-proof.json` also records live image, schema, backup, configuration,
+  container, counts and exact fixture/receipt checks without credentials or clinical payloads.
+- EAS submission:13c26ed0-7d6a-41a2-ae88-2a8008425d39. App Store Connect build:
+  `20a8748d-9251-44c4-ac7a-1c4d4ed452fb`, VALID, IN_BETA_TESTING.
+- Existing internal group `9b913c5b-5f05-4e43-8660-9bd963cbf06c` includes build11 and its existing
+  tester. Russian test notes verified via betaBuildLocalizations.whatsNew. No external-group
+  publication or Beta Review submission was performed; external state remains READY_FOR_BETA_SUBMISSION.
+- Native runtime/visual limitations remain as disclosed and accepted for this internal test release.
+
