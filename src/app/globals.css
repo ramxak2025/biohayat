@@ -1,94 +1,89 @@
 @import "tailwindcss";
 
-/* ════════════════════════════════════════════════════════════════
-   ХАЯТ — Дизайн-система
-   Вдохновлено подходом ВкусВилл: чисто, воздушно, натурально.
-   Свежий природный зелёный, мягкие тени, щедрые скругления,
-   гуманистический гротеск с кириллицей как основным алфавитом
-   (Golos Text, один на весь магазин).
-   Все токены доступны как утилиты Tailwind (bg-brand-500, text-ink, …).
-   ════════════════════════════════════════════════════════════════ */
+@import "./vysota.css";
+
+@theme static {
+  --color-night: var(--night);
+  --color-pine: var(--pine);
+  --color-slope: var(--slope);
+  --color-sage: var(--sage);
+  --color-sage-d: var(--sage-d);
+  --color-mist: var(--mist);
+  --color-mist-2: var(--mist-2);
+  --color-grass: var(--grass);
+  --color-stone: var(--stone);
+  --color-paper: var(--paper);
+  --color-stone-v: var(--stone-v);
+  --color-graphite: var(--graphite);
+  --color-moss: var(--moss);
+  --color-chipline: var(--chip-line);
+  --color-sunna-pk: var(--sunna-pk);
+  --color-sunna-c: var(--sunna-c);
+  --color-sunna-d: var(--sunna-d);
+  --color-sunna-p: var(--sunna-p);
+  --color-semya-pk: var(--semya-pk);
+  --color-semya-c: var(--semya-c);
+  --color-semya-d: var(--semya-d);
+  --color-semya-p: var(--semya-p);
+  --color-osnova-pk: var(--osnova-pk);
+  --color-osnova-c: var(--osnova-c);
+  --color-osnova-d: var(--osnova-d);
+  --color-osnova-p: var(--osnova-p);
+  --color-sport-pk: var(--sport-pk);
+  --color-sport-c: var(--sport-c);
+  --color-sport-d: var(--sport-d);
+  --color-sport-p: var(--sport-p);
+  --color-brand-50: var(--mist);
+  --color-brand-100: var(--mist-2);
+  --color-brand-200: var(--sage);
+  --color-brand-300: var(--sage-d);
+  --color-brand-400: var(--sage-d);
+  --color-brand-500: var(--ink);
+  --color-brand-600: var(--slope);
+  --color-brand-700: var(--ink);
+  --color-brand-800: var(--pine);
+  --color-brand-900: var(--night);
+  --color-accent-50: var(--paper);
+  --color-accent-100: var(--grass);
+  --color-accent-200: var(--grass);
+  --color-accent-300: var(--grass);
+  --color-accent-400: var(--grass);
+  --color-accent-500: var(--grass);
+  --color-accent-600: var(--stone);
+  --color-accent-700: var(--sunna-d);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--muted);
+  --color-ink-faint: var(--muted);
+  --color-line: var(--mist-2);
+  --color-line-strong: var(--chip-line);
+  --color-bg: var(--mist);
+  --color-surface: var(--white);
+  --color-surface-soft: var(--mist);
+  --color-surface-sunken: var(--mist-2);
+  --color-success: var(--osnova-d);
+  --color-warning: var(--semya-d);
+  --color-danger: #B3261E;
+  --color-info: var(--sport-d);
+  --color-sale: #B3261E;
+  --color-sale-soft: var(--sunna-p);
+  --font-sans: var(--font-text);
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --radius-sm: var(--r-xs);
+  --radius-md: var(--r-sm);
+  --radius-lg: var(--r-sm);
+  --radius-xl: var(--r-md);
+  --radius-2xl: var(--r-lg);
+  --radius-3xl: var(--r-xl);
+  --radius-arch: var(--r-arch);
+  --shadow-brand: none;
+}
 
 @theme {
-  /* ── Бренд: свежий природный зелёный ── */
-  --color-brand-50: #f0f9f1;
-  --color-brand-100: #dbf0de;
-  --color-brand-200: #b9e1bf;
-  --color-brand-300: #8ecb97;
-  --color-brand-400: #5cae69;
-  --color-brand-500: #348540; /* основной акцент; светлота подобрана так,
-                                 чтобы белый текст давал 4.57:1 — WCAG AA */
-  --color-brand-600: #2c7838;
-  --color-brand-700: #245f2f;
-  --color-brand-800: #214c29;
-  --color-brand-900: #1c3f24;
-
-  /* ── Акцент: мёд / тёплый янтарь (акции, бейджи) ── */
-  --color-accent-50: #fdf6e9;
-  --color-accent-100: #f9e7c2;
-  --color-accent-200: #f3cf85;
-  --color-accent-300: #edb54a;
-  --color-accent-400: #e7a124;
-  --color-accent-500: #d98a12;
-  --color-accent-600: #b86e0e;
-  --color-accent-700: #8a520b; /* тёмный текст на светлом янтарном фоне (контраст) */
-
-  /* ── Нейтральные ──
-     Вся шкала выведена из тона бренда (129°) на очень низкой насыщенности.
-     Раньше фон и поверхности были тёплыми кремовыми, а бренд — холодным
-     зелёным: две разные нейтральные семьи на одной странице давали грязный
-     стык на границах секций. Теперь тон один, различие несут только
-     светлота и материал (белая карточка над зелёно-серым фоном).
-
-     Три ступени текста разведены по контрасту, а не «на глаз»: 17:1 / 7.4:1 /
-     5.1:1. Прежний faint (#8b918a) давал 3.9:1 на белом и 3.5:1 на плашке —
-     ниже порога AA для подписей и плейсхолдеров. */
-  --color-ink: #1a1d1a; /* основной текст, 17:1 */
-  --color-ink-muted: #4f574f; /* вторичный текст, 7.4:1 */
-  --color-ink-faint: #68706a; /* подписи, плейсхолдеры, 5.1:1 */
-  --color-line: #e2e8e3; /* границы */
-  --color-line-strong: #cfd8d1;
-  --color-bg: #f7f9f7; /* фон страницы */
-  --color-surface: #ffffff; /* карточки */
-  --color-surface-soft: #f1f4f1; /* фон секций */
-  --color-surface-sunken: #e8ede9;
-
-  /* ── Семантические ── */
-  --color-success: #2c7838;
-  --color-warning: #d98a12;
-  --color-danger: #d64545;
-  --color-info: #2f6fb0;
-  --color-sale: #ce312c; /* цена со скидкой (смягчённый) */
-  --color-sale-soft: #fcefee; /* фон чипа скидки */
-
-  /* ── Шрифт ──
-     Один на весь магазин: Golos Text, переменный, 400–900. Обоснование
-     выбора — в комментарии к next/font в src/app/layout.tsx. */
-  --font-sans: var(--font-golos), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
-
-  /* ── Радиусы (щедрые скругления) ── */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 28px;
-  --radius-3xl: 36px;
-
-  /* ── Тени (мягкие, природные) ── */
-  --shadow-xs: 0 1px 2px rgba(26, 29, 26, 0.05);
-  --shadow-sm: 0 2px 8px rgba(26, 29, 26, 0.06);
-  --shadow-md: 0 6px 20px rgba(26, 29, 26, 0.08);
-  --shadow-lg: 0 14px 40px rgba(26, 29, 26, 0.1);
-  --shadow-brand: 0 8px 24px rgba(58, 148, 71, 0.28);
-
-  /* ── Контейнер / тайминги ── */
   --spacing-header: 72px;
   --spacing-mobnav: 64px;
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── Базовая типографика ── */
 :root {
   color-scheme: light;
 }
@@ -110,7 +105,7 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv01";
-  line-height: 1.6;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -126,9 +121,10 @@ body {
     line-height: 1.25;
     letter-spacing: -0.01em;
   }
-  h1,
-  h2 {
+  h1 {
+    font-family: var(--font-display);
     text-wrap: balance;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -176,37 +172,6 @@ body {
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
   }
-}
-
-/* Матовое «жидкое стекло» (стиль iOS): сильное размытие + насыщение цвета
-   под стеклом. Используется мобильной шапкой и нижним баром навигации. */
-.glass {
-  /* rgba, а не color-mix: старые iOS Safari не поддерживают color-mix,
-     фон становился прозрачным и шапка/бар «исчезали» */
-  background: rgba(255, 255, 255, 0.72);
-  -webkit-backdrop-filter: blur(20px) saturate(1.7);
-  backdrop-filter: blur(20px) saturate(1.7);
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .glass {
-    background: var(--color-surface);
-  }
-}
-
-/* Продолжение стекла НАД шапкой: на iOS контент при скролле уезжает под
-   статус-бар — псевдоэлемент накрывает эту зону тем же матовым стеклом,
-   и граница больше не режет капсулу поиска. */
-.glass-extend::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  height: 120px;
-  background: inherit;
-  -webkit-backdrop-filter: blur(20px) saturate(1.7);
-  backdrop-filter: blur(20px) saturate(1.7);
-  pointer-events: none;
 }
 
 /* Скрытый скроллбар для горизонтальных лент */
@@ -389,20 +354,8 @@ body {
    круглое поле поиска при фокусе становилось почти прямоугольным (4px).
    Современные браузеры и так ведут обводку по скруглению самого элемента. */
 :focus-visible {
-  outline: 2px solid var(--color-brand-500);
-  outline-offset: 2px;
-}
-
-/* Крупные заголовки набираются плотнее обычного текста: на большом кегле
-   стандартные пробелы между буквами выглядят разреженными. Отдельного
-   дисплейного шрифта нет — характер заголовку даёт вес (800) и этот трекинг.
-
-   Правило намеренно НЕ распространяется на все h2: h2 стоит и на служебных
-   подписях (колонки футера, разделы панели каталога), где кегль 12px —
-   там сжимать нечего. Заголовкам секций трекинг даётся явно, через
-   .font-display в SectionHeader. */
-:where(h1, .font-display) {
-  letter-spacing: -0.025em;
+  outline: 2px solid var(--focus-color, var(--ink));
+  outline-offset: 3px;
 }
 
 /* ── Появление контента ──────────────────────────────────────────────

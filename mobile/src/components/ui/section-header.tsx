@@ -26,7 +26,7 @@ export function SectionHeader({ title, subtitle, actionLabel, onAction, style }:
   return (
     <View style={[styles.row, style]}>
       <View style={styles.titles}>
-        <AppText variant="title3">
+        <AppText variant="title3" accessibilityRole="header">
           {title}
         </AppText>
         {subtitle ? (

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import type { Paged, Product } from "@/api/types";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/keys";
 import { useCategories, useProductStrip, useTaxonomy } from "@/hooks/use-products";
@@ -9,6 +10,7 @@ import { useSettings } from "@/hooks/use-settings";
 /** Сколько материалов показываем на главной — остальное живёт на экране «Статьи». */
 const ARTICLES_ON_HOME = 3;
 const STRIP_SIZE = 10;
+const SELECTION_SIZE = 4;
 
 /**
  * Все запросы главной в одном месте: экран получает готовые состояния, а
@@ -37,11 +39,15 @@ export function useHomeData() {
 
   const categories = useCategories();
   const taxonomy = useTaxonomy();
-  const hits = useProductStrip({ featured: "true" }, STRIP_SIZE);
+  const selection = useProductStrip({ inStock: "true" }, SELECTION_SIZE);
   const sale = useProductStrip({ onSale: "true" }, STRIP_SIZE);
   const settings = useSettings();
 
   const queryClient = useQueryClient();
+  const cachedHits = queryClient.getQueryData<Paged<Product>>(
+    qk.products({ featured: "true", take: STRIP_SIZE }),
+  )?.items.slice(0, SELECTION_SIZE);
+  const selectionItems = selection.data ?? cachedHits;
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -56,7 +62,7 @@ export function useHomeData() {
         queryClient.refetchQueries({ queryKey: qk.taxonomy }),
         queryClient.refetchQueries({ queryKey: qk.materials }),
         queryClient.refetchQueries({ queryKey: qk.settings }),
-        queryClient.refetchQueries({ queryKey: qk.products({ featured: "true", take: STRIP_SIZE }) }),
+        queryClient.refetchQueries({ queryKey: qk.products({ inStock: "true", take: SELECTION_SIZE }) }),
         queryClient.refetchQueries({ queryKey: qk.products({ onSale: "true", take: STRIP_SIZE }) }),
       ]);
     } finally {
@@ -69,10 +75,10 @@ export function useHomeData() {
    * честный экран ошибки вместо полудюжины плашек в каждой секции.
    */
   const hasAnything = Boolean(
-    hero.data?.length || categories.data?.length || hits.data?.length || sale.data?.length,
+    hero.data?.length || categories.data?.length || selectionItems?.length || sale.data?.length,
   );
   const fatalError =
-    !hasAnything && (categories.isError || hits.isError) ? (categories.error ?? hits.error) : null;
+    !hasAnything && (categories.isError || selection.isError) ? (categories.error ?? selection.error) : null;
 
   return {
     hero,
@@ -80,7 +86,7 @@ export function useHomeData() {
     materials,
     categories,
     taxonomy,
-    hits,
+    selection: { ...selection, data: selectionItems },
     sale,
     settings,
     isRefreshing,

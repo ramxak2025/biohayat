@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 
+import { findCatalogDirection, type CatalogDirectionId } from "../../../../shared/catalog-directions";
 import type { ProductsQuery } from "@/api/types";
 
 import { DEFAULT_SORT, isCatalogSort, type CatalogSort } from "./sort";
 
 /** Оси, по которым сервер фильтрует одним значением (api-contract §4, GET /products). */
-export type CatalogAxis = "category" | "audience" | "goal";
+export type CatalogAxis = "category" | "audience" | "goal" | "direction";
 /** Булевы переключатели того же эндпоинта. */
 export type CatalogFlag = "onSale" | "featured" | "inStock";
 
 export interface CatalogFilters {
+  direction?: CatalogDirectionId;
   category?: string;
   audience?: string;
   goal?: string;
@@ -26,23 +28,7 @@ export interface CatalogFilters {
   sort: CatalogSort;
 }
 
-/**
- * Запрос к GET /products с параметрами, которых ещё нет в общем `ProductsQuery`.
- *
- * `sort`, `priceFrom`, `priceTo` и `inStock` добавлены в API одновременно с этой
- * задачей, а `src/api/types.ts` правит соседняя зона. Расширение живёт здесь,
- * пока типы не догонят контракт: сетевой слой сериализует объект целиком
- * (`qs()` в api/client), поэтому новые ключи доезжают до сервера как есть, а
- * `qk.products()` кладёт их в ключ кэша — выдача под разной сортировкой не
- * склеивается. Когда `ProductsQuery` обновят, этот интерфейс схлопнется в
- * `Omit<ProductsQuery, "take" | "skip">` и больше ничего менять не придётся.
- */
-export interface CatalogQuery extends Omit<ProductsQuery, "take" | "skip"> {
-  sort?: CatalogSort;
-  priceFrom?: number;
-  priceTo?: number;
-  inStock?: "true";
-}
+export type CatalogQuery = Omit<ProductsQuery, "take" | "skip">;
 
 export interface CatalogFiltersApi {
   filters: CatalogFilters;
@@ -81,6 +67,7 @@ export const EMPTY_FILTERS: CatalogFilters = {
 export function countActiveFilters(filters: CatalogFilters): number {
   return (
     (filters.category ? 1 : 0) +
+    (filters.direction ? 1 : 0) +
     (filters.audience ? 1 : 0) +
     (filters.goal ? 1 : 0) +
     (filters.onSale ? 1 : 0) +
@@ -100,6 +87,7 @@ export function countActiveFilters(filters: CatalogFilters): number {
  */
 export function buildCatalogQuery(filters: CatalogFilters): CatalogQuery {
   const query: CatalogQuery = {};
+  if (filters.direction) query.direction = filters.direction;
   if (filters.category) query.category = filters.category;
   if (filters.audience) query.audience = filters.audience;
   if (filters.goal) query.goal = filters.goal;
@@ -129,6 +117,7 @@ function readPrice(raw: string | string[] | undefined): number | undefined {
 function fingerprint(filters: CatalogFilters): string {
   return [
     filters.category ?? "",
+    filters.direction ?? "",
     filters.audience ?? "",
     filters.goal ?? "",
     filters.onSale ? "1" : "",
@@ -161,6 +150,7 @@ export function useCatalogFilters(): CatalogFiltersApi {
     () => ({
       ...EMPTY_FILTERS,
       category: readParam(params.category),
+      direction: findCatalogDirection(readParam(params.direction))?.id,
       audience: readParam(params.audience),
       goal: readParam(params.goal),
       onSale: readParam(params.onSale) === "true",
@@ -176,6 +166,7 @@ export function useCatalogFilters(): CatalogFiltersApi {
     }),
     [
       params.category,
+      params.direction,
       params.audience,
       params.goal,
       params.onSale,
@@ -217,7 +208,8 @@ export function useCatalogFilters(): CatalogFiltersApi {
     (axis: CatalogAxis, slug: string) => {
       // ось одновыборная: повторный тап по выбранному чипсу снимает фильтр
       const value = filters[axis] === slug ? undefined : slug;
-      if (axis === "category") commit({ ...filters, category: value });
+      if (axis === "direction") commit({ ...filters, direction: findCatalogDirection(value)?.id });
+      else if (axis === "category") commit({ ...filters, category: value });
       else if (axis === "audience") commit({ ...filters, audience: value });
       else commit({ ...filters, goal: value });
     },

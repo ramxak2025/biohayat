@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ListLink as Link } from "@/components/ui/list-link";
-import { Leaf, Package, Heart, PillBottle, MessageCircleHeart } from "lucide-react";
+import { Gift, Package, Heart, PillBottle, MessageCircleHeart } from "lucide-react";
+import { VysotaPhoto } from "@/components/site/vysota-photo";
 import { Container } from "@/components/ui/container";
 import { Input, Label, Checkbox } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -88,31 +89,23 @@ export function AuthForms({ defaultTab = "login", error, retryMin }: AuthFormsPr
   const showError = message && tab === defaultTab;
 
   return (
-    <Container className="py-8 pb-[calc(var(--spacing-mobnav)+2.5rem)] sm:py-12 lg:pb-12">
-      <div className="mx-auto w-full max-w-md">
-        {/* Экран-приветствие как в приложении */}
-        <div className="text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 ring-1 ring-brand-100">
-            <Leaf className="h-8 w-8 text-brand-600" />
-          </span>
-          <h1 className="mt-4 text-2xl font-extrabold sm:text-3xl">Личный кабинет</h1>
-          <p className="mt-1 text-ink-muted">Войдите, чтобы покупки стали удобнее</p>
+    <Container className="vysota-account-auth py-6 pb-[calc(var(--spacing-mobnav)+2.5rem)] lg:py-12">
+      <section className="vysota-dark vysota-hero account-auth-intro">
+        <VysotaPhoto scene="hero" primary />
+        <div className="account-auth-intro-content">
+          <h1>Личный кабинет</h1>
+          <ul className="mt-6 hidden gap-3 lg:grid">
+            {BENEFITS.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3 text-mist">
+                <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
+                <span>{text}</span>
+              </li>
+            ))}
+          </ul>
         </div>
+      </section>
 
-        {/* Буллиты выгод */}
-        <ul className="mt-6 space-y-2.5">
-          {BENEFITS.map(({ icon: Icon, text }) => (
-            <li key={text} className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3 ring-1 ring-line">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-                <Icon className="h-5 w-5" />
-              </span>
-              <span className="text-sm font-medium text-ink">{text}</span>
-            </li>
-          ))}
-        </ul>
-
-        {/* Карточка с формами */}
-        <div className="mt-6 rounded-3xl bg-surface p-6 shadow-sm ring-1 ring-line sm:p-8">
+      <div className="rounded-[var(--r-xl)] border border-line bg-white p-5 sm:p-8">
           <div
             role="tablist"
             aria-label="Вход или регистрация"
@@ -126,7 +119,7 @@ export function AuthForms({ defaultTab = "login", error, retryMin }: AuthFormsPr
                 onClick={() => setTab(t)}
                 className={cn(
                   "min-h-11 flex-1 rounded-full py-2.5 text-sm font-semibold transition",
-                  tab === t ? "bg-brand-500 text-white shadow-sm" : "text-ink-muted hover:text-ink",
+                  tab === t ? "bg-ink text-mist" : "text-ink-muted hover:text-ink",
                 )}
               >
                 {t === "login" ? "Вход" : "Регистрация"}
@@ -152,7 +145,7 @@ export function AuthForms({ defaultTab = "login", error, retryMin }: AuthFormsPr
               <input type="hidden" name="ref" value={ref} />
               {ref ? (
                 <div className="rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-medium text-brand-700">
-                  🎁 Вы по приглашению друга — после первого заказа вы оба получите 300 ₽ бонусами.
+                  <Gift size={16} className="mr-1.5 inline align-text-bottom" aria-hidden="true" />Вы по приглашению друга — после первого заказа вы оба получите 300 ₽ бонусами.
                 </div>
               ) : null}
               <div>
@@ -181,12 +174,11 @@ export function AuthForms({ defaultTab = "login", error, retryMin }: AuthFormsPr
               </label>
             </AuthForm>
           )}
-        </div>
       </div>
     </Container>
   );
 }
 
 function Err({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">{children}</div>;
+  return <div role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">{children}</div>;
 }

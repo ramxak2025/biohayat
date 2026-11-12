@@ -3,7 +3,7 @@
  * Правило React Compiler про них не знает и даёт ложное срабатывание; в рендере
  * `.value` мы не читаем, поэтому компилятору эта мутация не мешает. */
 import { useEffect } from "react";
-import { StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import * as Haptics from "expo-haptics";
 import { SymbolView, type SFSymbol } from "expo-symbols";
 import Animated, {
@@ -26,13 +26,14 @@ export interface ChipProps {
   selected?: boolean;
   onPress?: () => void;
   icon?: SFSymbol;
+  dot?: string;
   count?: number;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
 /** Выбираемая пилюля фильтра. Выбор отмечается цветом, пружинным «поп» и хаптикой. */
-export function Chip({ label, selected = false, onPress, icon, count, disabled, style }: ChipProps) {
+export function Chip({ label, selected = false, onPress, icon, dot, count, disabled, style }: ChipProps) {
   const colors = useColors();
   const reduced = useReducedMotion();
 
@@ -73,6 +74,7 @@ export function Chip({ label, selected = false, onPress, icon, count, disabled, 
       style={[styles.hit, disabled ? styles.disabled : null, style]}
     >
       <Animated.View style={[styles.chip, containerStyle]}>
+        {dot ? <View accessible={false} style={[styles.dot, { backgroundColor: dot }]} /> : null}
         {icon ? <SymbolView name={icon} size={14} tintColor={tint} /> : null}
         <AppText variant="subhead" weight="600" numberOfLines={1} style={{ color: tint }}>
           {label}
@@ -90,6 +92,7 @@ export function Chip({ label, selected = false, onPress, icon, count, disabled, 
 const styles = StyleSheet.create({
   hit: { minHeight: MIN_TAP_SIZE, justifyContent: "center" },
   disabled: { opacity: 0.4 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
   chip: {
     flexDirection: "row",
     alignItems: "center",

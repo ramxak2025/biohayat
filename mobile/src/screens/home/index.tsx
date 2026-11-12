@@ -11,16 +11,15 @@ import type { Category, MaterialListItem, Product, TaxonomyItem } from "@/api/ty
 import {
   ArticlesRail,
   CategoryRail,
-  HeroCarousel,
   HomeChroma,
   HomeSection,
   PromoStrip,
   TaxonomyRail,
   TrustBlock,
   useBannerNavigate,
-  useHeroHeight,
 } from "@/components/home";
-import { ProductStrip } from "@/components/product-card";
+import { VysotaDirectionRail, VysotaHomeHero } from "@/components/home/vysota-home";
+import { ProductCard, ProductStrip } from "@/components/product-card";
 import { homeScrollOffset } from "@/lib/display-layout";
 import { AppText, BadDisclaimer, ErrorState, useTabBarInset } from "@/components/ui";
 import { palette, spacing, useColors } from "@/theme";
@@ -45,13 +44,8 @@ export function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
-  const [heroContentHeight, setHeroContentHeight] = useState(0);
+  const [heroHeight, setHeroHeight] = useState(0);
   const [chromaHeight, setChromaHeight] = useState(HOME_CHROMA_MIN_HEIGHT);
-  const heroHeight = useHeroHeight(heroContentHeight, chromaHeight);
-  const onHeroContentHeight = useCallback((height: number) => {
-    const next = Math.ceil(height);
-    setHeroContentHeight((previous) => previous === next ? previous : next);
-  }, []);
   const onChromaHeight = useCallback((height: number) => {
     const next = Math.ceil(height);
     setChromaHeight((previous) => previous === next ? previous : next);
@@ -73,7 +67,6 @@ export function HomeScreen() {
     router.push({ pathname: "/catalog", params: { audience: item.slug } });
   const openGoal = (item: TaxonomyItem) =>
     router.push({ pathname: "/catalog", params: { goal: item.slug } });
-  const openHits = () => router.push({ pathname: "/catalog", params: { featured: "true" } });
   const openSale = () => router.push({ pathname: "/catalog", params: { onSale: "true" } });
   const openArticles = () =>
     router.push("./articles" as `./${string}`, { relativeToDirectory: true });
@@ -113,14 +106,14 @@ export function HomeScreen() {
   const categories = data.categories.data ?? [];
   const audiences = data.taxonomy.data?.audiences ?? [];
   const goals = data.taxonomy.data?.goals ?? [];
-  const promos = data.promo.data ?? [];
+  const promos = [...(data.hero.data ?? []), ...(data.promo.data ?? [])];
   const articles = data.materials.data ?? [];
 
   const showCategories =
     data.categories.isLoading || data.categories.isError || categories.length > 0;
   const showAudiences = data.taxonomy.isLoading || data.taxonomy.isError || audiences.length > 0;
   const showGoals = data.taxonomy.isLoading || goals.length > 0;
-  const showPromos = data.promo.isLoading || promos.length > 0;
+  const showPromos = data.hero.isLoading || data.promo.isLoading || promos.length > 0;
   const showArticles = data.materials.isLoading || data.materials.isError || articles.length > 0;
 
   const legal = data.settings.data?.legal;
@@ -158,25 +151,25 @@ export function HomeScreen() {
           />
         }
       >
-        <HeroCarousel
-          banners={data.hero.data ?? []}
-          isLoading={data.hero.isLoading}
-          onPressBanner={(banner) => openBanner(banner.link)}
+        <VysotaHomeHero
+          topClearance={insets.top + chromaHeight}
+          onLayout={setHeroHeight}
           onOpenCatalog={openCatalog}
-          scrollY={scrollY}
-          height={heroHeight}
-          onContentHeightChange={onHeroContentHeight}
         />
+        <VysotaDirectionRail onSelect={(direction) => router.push({ pathname: "/catalog", params: { direction } })} />
 
-        {/* Непрозрачная подложка под всеми секциями. Герой на «резинке» растёт
-            вверх, и его нижняя кромка обязана упираться ровно в тот же цвет, в
-            который растворяется его градиент, — иначе на стыке мелькнёт полоска. */}
         <View style={{ backgroundColor: colors.background }}>
-          {data.hero.isError ? (
-            <HomeSection index={0}>
-              <ErrorState compact error={data.hero.error} title="Не удалось загрузить баннеры" onRetry={() => void data.hero.refetch()} />
-            </HomeSection>
-          ) : null}
+          <ProductSection
+            index={0}
+            title="Из каталога"
+            onAction={openCatalog}
+            products={data.selection.data}
+            isLoading={data.selection.isLoading}
+            error={data.selection.error}
+            onRetry={() => void data.selection.refetch()}
+            rows
+          />
+
           {showCategories ? (
             <HomeSection index={1} title="Категории" onAction={openCatalog}>
               <CategoryRail
@@ -215,27 +208,19 @@ export function HomeScreen() {
             </HomeSection>
           ) : null}
 
-          <ProductSection
-            index={4}
-            title="Хиты продаж"
-            onAction={openHits}
-            products={data.hits.data}
-            isLoading={data.hits.isLoading}
-            error={data.hits.error}
-            onRetry={() => void data.hits.refetch()}
-          />
-
-          {showPromos || data.promo.isError ? (
-            <HomeSection index={5}>
-              {data.promo.isError ? (
-                <ErrorState compact error={data.promo.error} title="Не удалось загрузить предложения" onRetry={() => void data.promo.refetch()} />
-              ) : (
-                <PromoStrip
-                  banners={promos}
-                  isLoading={data.promo.isLoading}
-                  onPressBanner={(banner) => openBanner(banner.link)}
-                />
-              )}
+          {showPromos || data.promo.isError || data.hero.isError ? (
+            <HomeSection index={5} title="Предложения">
+              {data.promo.isError || data.hero.isError ? (
+                <ErrorState compact error={data.promo.error ?? data.hero.error} title="Не удалось загрузить предложения" onRetry={() => {
+                  void data.hero.refetch();
+                  void data.promo.refetch();
+                }} />
+              ) : null}
+              <PromoStrip
+                banners={promos}
+                isLoading={data.hero.isLoading || data.promo.isLoading}
+                onPressBanner={(banner) => openBanner(banner.link)}
+              />
             </HomeSection>
           ) : null}
 
@@ -299,6 +284,7 @@ interface ProductSectionProps {
   isLoading: boolean;
   error: unknown;
   onRetry: () => void;
+  rows?: boolean;
 }
 
 /** Полоса товаров: пустую подборку не показываем вовсе — дырка хуже её отсутствия. */
@@ -311,6 +297,7 @@ function ProductSection({
   isLoading,
   error,
   onRetry,
+  rows,
 }: ProductSectionProps) {
   const items = products ?? [];
   if (!isLoading && !error && items.length === 0) return null;
@@ -319,6 +306,10 @@ function ProductSection({
     <HomeSection index={index} title={title} subtitle={subtitle} onAction={onAction}>
       {error && items.length === 0 ? (
         <ErrorState error={error} onRetry={onRetry} compact style={styles.padded} />
+      ) : rows && items.length ? (
+        <View style={styles.productRows}>
+          {items.map((product) => <ProductCard key={product.id} product={product} layout="row" />)}
+        </View>
       ) : (
         <ProductStrip products={items} isLoading={isLoading} />
       )}
@@ -330,6 +321,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   fatal: { flexGrow: 1, justifyContent: "center" },
   padded: { paddingHorizontal: spacing.base },
+  productRows: { paddingHorizontal: spacing.base, gap: 10 },
   legal: {
     marginTop: spacing["2xl"],
     paddingHorizontal: spacing.base,

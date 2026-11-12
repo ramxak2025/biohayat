@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CATALOG_DIRECTIONS, findCatalogDirection } from "../../../../shared/catalog-directions";
 import type { Category, Taxonomy } from "@/api/types";
 import {
   AppText,
@@ -165,9 +166,10 @@ export function CatalogFilterSheet({
   const isCounting = count.isPending || count.isFetching || debounced !== candidate;
   const total = count.data ?? 0;
 
-  const setAxis = (axis: "category" | "audience" | "goal", slug: string) => {
+  const setAxis = (axis: "category" | "audience" | "goal" | "direction", slug: string) => {
     setDraft((prev) => {
       const value = prev[axis] === slug ? undefined : slug;
+      if (axis === "direction") return { ...prev, direction: findCatalogDirection(value)?.id };
       if (axis === "category") return { ...prev, category: value };
       if (axis === "audience") return { ...prev, audience: value };
       return { ...prev, goal: value };
@@ -275,6 +277,17 @@ export function CatalogFilterSheet({
                 onChange={(value) => setDraft((prev) => ({ ...prev, featured: value }))}
               />
             </View>
+          </Section>
+
+          <Section title="Направления" inline>
+            {CATALOG_DIRECTIONS.map((direction) => (
+              <Chip
+                key={direction.id}
+                label={direction.label}
+                selected={draft.direction === direction.id}
+                onPress={() => setAxis("direction", direction.id)}
+              />
+            ))}
           </Section>
 
           <Section title="Категории">

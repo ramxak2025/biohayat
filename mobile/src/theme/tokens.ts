@@ -1,38 +1,48 @@
-/**
- * Дизайн-токены ХАЯТ для iOS.
- *
- * Значения светлой темы перенесены один-в-один из веб-дизайн-системы
- * (`docs/design-system.md` + `src/app/globals.css`), чтобы приложение и сайт
- * выглядели одним продуктом. Тёмная тема спроектирована под iOS: не инверсия
- * светлой, а отдельная шкала с приподнятыми поверхностями и осветлённым
- * брендовым зелёным — на чёрном #3a9447 не добирает контраста.
- */
+import type { CatalogDirectionId } from "../../../shared/catalog-directions";
+
+export const vysota = {
+  night: "#0B1610",
+  pine: "#14251C",
+  slope: "#2A4233",
+  sage: "#B3C3A6",
+  sageDark: "#55705A",
+  mist: "#EEF1EA",
+  mist2: "#E2E7DD",
+  line: "#DCE2D6",
+  chipLine: "#C9D1C3",
+  stone: "#D8D2C3",
+  ink: "#0F1D16",
+  muted: "#4C5E52",
+  grass: "#E8D6A8",
+  white: "#FFFFFF",
+} as const;
+
+export const directionColors = {
+  sunna: { packaging: "#B65031", onDark: "#E8774F", onLight: "#5A2210", photo: "#F8E2D7" },
+  semya: { packaging: "#E28E41", onDark: "#F2A45C", onLight: "#763C0D", photo: "#FCEBDA" },
+  osnova: { packaging: "#33714B", onDark: "#63C08A", onLight: "#1D4A30", photo: "#DDEEE3" },
+  sport: { packaging: "#213C70", onDark: "#7E9FEA", onLight: "#213C70", photo: "#E2E8F4" },
+} satisfies Record<CatalogDirectionId, { packaging: string; onDark: string; onLight: string; photo: string }>;
 
 export const palette = {
-  brand50: "#f0f9f1",
-  brand100: "#dbf0de",
-  brand500: "#3a9447",
-  brand600: "#2c7838",
-  brand700: "#245f2f",
-
-  accent400: "#e7a124",
-  accent500: "#d98a12",
-  accent600: "#b86e0e",
-
-  ink: "#1a1d1a",
-  inkMuted: "#5b635b",
-  inkFaint: "#6b716a",
-
-  line: "#e7ebe4",
-  surface: "#ffffff",
-  surfaceSoft: "#f5f7f3",
-  surfaceSunken: "#eef1ea",
-
-  success: "#2c7838",
-  warning: "#d98a12",
-  danger: "#d64545",
-  info: "#2f6fb0",
-  sale: "#d64545",
+  brand50: vysota.mist,
+  brand100: vysota.mist2,
+  brand500: vysota.ink,
+  brand600: vysota.slope,
+  brand700: vysota.ink,
+  accent500: vysota.grass,
+  ink: vysota.ink,
+  inkMuted: vysota.muted,
+  inkFaint: vysota.muted,
+  line: vysota.line,
+  surface: vysota.white,
+  surfaceSoft: vysota.mist,
+  surfaceSunken: vysota.mist2,
+  success: directionColors.osnova.onLight,
+  warning: directionColors.semya.onLight,
+  danger: "#B3261E",
+  info: directionColors.sport.onLight,
+  sale: "#B3261E",
 } as const;
 
 export interface ColorScheme {
@@ -56,11 +66,7 @@ export interface ColorScheme {
   brand: string;
   /** Заливка основного действия с контрастом текста не ниже 4.5:1. */
   actionFill: string;
-  /**
-   * Брендовый цвет для МЕЛКОГО текста и ссылок. Основной #3a9447 на белом даёт
-   * 3.81:1 — ниже порога WCAG AA (4.5:1) для текста меньше 18pt. На заливках
-   * кнопок используем более контрастный actionFill, на подписях — brandText.
-   */
+  /** Цвет для текста ссылок и активных состояний. */
   brandText: string;
   brandPressed: string;
   brandSoft: string;
@@ -75,11 +81,7 @@ export interface ColorScheme {
   info: string;
   sale: string;
 
-  /**
-   * Невыбранная вкладка нижнего меню. Отдельный токен, а не textFaint: тот
-   * оливково-тёплый и поверх стекла читается грязным, а системный цвет —
-   * почти чёрным и «жирным». Нужен нейтральный серый.
-   */
+  /** Тон невыбранной вкладки. */
   tabInactive: string;
   /** Подложка под стеклом, когда Liquid Glass недоступен (iOS < 26). */
   glassFallback: string;
@@ -88,70 +90,59 @@ export interface ColorScheme {
 }
 
 export const lightColors: ColorScheme = {
-  background: palette.surfaceSoft,
-  surface: palette.surface,
-  surfaceSoft: palette.surfaceSoft,
-  surfaceSunken: palette.surfaceSunken,
-  line: palette.line,
-
-  text: palette.ink,
-  textMuted: palette.inkMuted,
-  textFaint: palette.inkFaint,
-  textOnBrand: "#ffffff",
-
-  brand: palette.brand500,
-  actionFill: palette.brand600,
-  brandText: palette.brand700,
-  brandPressed: palette.brand600,
-  brandSoft: palette.brand50,
-  brandBorder: palette.brand100,
-
-  accent: palette.accent500,
-  accentSoft: "#fdf3e0",
-
+  background: vysota.mist,
+  surface: vysota.white,
+  surfaceSoft: vysota.mist,
+  surfaceSunken: vysota.mist2,
+  line: vysota.chipLine,
+  text: vysota.ink,
+  textMuted: vysota.muted,
+  textFaint: vysota.muted,
+  textOnBrand: vysota.mist,
+  brand: vysota.ink,
+  actionFill: vysota.ink,
+  brandText: vysota.ink,
+  brandPressed: vysota.slope,
+  brandSoft: vysota.mist2,
+  brandBorder: vysota.chipLine,
+  accent: directionColors.semya.onLight,
+  accentSoft: vysota.grass,
   success: palette.success,
   warning: palette.warning,
   danger: palette.danger,
   info: palette.info,
   sale: palette.sale,
-
-  tabInactive: "#8a8a8e",
-  glassFallback: "rgba(255,255,255,0.82)",
-  scrim: "rgba(16,21,16,0.35)",
+  tabInactive: vysota.muted,
+  glassFallback: vysota.white,
+  scrim: "rgba(11,22,16,.45)",
 };
 
 export const darkColors: ColorScheme = {
-  background: "#171917",
-  surface: "#222522",
-  surfaceSoft: "#1d201d",
-  surfaceSunken: "#2a2e29",
-  line: "#3a4038",
-
-  text: "#f2f1e9",
-  textMuted: "#bdc3b6",
-  textFaint: "#a0aa99",
-  textOnBrand: "#142012",
-
-  // Естественный зелёный на тёплом угольном фоне; текст кнопок остаётся тёмным.
-  brand: "#8ac477",
-  actionFill: "#83bc70",
-  brandText: "#a6d895",
-  brandPressed: "#73ab61",
-  brandSoft: "#283725",
-  brandBorder: "#42583b",
-
-  accent: "#e6bf73",
-  accentSoft: "#3a3122",
-
-  success: "#9acb83",
-  warning: "#efc77b",
-  danger: "#f09c91",
-  info: "#9cbee1",
-  sale: "#f1a09a",
-
-  tabInactive: "#adb3a7",
-  glassFallback: "rgba(34,37,34,0.94)",
-  scrim: "rgba(0,0,0,0.5)",
+  background: vysota.night,
+  surface: vysota.pine,
+  surfaceSoft: vysota.pine,
+  surfaceSunken: vysota.slope,
+  line: vysota.sageDark,
+  text: vysota.mist,
+  textMuted: "rgba(238,241,234,.88)",
+  textFaint: "rgba(238,241,234,.72)",
+  textOnBrand: vysota.ink,
+  brand: vysota.sage,
+  actionFill: vysota.mist,
+  brandText: vysota.sage,
+  brandPressed: vysota.sage,
+  brandSoft: vysota.slope,
+  brandBorder: vysota.sageDark,
+  accent: vysota.grass,
+  accentSoft: vysota.slope,
+  success: directionColors.osnova.onDark,
+  warning: directionColors.semya.onDark,
+  danger: "#F09C91",
+  info: directionColors.sport.onDark,
+  sale: "#F09C91",
+  tabInactive: vysota.sage,
+  glassFallback: vysota.pine,
+  scrim: "rgba(11,22,16,.65)",
 };
 
 /** Шкала отступов, кратная 4 — как в вебе (Tailwind spacing). */
@@ -169,25 +160,21 @@ export const spacing = {
 
 /** Радиусы из веб-дизайн-системы. Кнопки и чипсы — пилюли (999). */
 export const radii = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  sm: 10,
+  md: 18,
+  lg: 18,
+  xl: 22,
   "2xl": 28,
-  "3xl": 36,
+  "3xl": 32,
   pill: 999,
 } as const;
 
-/**
- * Типографика: системный шрифт (SF Pro). Осознанное решение вместо веб-Manrope —
- * родной шрифт даёт Dynamic Type, правильный кернинг кириллицы в iOS 26
- * и «эппловское» ощущение. Manrope остаётся на сайте и в логотипе.
- */
 export const typography = {
-  largeTitle: { fontSize: 34, lineHeight: 41, fontWeight: "700" },
-  title1: { fontSize: 28, lineHeight: 34, fontWeight: "700" },
-  title2: { fontSize: 22, lineHeight: 28, fontWeight: "700" },
-  title3: { fontSize: 20, lineHeight: 25, fontWeight: "600" },
+  hero: { fontSize: 44, lineHeight: 45, fontWeight: "600", letterSpacing: -1.9 },
+  largeTitle: { fontSize: 34, lineHeight: 40, fontWeight: "600", letterSpacing: -1 },
+  title1: { fontSize: 28, lineHeight: 34, fontWeight: "500", letterSpacing: -.85 },
+  title2: { fontSize: 24, lineHeight: 30, fontWeight: "500", letterSpacing: -.72 },
+  title3: { fontSize: 19, lineHeight: 25, fontWeight: "500", letterSpacing: -.3 },
   headline: { fontSize: 17, lineHeight: 22, fontWeight: "600" },
   body: { fontSize: 17, lineHeight: 22, fontWeight: "400" },
   callout: { fontSize: 16, lineHeight: 21, fontWeight: "400" },
@@ -199,10 +186,10 @@ export const typography = {
 
 /** Мягкие «природные» тени веб-системы, переведённые в iOS shadow. */
 export const shadows = {
-  xs: { shadowColor: "#1a1d1a", shadowOpacity: 0.04, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
-  sm: { shadowColor: "#1a1d1a", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
-  md: { shadowColor: "#1a1d1a", shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
-  lg: { shadowColor: "#1a1d1a", shadowOpacity: 0.1, shadowRadius: 28, shadowOffset: { width: 0, height: 12 } },
+  xs: { shadowColor: vysota.night, shadowOpacity: 0.04, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
+  sm: { shadowColor: vysota.night, shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
+  md: { shadowColor: vysota.night, shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
+  lg: { shadowColor: vysota.night, shadowOpacity: 0.1, shadowRadius: 28, shadowOffset: { width: 0, height: 12 } },
   brand: { shadowColor: palette.brand500, shadowOpacity: 0.28, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } },
 } as const;
 

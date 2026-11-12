@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
+import { VysotaPhoto } from "@/components/site/vysota-photo";
 import { Logo } from "@/components/site/logo";
 import { loginAction, type LoginState } from "./actions";
 
@@ -22,12 +23,13 @@ export function LoginForm() {
   const params = useSearchParams();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-soft px-4">
-      <div className="w-full max-w-sm rounded-3xl bg-surface p-8 shadow-md ring-1 ring-line">
+    <div className="vysota-hero flex min-h-dvh items-center justify-center px-4 py-8">
+      <VysotaPhoto scene="osnova" primary />
+      <div className="w-full max-w-sm rounded-[var(--r-xl)] border border-line bg-mist p-8 text-ink">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <Logo />
           <div>
-            <h1 className="text-xl font-extrabold">Личный кабинет</h1>
+            <h1 className="text-xl font-medium">Личный кабинет</h1>
             <p className="text-sm text-ink-muted">Панель управления сайтом</p>
           </div>
         </div>
@@ -40,7 +42,7 @@ export function LoginForm() {
           ) : null}
           <div>
             <Label htmlFor="email" required>E-mail</Label>
-            <Input id="email" name="email" type="email" autoComplete="username" placeholder="admin@biohayat.ru" />
+            <Input id="email" name="email" type="email" autoComplete="username"  />
           </div>
           <div>
             <Label htmlFor="password" required>Пароль</Label>

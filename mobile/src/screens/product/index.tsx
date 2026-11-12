@@ -12,6 +12,7 @@ import Animated, {
   useReducedMotion,
 } from "react-native-reanimated";
 
+import { productDirection } from "../../../../shared/catalog-directions";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/keys";
 import type { Product } from "@/api/types";
@@ -40,7 +41,7 @@ import {
   useStackScreenOptions,
   useTabBarInset,
 } from "@/components/ui";
-import { Duration, Ease, HIT_SLOP, spacing, staggerDelay, useColors } from "@/theme";
+import { directionColors, Duration, Ease, HIT_SLOP, spacing, staggerDelay, useTheme } from "@/theme";
 
 import { shareProduct } from "./share-product";
 import { productMediaHeight, productFooterClearance, PRODUCT_IDENTITY_MIN_HEIGHT } from "@/lib/product-layout";
@@ -55,7 +56,7 @@ interface TextSection {
 
 /** Название и категория объясняют товар до фотографии; покупка всегда доступна. */
 export function ProductScreen({ slug }: { slug: string }) {
-  const colors = useColors();
+  const { colors, dark } = useTheme();
   const router = useRouter();
   const reduced = useReducedMotion();
   const { width } = useWindowDimensions();
@@ -144,6 +145,10 @@ export function ProductScreen({ slug }: { slug: string }) {
       ? undefined
       : FadeInDown.delay(staggerDelay(index, 45)).duration(Duration.reveal).easing(Ease.power3Out);
 
+  const direction = productDirection(product.direction);
+  const swatch = directionColors[direction.id];
+  const directionInk = dark ? swatch.onDark : swatch.onLight;
+
   return (
     // Оверлей полёта живёт выше контента экрана: копия товара должна
     // пролетать над скроллом и над панелью покупки, ничего не перехватывая.
@@ -173,6 +178,15 @@ export function ProductScreen({ slug }: { slug: string }) {
           contentContainerStyle={{ paddingBottom: productFooterClearance(buyBarHeight) }}
         >
           <View style={styles.identity}>
+            <PressableScale
+              haptic="none"
+              accessibilityRole="button"
+              onPress={() => router.push({ pathname: "/catalog", params: { direction: direction.id } })}
+              style={styles.directionLink}
+            >
+              <View style={[styles.directionDot, { backgroundColor: directionInk }]} />
+              <AppText variant="footnote" weight="600" style={{ color: directionInk }}>{direction.label}</AppText>
+            </PressableScale>
             <View style={styles.identityRow}>
               <AppText variant="title2" accessibilityRole="header" style={styles.name}>{product.name}</AppText>
               <FavoriteButton productId={product.id} onImage={false} size={22} />
@@ -194,7 +208,7 @@ export function ProductScreen({ slug }: { slug: string }) {
 
           <ProductZoomTarget>
             <Animated.View ref={heroRef} collapsable={false} style={styles.media}>
-              <ProductGallery images={product.images} name={product.name} width={width - spacing.base * 2} height={mediaHeight} reducedMotion={reduced} onOpenImage={(index) => setViewer({ index, visible: true })} />
+              <ProductGallery images={product.images} name={product.name} photoSurface={swatch.photo} width={width - spacing.base * 2} height={mediaHeight} reducedMotion={reduced} onOpenImage={(index) => setViewer({ index, visible: true })} />
             </Animated.View>
           </ProductZoomTarget>
 
@@ -274,6 +288,8 @@ export function ProductScreen({ slug }: { slug: string }) {
 }
 
 const styles = StyleSheet.create({
+  directionLink: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start" },
+  directionDot: { width: 8, height: 8, borderRadius: 4 },
   root: { flex: 1 },
   center: { justifyContent: "center" },
   identity: { paddingHorizontal: spacing.base, paddingTop: spacing.base, paddingBottom: spacing.md, minHeight: PRODUCT_IDENTITY_MIN_HEIGHT },

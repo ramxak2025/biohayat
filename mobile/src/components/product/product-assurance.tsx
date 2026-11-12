@@ -51,10 +51,6 @@ export function ProductAssurance({ price, style }: ProductAssuranceProps) {
       icon: "creditcard",
       text: "Оплата при получении. Онлайн-оплаты в приложении пока нет",
     },
-    {
-      icon: "checkmark.seal",
-      text: `Сертифицированная продукция, производство ${settings?.legal.name ?? "ООО «Восток»"}`,
-    },
   ];
 
   return (

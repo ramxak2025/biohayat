@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useWindowDimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Stack, type ErrorBoundaryProps } from "expo-router";
+import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -19,6 +20,7 @@ import { queryClient, queryPersister, shouldPersistQuery } from "@/lib/query-cli
 import { TrackerProvider } from "@/tracker/provider";
 import { useAuth } from "@/store/auth";
 import { useTheme } from "@/theme";
+import { appFonts } from "@/theme/fonts";
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 400, fade: true });
@@ -51,6 +53,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const theme = useTheme();
+  const [fontsLoaded, fontError] = useFonts(appFonts);
   const { height, fontScale } = useWindowDimensions();
   const sheetOptions = sheetScreenOptions(height, fontScale, theme.colors.surface);
   const hydrate = useAuth((s) => s.hydrate);
@@ -63,8 +66,10 @@ export default function RootLayout() {
   useEffect(() => {
     // Прячем сплэш только когда сессия прочитана из Keychain — иначе на секунду
     // мелькает гостевой ЛК у вошедшего пользователя.
-    if (!hydrating) void SplashScreen.hideAsync();
-  }, [hydrating]);
+    if (!hydrating && (fontsLoaded || fontError)) void SplashScreen.hideAsync();
+  }, [hydrating, fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

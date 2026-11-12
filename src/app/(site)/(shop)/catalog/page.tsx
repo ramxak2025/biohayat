@@ -1,8 +1,10 @@
+import { CATALOG_DIRECTIONS, findCatalogDirection } from "../../../../../shared/catalog-directions";
+import { ListLink as Link } from "@/components/ui/list-link";
+import { DirectionMark } from "@/components/site/direction-mark";
 import type { Metadata } from "next";
-import { CatalogView, CATALOG_PAGE_SIZE, pageNumber } from "@/components/product/catalog-view";
+import { CatalogView, CATALOG_PAGE_SIZE, pageNumber, SORT_OPTIONS } from "@/components/product/catalog-view";
 import { CatalogHub } from "@/components/site/catalog-hub";
-import { GoalCollections } from "@/components/site/goal-collections";
-import { getCategoriesWithCounts, getProducts, getPurchasedProducts } from "@/lib/queries";
+import { getCategoriesWithCounts, getProducts, getPurchasedProducts, parseProductSort } from "@/lib/queries";
 import { getFeaturedBrands } from "@/lib/brands";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { audienceName, goalName } from "@/lib/taxonomy";
@@ -13,12 +15,10 @@ import { buildMetadata } from "@/lib/seo";
 // (и без обращения к БД на этапе сборки).
 export const dynamic = "force-dynamic";
 
-interface CatalogSearchParams {
-  page?: string;
-  q?: string;
-  category?: string;
-  goal?: string;
-  audience?: string;
+type CatalogSearchParams = Partial<Record<"q" | "category" | "goal" | "audience" | "direction" | "sort" | "page", string | string[]>>;
+
+function first(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export async function generateMetadata({
@@ -26,7 +26,7 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<CatalogSearchParams>;
 }): Promise<Metadata> {
-  const { q } = await searchParams;
+  const q = first((await searchParams).q);
   const settings = await getSettings();
   return buildMetadata(
     {
@@ -43,97 +43,97 @@ export default async function CatalogPage({
 }: {
   searchParams: Promise<CatalogSearchParams>;
 }) {
-  const { q, category, goal, audience, page: pageParam } = await searchParams;
-  const isFiltered = Boolean(q || category || goal || audience);
+  const params = await searchParams;
+  const q = first(params.q);
+  const category = first(params.category);
+  const goal = first(params.goal);
+  const audience = first(params.audience);
+  const pageParam = first(params.page);
+  const direction = findCatalogDirection(first(params.direction));
+  const sort = parseProductSort(params.sort);
+  const isFiltered = Boolean(q || category || goal || audience || direction || sort !== "popular" || pageParam);
   const page = pageNumber(pageParam);
   const skip = (page - 1) * CATALOG_PAGE_SIZE;
   /** Адрес N-й страницы с сохранением фильтров. */
-  const pageQuery = (p: number) => {
+  const href = (
+    p: number,
+    directionId: string | null | undefined = direction?.id,
+    order = sort,
+    categorySlug: string | null | undefined = category,
+  ) => {
     const qs = new URLSearchParams();
     if (q) qs.set("q", q);
-    if (category) qs.set("category", category);
+    if (categorySlug) qs.set("category", categorySlug);
     if (goal) qs.set("goal", goal);
     if (audience) qs.set("audience", audience);
+    if (directionId) qs.set("direction", directionId);
+    if (order !== "popular") qs.set("sort", order);
     if (p > 1) qs.set("page", String(p));
     const s = qs.toString();
     return s ? `/catalog?${s}` : "/catalog";
   };
 
-  // Персонализация хаба: «Вы уже заказывали» для залогиненных
-  // (страница force-dynamic — cookies здесь допустимы).
-  const session = isFiltered ? null : await getCustomerSession();
-  const purchased = session ? await getPurchasedProducts(session.sub, 10) : [];
-
-  // Категории со счётчиками подходят и сайдбару/чипсам (slug + name).
   const categories = await getCategoriesWithCounts();
+  const { items, total } = await getProducts({
+    search: q,
+    categorySlug: category,
+    goal,
+    audience,
+    direction: direction?.id,
+    sort: sort === "price-asc" ? "price_asc" : sort === "price-desc" ? "price_desc" : sort,
+    take: CATALOG_PAGE_SIZE,
+    skip,
+  });
+  const categoryName = categories.find((item) => item.slug === category)?.name;
+  const title = q
+    ? `Поиск: «${q}»`
+    : categoryName ||
+      (goal ? goalName(goal) : undefined) ||
+      (audience ? audienceName(audience) : undefined) ||
+      "Каталог товаров";
 
-  // С фильтром — как раньше: сетка товаров (страница динамическая из-за searchParams).
-  if (isFiltered) {
-    const { items, total } = await getProducts({
-      search: q,
-      categorySlug: category,
-      goal: goal,
-      audience: audience,
-      take: CATALOG_PAGE_SIZE,
-      skip,
-    });
-    const categoryName = category
-      ? categories.find((c) => c.slug === category)?.name
-      : undefined;
-    const title = q
-      ? `Поиск: «${q}»`
-      : categoryName ||
-        (goal ? goalName(goal) : undefined) ||
-        (audience ? audienceName(audience) : undefined) ||
-        "Каталог товаров";
-
-    return (
-      <CatalogView
-        title={title}
-        products={items}
-        total={total}
-        categories={categories}
-        activeSlug={categoryName ? category : undefined}
-        page={page}
-        pageQuery={pageQuery}
-      />
-    );
-  }
-
-  // «Чистый» /catalog: на мобильном — хаб каталога, на десктопе — как раньше
-  // сетка с боковым меню.
-  const [{ items, total }, featured, brands] = await Promise.all([
-    getProducts({ take: CATALOG_PAGE_SIZE, skip }),
+  const session = isFiltered ? null : await getCustomerSession();
+  const hub = isFiltered ? null : await Promise.all([
+    session ? getPurchasedProducts(session.sub, 10) : [],
     getProducts({ featured: true, take: 10 }),
     getFeaturedBrands(),
   ]);
 
   return (
     <>
-      <div className="lg:hidden">
-        <CatalogHub
-          purchased={purchased}
-          categories={categories}
-          hits={featured.items}
-          featuredBrands={brands}
-        />
-      </div>
-      <div className="max-lg:hidden">
-        {/* Десктопное стартовое окно каталога: подборки-карточки над товарами */}
-        <h2 className="mb-3 text-xl font-extrabold tracking-tight">Подборки</h2>
-        <GoalCollections variant="grid" />
-        <div className="mt-10">
-          <CatalogView
-            title="Каталог товаров"
-            description="Натуральные витамины, БАД, масла, мёд и бальзамы ХАЯТ."
-            products={items}
-            total={total}
-            categories={categories}
-            page={page}
-            pageQuery={pageQuery}
-          />
-        </div>
-      </div>
+      <CatalogView
+        title={title}
+        products={items}
+        total={total}
+        categoryHref={(slug) => href(1, direction?.id, sort, slug ?? null)}
+        filters={(
+          <>
+            <div className="mb-5 flex flex-wrap items-center gap-2" role="navigation" aria-label="Фильтр по направлению">
+              <Link href={href(1, null)} aria-current={!direction ? "true" : undefined} className="catalog-chip">Все направления</Link>
+              {CATALOG_DIRECTIONS.map((item) => (
+                <Link key={item.id} href={href(1, item.id)} aria-current={direction?.id === item.id ? "true" : undefined} className="catalog-chip">
+                  <DirectionMark direction={item} dark={direction?.id === item.id} />
+                </Link>
+              ))}
+            </div>
+            <div className="mb-5 flex flex-wrap gap-2" role="navigation" aria-label="Сортировка">
+              {SORT_OPTIONS.map((item) => (
+                <Link key={item.value} href={href(1, direction?.id, item.value)} aria-current={sort === item.value ? "true" : undefined} className="catalog-chip">{item.label}</Link>
+              ))}
+            </div>
+          </>
+        )}
+        categories={categories}
+        activeSlug={categoryName ? category : undefined}
+        page={page}
+        pageQuery={(page) => href(page)}
+      />
+      {hub ? (
+        <details className="mt-8 rounded-[var(--r-lg)] bg-white p-4 lg:hidden">
+          <summary className="flex min-h-11 cursor-pointer items-center font-semibold">Подборки, категории и бренды</summary>
+          <CatalogHub purchased={hub[0]} categories={categories} hits={hub[1].items} featuredBrands={hub[2]} />
+        </details>
+      ) : null}
     </>
   );
 }

@@ -128,7 +128,7 @@ export default async function AccountPage({
     <AccountShell name={session.name}>
       {/* Шапка профиля — как в нативном приложении */}
       <div className="animate-fade-up mb-5 flex items-center gap-4">
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-2xl font-extrabold text-white shadow-brand">
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-slope text-2xl font-extrabold text-white shadow-brand">
           {session.name.slice(0, 1).toUpperCase()}
         </span>
         <div className="min-w-0 flex-1">
@@ -154,7 +154,7 @@ export default async function AccountPage({
       {plansCount > 0 ? (
         <Link
           href="/account/intake"
-          className="animate-fade-up group relative mb-6 flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 p-4 text-white shadow-brand transition active:scale-[0.99] sm:p-5"
+          className="animate-fade-up group relative mb-6 flex items-center gap-4 overflow-hidden rounded-2xl bg-pine p-4 text-white shadow-brand transition active:scale-[0.99] sm:p-5"
           style={{ animationDelay: "60ms" }}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15">
@@ -185,7 +185,7 @@ export default async function AccountPage({
       ) : (
         <Link
           href="/account/intake"
-          className="animate-fade-up group mb-6 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-brand-50 to-surface-soft p-4 ring-1 ring-line transition active:scale-[0.99] sm:p-5"
+          className="animate-fade-up group mb-6 flex items-center gap-4 rounded-2xl bg-mist-2 p-4 ring-1 ring-line transition active:scale-[0.99] sm:p-5"
           style={{ animationDelay: "60ms" }}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700">

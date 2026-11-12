@@ -781,7 +781,7 @@ export function IntakeView({
       `}</style>
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold sm:text-3xl">Приём БАД</h1>
+        <h1 className="text-2xl font-medium sm:text-3xl">Приём БАД</h1>
         <Button
           onClick={() => setShowForm((v) => !v)}
           variant={showForm ? "outline" : "primary"}

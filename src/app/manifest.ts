@@ -10,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Натуральные витамины и БАД для всей семьи: каталог, личный кабинет, трекер приёма.",
     start_url: "/",
     display: "standalone",
-    background_color: "#FAF9F4",
-    theme_color: "#3a9447",
+    background_color: "#EEF1EA",
+    theme_color: "#0B1610",
     lang: "ru",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },

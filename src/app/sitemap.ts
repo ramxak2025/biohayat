@@ -1,3 +1,4 @@
+import { CATALOG_DIRECTIONS } from "../../shared/catalog-directions";
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
@@ -28,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...CATALOG_DIRECTIONS.map(({ path }) => ({ url: `${base}${path}`, changeFrequency: "daily" as const, priority: 0.8 })),
     ...AUDIENCES.map((a) => ({
       url: `${base}/for/${a.slug}`,
       changeFrequency: "weekly" as const,

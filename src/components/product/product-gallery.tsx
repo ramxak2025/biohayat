@@ -32,9 +32,9 @@ export function ProductGallery({
   }, [active]);
 
   return (
-    <div className="flex flex-col-reverse gap-3 sm:flex-row">
+    <div className="flex flex-col-reverse gap-4">
       {images.length > 1 ? (
-        <div className="no-scrollbar flex gap-2 overflow-x-auto sm:flex-col">
+        <div className="no-scrollbar flex gap-3 overflow-x-auto p-1">
           {images.map((img, i) => (
             <button
               key={i}
@@ -42,13 +42,13 @@ export function ProductGallery({
               aria-label={`Фото ${i + 1}`}
               aria-current={i === active}
               className={cn(
-                "h-16 w-16 shrink-0 overflow-hidden rounded-xl transition",
+                "size-[72px] shrink-0 overflow-hidden rounded-xl bg-[var(--direction-p)] transition sm:size-24",
                 i === active
                   ? "ring-2 ring-brand-500"
                   : "ring-1 ring-line hover:ring-brand-300",
               )}
             >
-              <SmartImage src={img.url} alt={img.alt || name} ratio="1/1" rounded="rounded-none" />
+              <SmartImage src={img.url} alt={img.alt || name} ratio="1/1" rounded="rounded-none" className="bg-[var(--direction-p)]" imgClassName="object-contain p-1" />
             </button>
           ))}
         </div>
@@ -58,8 +58,9 @@ export function ProductGallery({
           src={current?.url}
           alt={current?.alt || name}
           ratio="1/1"
-          rounded="rounded-2xl"
-          className="ring-1 ring-line"
+          rounded="product-main-image"
+          className="bg-[var(--direction-p)]"
+          imgClassName="object-contain p-[6%]"
           label={name}
           spec="1000×1000 (1:1)"
           priority

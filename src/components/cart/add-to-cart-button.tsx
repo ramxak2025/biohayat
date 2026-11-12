@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Minus, Plus, ShoppingCart } from "lucide-react";
+import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { useCart, type CartItem } from "./cart-provider";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,14 @@ export function AddToCartButton({
   item,
   size = "md",
   full,
+  compact,
   maxQty = 99,
   inStock = true,
 }: {
   item: Omit<CartItem, "qty">;
   size?: "sm" | "md" | "lg";
   full?: boolean;
+  compact?: boolean;
   /** Максимум штук (остаток на складе); по умолчанию 99 — учёт выключен. */
   maxQty?: number;
   inStock?: boolean;
@@ -39,7 +41,7 @@ export function AddToCartButton({
       >
         <button
           onClick={() => setQty(item.id, inCart.qty - 1)}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface text-brand-700 shadow-xs transition hover:bg-brand-100"
+          className="flex size-11 items-center justify-center rounded-full bg-surface text-brand-700 shadow-xs transition hover:bg-brand-100"
           aria-label="Уменьшить"
         >
           <Minus className="h-4 w-4" />
@@ -55,7 +57,7 @@ export function AddToCartButton({
           }}
           disabled={atMax}
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-white shadow-xs transition hover:bg-brand-600",
+            "flex size-11 items-center justify-center rounded-full bg-brand-500 text-white shadow-xs transition hover:bg-brand-600",
             atMax && "cursor-not-allowed opacity-50 hover:bg-brand-500",
           )}
           aria-label="Увеличить"
@@ -77,7 +79,8 @@ export function AddToCartButton({
   return (
     <Button
       size={size}
-      className={cn(full && "w-full")}
+      className={cn(full && "w-full", compact && "product-cart-action")}
+      aria-label={size === "lg" ? "Добавить в корзину" : "В корзину"}
       onClick={() => {
         add(item);
         setJustAdded(true);
@@ -85,8 +88,8 @@ export function AddToCartButton({
         setTimeout(() => setJustAdded(false), 1200);
       }}
     >
-      {justAdded ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-      В корзину
+      {justAdded ? <Check className="size-4" aria-hidden="true" /> : <ShoppingBag className="size-4" strokeWidth={1.6} aria-hidden="true" />}
+      <span>{size === "lg" ? "Добавить в корзину" : "В корзину"}</span>
     </Button>
   );
 }

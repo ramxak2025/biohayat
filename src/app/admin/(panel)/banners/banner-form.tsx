@@ -84,7 +84,7 @@ export function BannerForm({ banner }: { banner?: Banner }) {
             </div>
             <div>
               <Label htmlFor="bgColor">Цвет фона</Label>
-              <Input id="bgColor" name="bgColor" defaultValue={banner?.bgColor ?? ""} placeholder="#3a9447" />
+              <Input id="bgColor" name="bgColor" defaultValue={banner?.bgColor ?? ""} placeholder="#14251C" />
             </div>
             <div>
               <Label htmlFor="sortOrder">Порядок сортировки</Label>

@@ -2,9 +2,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const base =
-  "w-full rounded-xl border border-line-strong bg-surface px-4 py-2.5 text-[15px] text-ink " +
-  "placeholder:text-ink-faint transition-colors focus:border-brand-400 focus:outline-none " +
-  "focus:ring-2 focus:ring-brand-100 disabled:opacity-60";
+  "min-h-[52px] w-full rounded-[16px] border border-chipline bg-white px-[18px] py-2.5 text-base text-ink " +
+  "placeholder:text-ink-faint transition-colors focus:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 " +
+  "aria-invalid:border-danger disabled:opacity-60";
 
 export const Input = React.forwardRef<
   HTMLInputElement,
@@ -46,7 +46,7 @@ export function Label({
   return (
     <label
       htmlFor={htmlFor}
-      className={cn("mb-1.5 block text-sm font-semibold text-ink", className)}
+      className={cn("mb-1.5 block text-sm font-medium text-ink", className)}
     >
       {children}
       {required ? <span className="text-danger"> *</span> : null}
@@ -56,7 +56,7 @@ export function Label({
 
 export function FieldError({ children }: { children?: React.ReactNode }) {
   if (!children) return null;
-  return <p className="mt-1 text-sm text-danger">{children}</p>;
+  return <p className="mt-1 text-[13px] text-danger">{children}</p>;
 }
 
 export function Checkbox({

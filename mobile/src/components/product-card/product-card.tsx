@@ -4,12 +4,13 @@ import { Image } from "expo-image";
 import { useRouter, useSegments } from "expo-router";
 import Animated, { FadeInDown, useReducedMotion } from "react-native-reanimated";
 
+import { productDirection } from "../../../../shared/catalog-directions";
 import type { Product } from "@/api/types";
 import { AppText } from "@/components/ui/app-text";
 import { Badge } from "@/components/ui/badge";
 import { PressableScale } from "@/components/ui/press-scale";
 import { Price } from "@/components/ui/price";
-import { Duration, Ease, radii, shadows, spacing, staggerDelay, useColors } from "@/theme";
+import { directionColors, Duration, Ease, radii, spacing, staggerDelay, useTheme } from "@/theme";
 
 import { AddToCart } from "./add-to-cart";
 import { FavoriteButton } from "./favorite-button";
@@ -22,7 +23,7 @@ export type ProductCardLayout = "grid" | "row";
  * Радиус плитки. Фото прижато к краям карточки, поэтому его верхние углы
  * повторяют этот же радиус — иначе между фото и рамкой появляется «ободок».
  */
-const GRID_RADIUS = radii.xl;
+const GRID_RADIUS = radii["2xl"];
 
 export interface ProductCardProps {
   product: Product;
@@ -61,7 +62,10 @@ export function ProductCard({
   showAddToCart = true,
   style,
 }: ProductCardProps) {
-  const colors = useColors();
+  const { colors, dark } = useTheme();
+  const direction = productDirection(product.direction);
+  const swatch = directionColors[direction.id];
+  const directionInk = dark ? swatch.onDark : swatch.onLight;
   const reduced = useReducedMotion();
   const router = useRouter();
   const segments = useSegments();
@@ -84,6 +88,7 @@ export function ProductCard({
   // элемент читается целиком и содержимое детей в него не попадает.
   const label = [
     product.name,
+    direction.label,
     product.price.formatted,
     discount ? `скидка ${discount} процентов` : null,
     product.oldPrice ? `старая цена ${product.oldPrice.formatted}` : null,
@@ -98,7 +103,7 @@ export function ProductCard({
     <View
       style={[
         styles.photo,
-        { backgroundColor: colors.surfaceSunken },
+        { backgroundColor: swatch.photo },
         shape,
         // «нет в наличии» показываем приглушённым фото, а не ещё одним бейджем:
         // текстом об этом и так говорит кнопка внизу карточки
@@ -119,7 +124,7 @@ export function ProductCard({
       ) : (
         <View style={styles.noImage}>
           <Image source={require("../../../assets/brand/logo-mark.png")} style={{ width: 32, height: 32 }} contentFit="contain" accessible={false} />
-          <AppText variant="caption2" color="faint" numberOfLines={1}>
+          <AppText variant="caption2" color="faint" style={{ color: swatch.onLight }} numberOfLines={1}>
             ХАЯТ
           </AppText>
         </View>
@@ -154,7 +159,10 @@ export function ProductCard({
         {corner ? <View style={row ? styles.rowCorner : styles.corner} pointerEvents="none">{corner}</View> : null}
       </View>
       <View style={row ? styles.rowBody : styles.gridBody}>
-        {row && product.category ? <AppText variant="caption" color="brand" weight="600" numberOfLines={1}>{product.category.name}</AppText> : null}
+        <View style={styles.direction}>
+          <View style={[styles.directionDot, { backgroundColor: directionInk }]} />
+          <AppText variant="caption" numberOfLines={1} style={[styles.directionLabel, { color: directionInk }]}>{direction.label}</AppText>
+        </View>
         <AppText variant={row ? "subhead" : "footnote"} weight={row ? "600" : "500"} numberOfLines={2} style={row ? styles.rowName : styles.gridName}>{product.name}</AppText>
         {row && product.volume ? <AppText variant="caption" color="faint">{product.volume}</AppText> : null}
         <Price price={product.price} oldPrice={product.oldPrice} discountPercent={product.discountPercent} size={row ? "sm" : "md"} layout="inline" showDiscount={false} />
@@ -163,16 +171,16 @@ export function ProductCard({
   );
 
   const body = layout === "grid" ? (
-    <View accessible={false} style={[styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.line, borderRadius: GRID_RADIUS }, width ? { width } : null, style]}>
+    <View accessible={false} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.line, borderRadius: GRID_RADIUS }, width ? { width } : null, style]}>
       {summary(false)}
       {showAddToCart ? <View style={styles.gridCta}><AddToCart product={product} /></View> : null}
       <View style={styles.favorite}><FavoriteButton productId={product.id} /></View>
     </View>
   ) : (
-    <View accessible={false} style={[styles.rowCard, { flexDirection: "column" }, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.line }, style]}>
+    <View accessible={false} style={[styles.rowCard, { backgroundColor: colors.surface, borderColor: colors.line }, style]}>
       {summary(true)}
       {showAddToCart ? <View style={styles.rowActions}><AddToCart product={product} /></View> : null}
-      <View style={styles.rowFavorite}><FavoriteButton productId={product.id} onImage={false} /></View>
+      <View style={styles.rowFavorite}><FavoriteButton productId={product.id} /></View>
     </View>
   );
 
@@ -191,7 +199,10 @@ export function ProductCard({
 
 const styles = StyleSheet.create({
   // без overflow: "hidden" — iOS обрезает по нему и тень; фото клипует себя само
-  card: { borderWidth: StyleSheet.hairlineWidth },
+  card: { borderWidth: StyleSheet.hairlineWidth, padding: 6 },
+  direction: { flexDirection: "row", alignItems: "center", gap: 6 },
+  directionLabel: { flexShrink: 1 },
+  directionDot: { width: 7, height: 7, borderRadius: 4 },
   photo: { overflow: "hidden" },
   photoDimmed: { opacity: 0.45 },
   noImage: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.xs },
@@ -200,38 +211,27 @@ const styles = StyleSheet.create({
   gridPhoto: {
     width: "100%",
     aspectRatio: 1,
-    borderTopLeftRadius: GRID_RADIUS,
-    borderTopRightRadius: GRID_RADIUS,
+    borderRadius: radii.xl,
   },
   corner: { position: "absolute", top: spacing.sm, left: spacing.sm },
-  favorite: { position: "absolute", top: 0, right: 0 },
+  favorite: { position: "absolute", top: 6, right: 6 },
   gridBody: { paddingHorizontal: spacing.sm, paddingTop: spacing.sm, gap: spacing.xs },
   // две строки footnote: карточки соседей по ряду встают на одну высоту
   gridName: { minHeight: 36 },
   gridCta: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
 
   rowMain: { flexDirection: "row", gap: spacing.md },
-  rowActions: { alignSelf: "flex-end", marginTop: spacing.sm },
+  rowActions: { alignSelf: "flex-end", minWidth: 126 },
   rowCard: {
-    flexDirection: "row",
-    gap: spacing.md,
+    gap: spacing.sm,
     borderRadius: radii["2xl"],
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
   },
-  rowImage: { width: 88, height: 88 },
+  rowImage: { width: 96, height: 110 },
   rowPhoto: { width: "100%", height: "100%", borderRadius: radii.xl },
   rowCorner: { position: "absolute", top: spacing.xs, left: spacing.xs },
-  rowBody: { flex: 1, gap: 2 },
+  rowBody: { flex: 1, gap: 3, paddingTop: 2 },
   rowName: { minHeight: 40 },
-  rowFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    // при крупном Dynamic Type кнопка уходит на вторую строку вместо обрезки
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  rowFavorite: { alignSelf: "flex-start", marginTop: -spacing.sm, marginRight: -spacing.sm },
+  rowFavorite: { position: "absolute", top: 8, left: 68 },
 });

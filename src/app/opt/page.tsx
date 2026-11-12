@@ -12,21 +12,13 @@ import {
   Truck,
   ChevronDown,
 } from "lucide-react";
+import { VysotaPhoto } from "@/components/site/vysota-photo";
 import { Container } from "@/components/ui/container";
 import { MarginCalculator } from "@/components/opt/margin-calculator";
 import { getB2BAccount } from "@/lib/b2b-auth";
 import { getSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
-
-/** Фирменный лист (как в логотипе) — декор hero и финального CTA. */
-function Leaf({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
-      <path d="M12 2C7 6 4 10 4 14a8 8 0 0016 0c0-4-3-8-8-12zm0 5c2.5 2.2 4 4.7 4 7a4 4 0 01-8 0c0-2.3 1.5-4.8 4-7z" />
-    </svg>
-  );
-}
 
 /**
  * Лендинг оптового направления — для гостей. Залогиненных уводим сразу
@@ -42,20 +34,15 @@ export default async function OptLandingPage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-linear-to-b from-brand-50 to-bg">
-        <Leaf className="pointer-events-none absolute -right-16 -top-20 h-[420px] w-[420px] rotate-12 text-brand-100 sm:-right-8 lg:right-12" />
-        <Leaf className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 -rotate-45 text-brand-100/60" />
-        <Container className="relative py-14 sm:py-20 lg:py-24">
-          <div className="max-w-2xl">
-            {/* Чипа «Производитель — …» над заголовком больше нет: правило
-                скила запрещает eyebrow над h1 безусловно, а сам факт наполовину
-                повторялся полосой цифр ниже. Юрлицо переехало в полосу доверия
-                шапки — туда же, где в рознице живёт факт о производстве. */}
-            <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      <section className="vysota-dark vysota-hero opt-hero">
+        <VysotaPhoto scene="sport" primary />
+        <Container className="relative py-20 sm:py-28 lg:py-36">
+          <div className="max-w-2xl rounded-[var(--r-xl)] p-5 sm:p-8 glass-dark">
+            <h1 className="vysota-heading text-mist">
               Оптовые поставки натуральных БАД{" "}
-              <span className="text-brand-700">ХАЯТ</span>
+              ХАЯТ
             </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-mist/85 sm:text-lg">
               Прямые цены производителя без посредников: фитопродукция, витамины,
               коллаген, масло чёрного тмина. Для аптек, магазинов здорового
               питания, маркетплейс-продавцов и дистрибьюторов.
@@ -63,19 +50,19 @@ export default async function OptLandingPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/opt/register"
-                className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 py-4 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
+                className="vysota-button vysota-button-light"
               >
                 Получить оптовый прайс
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
               <Link
                 href="/opt/login"
-                className="inline-flex min-h-14 items-center justify-center rounded-full border border-line-strong py-4 bg-surface px-7 text-base font-semibold text-ink transition hover:bg-surface-soft"
+                className="vysota-button vysota-button-outline"
               >
                 Войти
               </Link>
             </div>
-            <p className="mt-4 text-sm text-ink-faint">
+            <p className="mt-4 text-sm text-mist/80">
               Заявка рассматривается за один рабочий день, без обязательств.
             </p>
           </div>
@@ -86,7 +73,7 @@ export default async function OptLandingPage() {
       <section className="border-y border-line bg-surface">
         <Container className="grid grid-cols-2 divide-line lg:grid-cols-4 lg:divide-x">
           {[
-            { value: "119+", label: "позиций в оптовом прайсе" },
+            { value: "Каталог", label: "БАД, масла и фитопродукция" },
             { value: "Спец-цены", label: "партиями — выгоднее за штуку" },
             { value: "Россия", label: "собственное производство" },
             { value: "от 10 шт", label: "минимальная отгрузка" },
@@ -107,7 +94,7 @@ export default async function OptLandingPage() {
       <section className="py-12 sm:py-16" id="calculator">
         <Container>
           <div className="mb-8 max-w-2xl">
-            <h2 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+            <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               Посчитайте свою выгоду
             </h2>
             <p className="mt-2 text-ink-muted">
@@ -122,7 +109,7 @@ export default async function OptLandingPage() {
       {/* ── Как работаем: 3 шага ── */}
       <section className="bg-surface-soft py-12 sm:py-16">
         <Container>
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+          <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
             Как начать работать
           </h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -164,7 +151,7 @@ export default async function OptLandingPage() {
       {/* ── Что получают партнёры ── */}
       <section className="py-12 sm:py-16">
         <Container>
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+          <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
             Что получают партнёры
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -205,7 +192,7 @@ export default async function OptLandingPage() {
       {/* ── FAQ ── */}
       <section className="bg-surface-soft py-12 sm:py-16">
         <Container className="max-w-3xl">
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+          <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
             Частые вопросы
           </h2>
           <div className="mt-6 space-y-3">
@@ -249,10 +236,8 @@ export default async function OptLandingPage() {
       <section className="py-12 sm:py-16">
         <Container>
           <div className="relative overflow-hidden rounded-3xl bg-brand-800 px-6 py-10 text-white sm:px-12 sm:py-14">
-            <Leaf className="pointer-events-none absolute -right-10 -top-16 h-72 w-72 rotate-12 text-white/10" />
-            <Leaf className="pointer-events-none absolute -bottom-20 left-1/3 h-56 w-56 -rotate-30 text-white/5" />
             <div className="relative max-w-2xl">
-              <h2 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+              <h2 className="font-display text-2xl font-medium tracking-tight sm:text-4xl">
                 Начните зарабатывать на продукции ХАЯТ
               </h2>
               <p className="mt-3 text-brand-100">
@@ -262,7 +247,7 @@ export default async function OptLandingPage() {
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/opt/register"
-                  className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-accent-400 py-4 px-7 text-base font-bold text-ink shadow-sm transition hover:bg-accent-300 active:bg-accent-500"
+                  className="vysota-button vysota-button-light"
                 >
                   <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
                   Получить оптовый прайс

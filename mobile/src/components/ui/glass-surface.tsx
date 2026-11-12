@@ -1,14 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AccessibilityInfo, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { BlurView } from "expo-blur";
-import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-effect";
 
-import { useColors, useTheme } from "@/theme";
+import { useColors, vysota } from "@/theme";
 
-/**
- * Настройка «Уменьшение прозрачности». Читаем при старте и слушаем изменения:
- * пользователь может переключить её, не убивая приложение.
- */
+/** Системная настройка применяется и к уже открытому экрану. */
 export function useReduceTransparency(): boolean {
   const [reduced, setReduced] = useState(false);
 
@@ -31,63 +27,31 @@ export function useReduceTransparency(): boolean {
 export interface GlassSurfaceProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
-  /** Цветное «витражное» стекло. По HIG — не больше одного на экран. */
-  tint?: string;
-  /** Стекло реагирует на касание (только iOS 26+). */
-  interactive?: boolean;
-  /** Сила размытия для отката на expo-blur (1..100). */
-  intensity?: number;
-  glassStyle?: "regular" | "clear";
+  /** Материал применяется только в слое поверх фотографии. */
+  photo?: boolean;
+  dark?: boolean;
 }
 
-/**
- * Плавающая «стеклянная» подложка для навигационной хромы: нижняя панель
- * «В корзину», рейка фильтров, кнопки поверх фото.
- *
- * НИКОГДА не ставить под контент — HIG прямо запрещает стекло в контентном слое.
- *
- * Три уровня деградации:
- *   1. iOS 26 + API доступен → настоящий Liquid Glass (GlassView);
- *   2. iOS < 26 → expo-blur;
- *   3. включено «Уменьшение прозрачности» → сплошная подложка.
- */
-export function GlassSurface({
-  children,
-  style,
-  tint,
-  interactive = false,
-  intensity = 32,
-  glassStyle = "regular",
-}: GlassSurfaceProps) {
+export function GlassSurface({ children, style, photo = false, dark = false }: GlassSurfaceProps) {
   const colors = useColors();
-  const theme = useTheme();
   const reduceTransparency = useReduceTransparency();
 
-  if (reduceTransparency) {
-    return <View style={[styles.base, { backgroundColor: colors.surface }, style]}>{children}</View>;
-  }
-
-  // isGlassEffectAPIAvailable(), а не проверка версии: в части бет iOS 26 API нет и рендер падает
-  if (isGlassEffectAPIAvailable() && isLiquidGlassAvailable()) {
+  if (!photo || reduceTransparency || Platform.OS !== "ios") {
     return (
-      <GlassView
-        style={[styles.base, style]}
-        glassEffectStyle={glassStyle}
-        isInteractive={interactive}
-        tintColor={tint}
-      >
+      <View style={[styles.base, { backgroundColor: photo ? vysota.pine : colors.surface }, style]}>
         {children}
-      </GlassView>
+      </View>
     );
   }
 
   return (
-    <BlurView
-      intensity={intensity}
-      tint={theme.dark ? "systemThickMaterialDark" : "systemThickMaterialLight"}
-      style={[styles.base, styles.clipped, style]}
-    >
-      {tint ? <View style={[StyleSheet.absoluteFill, { backgroundColor: tint }]} /> : null}
+    <BlurView intensity={52} tint="dark" style={[styles.base, style]}>
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, {
+          backgroundColor: dark ? "rgba(11,22,16,.42)" : "rgba(238,241,234,.13)",
+        }]}
+      />
       {children}
     </BlurView>
   );
@@ -95,6 +59,4 @@ export function GlassSurface({
 
 const styles = StyleSheet.create({
   base: { overflow: "hidden" },
-  // BlurView без overflow:hidden пропускает размытие за скруглённые углы
-  clipped: { overflow: "hidden" },
 });

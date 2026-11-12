@@ -33,7 +33,7 @@ export function CartView() {
   return (
     <Container className="py-6 sm:py-8">
       <div className="mb-5 flex items-baseline gap-3 sm:mb-6">
-        <h1 className="text-2xl font-extrabold sm:text-3xl">Корзина</h1>
+        <h1 className="text-2xl font-medium sm:text-3xl">Корзина</h1>
         <span className="tnum text-sm font-semibold text-ink-faint">
           {totalQty} {pluralItems(totalQty)}
         </span>
@@ -106,7 +106,7 @@ export function CartView() {
 
         {/* итог: на мобайле прилипает к низу экрана над нижним меню */}
         <aside
-          className="sticky bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom))+10px)] z-10 h-fit rounded-2xl bg-surface/95 p-4 shadow-md ring-1 ring-line backdrop-blur sm:p-5 lg:bottom-auto lg:top-24 lg:bg-surface lg:shadow-none lg:backdrop-blur-none"
+          className="sticky bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom))+10px)] z-10 h-fit rounded-2xl bg-surface p-4 shadow-md ring-1 ring-line  sm:p-5 lg:bottom-auto lg:top-24 lg:bg-surface lg:shadow-none "
         >
           <div className="flex items-center justify-between">
             <span className="text-sm text-ink-muted">

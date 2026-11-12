@@ -55,7 +55,7 @@ export function StickyBuyBar({
         bottom: "calc(var(--spacing-mobnav) + max(10px, env(safe-area-inset-bottom)) + 10px)",
       }}
     >
-      <div className="mx-auto flex w-full max-w-[460px] items-center gap-3 rounded-3xl bg-surface/95 p-2.5 pl-4 shadow-lg ring-1 ring-line backdrop-blur">
+      <div className="mx-auto flex w-full max-w-[460px] items-center gap-3 rounded-3xl bg-surface p-2.5 pl-4 shadow-lg ring-1 ring-line ">
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <span className="tnum text-lg font-extrabold leading-tight text-ink">

@@ -160,7 +160,7 @@ export function OptHeader({
       </header>
 
       {/* ── Мобильный: тот же материал, что у мобильной шапки розницы ── */}
-      <header className="glass glass-extend sticky top-0 z-40 shadow-sm lg:hidden">
+      <header className="bg-mist sticky top-0 z-40 shadow-sm lg:hidden">
         {/* Спейсер под вырез: без него контент упирается в жёсткую линию. */}
         <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
         <Container className="flex items-center gap-2.5 py-2.5">

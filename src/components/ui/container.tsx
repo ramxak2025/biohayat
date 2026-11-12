@@ -8,7 +8,7 @@ export function Container({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8", className)}>
+    <div className={cn("mx-auto w-full max-w-[var(--container)] px-4 sm:px-6 lg:px-10", className)}>
       {children}
     </div>
   );
@@ -42,7 +42,7 @@ export function SectionHeader({
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
       <div>
-        <h2 className="font-display text-2xl font-extrabold sm:text-3xl">{title}</h2>
+        <h2 className="font-display text-2xl font-medium sm:text-3xl">{title}</h2>
         {subtitle ? <p className="mt-1 text-ink-muted">{subtitle}</p> : null}
       </div>
       {action}

@@ -24,6 +24,7 @@ import Animated, {
 import { normalizePhoneSubscriberInput, phoneSubscriberDisplay, PHONE_MASK } from "@/lib/phone-input";
 import { Duration, Ease, MIN_TAP_SIZE, radii, spacing, typography, useColors } from "@/theme";
 
+import { appFont } from "@/theme/fonts";
 import { AppText } from "./app-text";
 import { IconButton } from "./icon-button";
 
@@ -101,7 +102,7 @@ export function Input({
             focus.value = withTiming(0, { duration: Duration.fast, easing: Ease.power2Out });
             onBlur?.(event);
           }}
-          style={[styles.input, { color: colors.text }, inputStyle]}
+          style={[styles.input, { color: colors.text, fontFamily: appFont() }, inputStyle]}
           {...rest}
         />
         {rightSlot}
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: MIN_TAP_SIZE + 6,
+    minHeight: 52,
     paddingHorizontal: spacing.base,
     borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,

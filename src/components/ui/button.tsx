@@ -7,9 +7,9 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-200",
+    "bg-ink text-mist hover:bg-slope active:bg-ink disabled:border disabled:border-dashed disabled:border-chipline disabled:bg-transparent disabled:text-ink-muted",
   accent:
-    "bg-accent-400 text-ink shadow-sm hover:bg-accent-500 active:bg-accent-600",
+    "bg-grass text-ink hover:bg-stone",
   secondary: "bg-surface-sunken text-ink hover:bg-line-strong",
   outline: "border border-line-strong bg-surface text-ink hover:bg-surface-soft",
   ghost: "text-ink hover:bg-surface-soft",
@@ -17,9 +17,9 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-4 text-sm gap-1.5",
-  md: "h-11 px-5 text-[15px] gap-2",
-  lg: "h-14 px-7 text-base gap-2.5",
+  sm: "min-h-11 px-4 text-sm gap-1.5",
+  md: "min-h-11 px-5 text-[15px] gap-2",
+  lg: "min-h-14 px-7 text-base gap-2.5",
   icon: "h-11 w-11",
 };
 
@@ -37,8 +37,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center rounded-full font-semibold transition-colors",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+          "inline-flex items-center justify-center rounded-full font-medium transition-colors duration-[160ms]",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-color,var(--ink))]",
           "disabled:cursor-not-allowed disabled:opacity-70 select-none",
           variants[variant],
           sizes[size],

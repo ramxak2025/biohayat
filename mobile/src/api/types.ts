@@ -1,3 +1,5 @@
+import type { CatalogDirectionId } from "../../../shared/catalog-directions";
+
 /* ============================================================================
  *  ХАЯТ REST API v2 — сериализованные типы
  *  Все даты — ISO-8601 строки. Все картинки — абсолютные URL.
@@ -69,6 +71,7 @@ export interface ProductCategoryRef {
 }
 
 export interface Product {
+  direction?: CatalogDirectionId;
   id: string;
   slug: string;
   name: string;
@@ -447,6 +450,7 @@ export interface ReplaceFavoritesBody {
 export type ProductSort = "popular" | "price_asc" | "price_desc" | "discount" | "new";
 
 export interface ProductsQuery {
+  direction?: CatalogDirectionId;
   /** Список ID через запятую; публичные активные товары из общей базы сайта. */
   ids?: string;
   category?: string;

@@ -10,28 +10,6 @@ type Suggestion = { slug: string; name: string };
 
 const POPULAR = ["Витамин D3", "Коллаген", "Омега-3", "Масло чёрного тмина", "Мёд", "Цинк"];
 
-/**
- * Капсула-триггер поиска. Используется в мобильной шапке (mobile-header.tsx).
- * compact — короткий плейсхолдер для размещения в одну строку с логотипом.
- */
-export function SearchTrigger({
-  onOpen,
-  compact = false,
-}: {
-  onOpen: () => void;
-  compact?: boolean;
-}) {
-  return (
-    <button
-      onClick={onOpen}
-      className="flex h-10 w-full items-center gap-2 rounded-2xl bg-surface px-3.5 text-left text-[15px] text-ink-faint shadow-xs ring-1 ring-line transition active:scale-[0.99]"
-    >
-      <Search className="h-5 w-5 shrink-0 text-brand-500" />
-      <span className="truncate">{compact ? "Поиск товаров" : "Поиск: витамин D3, коллаген, мёд…"}</span>
-    </button>
-  );
-}
-
 /** Полноэкранный оверлей поиска с живыми подсказками (учитывает опечатки). */
 export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
@@ -39,8 +17,11 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [pending, start] = useTransition();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
     inputRef.current?.focus();
   }, []);
 
@@ -72,7 +53,12 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-bg lg:hidden animate-fade-up">
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      aria-label="Поиск по каталогу"
+      className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none flex-col bg-mist text-ink open:flex"
+    >
       {/* строка ввода — та же капсула, что и в закрытом состоянии */}
       <div className="flex items-center gap-2 px-3 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
         <form
@@ -163,6 +149,6 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
           </ul>
         )}
       </div>
-    </div>
+    </dialog>
   );
 }

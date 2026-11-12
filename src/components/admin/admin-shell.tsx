@@ -44,12 +44,12 @@ export function AdminShell({
   const SidebarContent = (
     <>
       <div className="flex items-center justify-between p-5">
-        <Logo />
-        <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="Закрыть">
+        <Logo tone="inverted" />
+        <button className="grid size-11 place-items-center rounded-full lg:hidden" onClick={() => setOpen(false)} aria-label="Закрыть">
           <X className="h-6 w-6" />
         </button>
       </div>
-      <nav className="flex-1 space-y-1 px-3">
+      <nav aria-label="Панель управления" className="flex-1 space-y-1 px-3">
         {visibleNav.map((item) => {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -58,9 +58,10 @@ export function AdminShell({
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition",
-                active ? "bg-brand-500 text-white shadow-sm" : "text-ink-muted hover:bg-surface-soft hover:text-ink",
+                "flex min-h-11 items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-medium transition",
+                active ? "bg-mist text-ink" : "text-mist/85 hover:bg-slope hover:text-mist",
               )}
             >
               <Icon className="h-5 w-5" />
@@ -69,19 +70,19 @@ export function AdminShell({
           );
         })}
       </nav>
-      <div className="border-t border-line p-3">
+      <div className="border-t border-mist/15 p-3">
         <Link
           href="/"
           target="_blank"
-          className="mb-1 flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-ink-muted hover:bg-surface-soft"
+          className="mb-1 flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-mist/85 hover:bg-slope"
         >
           <ExternalLink className="h-5 w-5" /> Открыть сайт
         </Link>
-        <div className="rounded-xl bg-surface-soft px-3.5 py-2.5">
+        <div className="rounded-xl bg-slope px-3.5 py-2.5">
           <div className="truncate text-sm font-bold">{user.name}</div>
-          <div className="truncate text-xs text-ink-faint">{user.email}</div>
+          <div className="truncate text-xs text-mist/80">{user.email}</div>
           <form action="/admin/logout" method="post">
-            <button className="mt-2 flex items-center gap-2 text-sm font-semibold text-danger hover:underline">
+            <button className="mt-2 flex items-center gap-2 text-sm font-semibold text-mist hover:underline">
               <LogOut className="h-4 w-4" /> Выйти
             </button>
           </form>
@@ -93,7 +94,7 @@ export function AdminShell({
   return (
     <div className="flex min-h-screen bg-surface-soft">
       {/* desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-surface lg:flex">
+      <aside className="vysota-dark hidden w-64 shrink-0 flex-col bg-night text-mist lg:flex">
         {SidebarContent}
       </aside>
 
@@ -101,16 +102,16 @@ export function AdminShell({
       {open ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
-          <aside className="absolute left-0 top-0 flex h-full w-72 flex-col bg-surface">{SidebarContent}</aside>
+          <aside className="vysota-dark absolute left-0 top-0 flex h-full w-72 max-w-[90vw] flex-col overflow-y-auto bg-night text-mist">{SidebarContent}</aside>
         </div>
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center gap-3 border-b border-line bg-surface px-4 lg:hidden">
-          <button onClick={() => setOpen(true)} aria-label="Меню">
+        <header className="vysota-dark flex h-16 items-center gap-3 bg-night px-4 text-mist lg:hidden">
+          <button className="grid size-11 place-items-center rounded-full" onClick={() => setOpen(true)} aria-label="Меню">
             <Menu className="h-6 w-6" />
           </button>
-          <Logo />
+          <Logo tone="inverted" />
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>

@@ -75,7 +75,7 @@ export function AccountShell({
                   href={t.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-11 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition",
+                    "flex min-h-11 items-center gap-2.5 rounded-full px-3.5 py-2.5 text-sm font-semibold transition",
                     active ? "bg-brand-500 text-white shadow-sm" : "text-ink-muted hover:bg-surface-soft hover:text-ink",
                   )}
                 >

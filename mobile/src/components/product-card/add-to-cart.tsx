@@ -33,13 +33,7 @@ export interface AddToCartProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * Высота пилюли по размерам. В плитке каталога она намеренно компактная (36 pt):
- * плотность сетки важнее крупной кнопки, а до положенных по HIG 44 pt зону
- * нажатия добирает hitSlop ниже — палец получает полный целевой размер, пиксели
- * карточки при этом не тратятся.
- */
-const HEIGHT = { sm: 36, md: 48 } as const;
+const HEIGHT = { sm: 44, md: 48 } as const;
 
 /** Сторона летящей копии: примерно половина картинки карточки в сетке. */
 const FLY_SIZE = { sm: 60, md: 76 } as const;
@@ -95,7 +89,7 @@ export function AddToCart({ product, size = "sm", style }: AddToCartProps) {
       // interpolateColor экстраполирует канал за пределы 0..255
       Math.min(Math.max(morph.value, 0), 1),
       [0, 1],
-      [colors.brand, colors.brandSoft],
+      [colors.actionFill, colors.brandSoft],
     ),
   }));
 
@@ -205,10 +199,10 @@ export function AddToCart({ product, size = "sm", style }: AddToCartProps) {
           accessibilityRole="button"
           accessibilityLabel={`Добавить в корзину: ${product.name}`}
           hitSlop={tapSlop}
-          style={[styles.cta, { height: HEIGHT[size], backgroundColor: colors.brand }]}
+          style={[styles.cta, { height: HEIGHT[size], backgroundColor: colors.actionFill }]}
         >
           <SymbolView
-            name="basket"
+            name="bag"
             size={size === "md" ? 17 : 15}
             tintColor={colors.textOnBrand}
             weight="semibold"

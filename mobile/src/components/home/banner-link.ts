@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 
+import { CATALOG_DIRECTIONS } from "../../../../shared/catalog-directions";
 import { API_ORIGIN } from "@/api/config";
 
 /**
@@ -31,7 +32,7 @@ function queryParam(rawQuery: string, name: string): string | null {
 /** Каталог принимает только известные параметры; значения проверяет экран/API. */
 function catalogParams(rawQuery: string): Record<string, string> {
   const params: Record<string, string> = {};
-  for (const name of ["category", "audience", "goal", "onSale", "featured", "q", "sort", "inStock", "priceFrom", "priceTo"]) {
+  for (const name of ["category", "direction", "audience", "goal", "onSale", "featured", "q", "sort", "inStock", "priceFrom", "priceTo"]) {
     const value = queryParam(rawQuery, name);
     if (value) params[name] = value;
   }
@@ -60,6 +61,12 @@ export function useBannerNavigate(): BannerNavigate {
 
       // уже на главной — вести никуда не нужно
       if (path === "/") return;
+
+      const direction = CATALOG_DIRECTIONS.find((item) => item.path === path);
+      if (direction) {
+        router.push({ pathname: "/catalog", params: { ...params, direction: direction.id } });
+        return;
+      }
 
       switch (head) {
         case "catalog":

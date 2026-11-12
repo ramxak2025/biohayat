@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { Category } from "@prisma/client";
 import type { ProductCardData, ProductSort } from "@/lib/queries";
 
-const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
+export const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
   { value: "popular", label: "Популярные" },
   { value: "price-asc", label: "Цена ↑" },
   { value: "price-desc", label: "Цена ↓" },
@@ -28,7 +28,7 @@ export const CATALOG_PAGE_SIZE = 24;
 /** Номер страницы из ?page= — любой мусор в адресе означает первую. */
 export function pageNumber(value?: string): number {
   const n = Number(value);
-  return Number.isInteger(n) && n > 1 ? n : 1;
+  return Number.isSafeInteger(n) && n > 1 && n <= Math.floor(2_147_483_647 / CATALOG_PAGE_SIZE) ? n : 1;
 }
 
 export function CatalogView({
@@ -38,6 +38,8 @@ export function CatalogView({
   total,
   categories,
   activeSlug,
+  filters,
+  categoryHref,
   basePath = "/catalog",
   sort,
   sortBase,
@@ -50,6 +52,8 @@ export function CatalogView({
   total: number;
   categories: Pick<Category, "slug" | "name">[];
   activeSlug?: string;
+  filters?: React.ReactNode;
+  categoryHref?: (slug?: string) => string;
   basePath?: string;
   /** Текущая сортировка (вместе с sortBase включает панель сортировки). */
   sort?: ProductSort;
@@ -66,10 +70,12 @@ export function CatalogView({
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
+        <h1 className="text-2xl font-medium tracking-[-0.035em] sm:text-4xl">{title}</h1>
         {description ? <p className="mt-1.5 max-w-2xl text-ink-muted">{description}</p> : null}
         <p className="mt-1 text-sm text-ink-faint">{total} товаров</p>
       </div>
+
+      {filters}
 
       {/* Мобайл: чипсы соседних категорий, текущая выделена и подскроллена в центр
           (на десктопе их заменяет боковое меню) */}
@@ -77,14 +83,14 @@ export function CatalogView({
         activeKey={activeSlug ?? basePath}
         className={cn("-mx-4 scroll-pl-4 px-4 py-1 lg:hidden", sortBase ? "mb-3" : "mb-6")}
       >
-        <Chip href="/catalog" active={basePath === "/catalog" && !activeSlug}>
+        <Chip href={categoryHref?.() ?? "/catalog"} active={basePath === "/catalog" && !activeSlug}>
           Все
         </Chip>
         <Chip href="/sale" active={basePath === "/sale"} tone="sale">
           Распродажа
         </Chip>
         {categories.map((c) => (
-          <Chip key={c.slug} href={`/category/${c.slug}`} active={activeSlug === c.slug}>
+          <Chip key={c.slug} href={categoryHref?.(c.slug) ?? `/category/${c.slug}`} active={activeSlug === c.slug}>
             {c.name}
           </Chip>
         ))}
@@ -144,7 +150,7 @@ export function CatalogView({
  * догружать и вклеивать разметку. Крупная «Дальше» ведёт основной сценарий,
  * номера остаются для тех, кто хочет прыгнуть.
  */
-function Pagination({
+export function Pagination({
   page,
   pages,
   href,
@@ -223,7 +229,7 @@ function Chip({
       data-active={active ? "true" : undefined}
       className={cn(
         // min-h-10 (40px) — комфортная тач-цель; snap-start для скролл-снапа ленты
-        "inline-flex min-h-10 shrink-0 snap-start items-center whitespace-nowrap rounded-full font-semibold ring-1 transition",
+        "inline-flex min-h-11 shrink-0 snap-start items-center whitespace-nowrap rounded-full font-semibold ring-1 transition",
         size === "sm" ? "px-3.5 text-[13px]" : "px-4 text-sm",
         active
           ? tone === "sale"

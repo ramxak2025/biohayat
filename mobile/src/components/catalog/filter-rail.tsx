@@ -8,10 +8,11 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 
+import { CATALOG_DIRECTIONS } from "../../../../shared/catalog-directions";
 import type { Category } from "@/api/types";
 import { GRID_SIDE } from "@/components/product-card";
 import { Chip, Skeleton } from "@/components/ui";
-import { radii, spacing } from "@/theme";
+import { directionColors, radii, spacing, useTheme } from "@/theme";
 
 import type { CatalogAxis, CatalogFilters, CatalogFlag } from "./use-catalog-filters";
 
@@ -55,6 +56,7 @@ export function CatalogFilterRail({
   onClearSearch,
   offsetRef,
 }: CatalogFilterRailProps) {
+  const theme = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const restored = useRef(false);
 
@@ -118,6 +120,21 @@ export function CatalogFilterRail({
           onPress={onClearSearch}
         />
       ) : null}
+
+      {CATALOG_DIRECTIONS.map((direction) => {
+        const selected = filters.direction === direction.id;
+        const swatch = directionColors[direction.id];
+        return (
+          <View key={direction.id} onLayout={selected ? handleSelectedLayout : undefined}>
+            <Chip
+              label={direction.label}
+              dot={theme.dark === selected ? swatch.onLight : swatch.onDark}
+              selected={selected}
+              onPress={() => onToggleAxis("direction", direction.id)}
+            />
+          </View>
+        );
+      })}
 
       <Chip
         label="Акции"

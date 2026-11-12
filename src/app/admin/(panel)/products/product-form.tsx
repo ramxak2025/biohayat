@@ -1,5 +1,6 @@
 "use client";
 
+import { CATALOG_DIRECTIONS, productDirection } from "../../../../../shared/catalog-directions";
 import { useActionState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/admin/ui";
@@ -100,6 +101,15 @@ export function ProductForm({
                 ))}
               </Select>
               <FieldError>{state.fieldErrors?.categoryId}</FieldError>
+            </div>
+            <div>
+              <Label htmlFor="direction" required>Направление</Label>
+              <Select id="direction" name="direction" defaultValue={productDirection(product?.direction).id} required>
+                {CATALOG_DIRECTIONS.map((direction) => (
+                  <option key={direction.id} value={direction.id}>{direction.label}</option>
+                ))}
+              </Select>
+              <FieldError>{state.fieldErrors?.direction}</FieldError>
             </div>
             <div>
               <Label htmlFor="brandId">Бренд</Label>

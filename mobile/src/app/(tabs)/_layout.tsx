@@ -2,21 +2,10 @@ import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
 
 import { useCartCount } from "@/store/cart";
-import { useColors } from "@/theme";
+import { useColors, vysota } from "@/theme";
+import { appFont } from "@/theme/fonts";
 
-/**
- * Нативный таб-бар iOS 26: настоящий UITabBar, поэтому Liquid Glass, размытие,
- * материалы и хаптика — системные, панель всегда остаётся развёрнутой.
- *
- * Цвета задаём только для содержимого (иконки, подписи, бейдж). backgroundColor
- * НЕ трогаем: сплошной фон отключает стекло и панель становится плоской.
- *
- * Цвет невыбранных элементов задаём явно нейтральным серым (colors.tabInactive):
- * системный по умолчанию поверх стекла читается почти чёрным и «жирным», а наш
- * textFaint — тёплый оливковый и выглядит грязно. Символы выбраны из лёгких
- * начертаний (pill вместо pills, person вместо person.crop.circle,
- * rectangle.grid вместо square.grid) — плотные глифы в таб-баре тяжелят экран.
- */
+/** Нативная панель вкладок сохраняет системные материалы и развёрнутый режим. */
 export default function TabsLayout() {
   const colors = useColors();
   const cartCount = useCartCount();
@@ -26,9 +15,13 @@ export default function TabsLayout() {
       minimizeBehavior="never"
       tintColor={colors.brand}
       iconColor={colors.tabInactive}
-      labelStyle={{ color: colors.tabInactive, selected: { color: colors.brand } }}
-      badgeBackgroundColor={colors.brand}
-      badgeTextColor={colors.textOnBrand}
+      labelStyle={{
+        color: colors.tabInactive,
+        fontFamily: appFont("500"),
+        selected: { color: colors.brand, fontFamily: appFont("600") },
+      }}
+      badgeBackgroundColor={vysota.grass}
+      badgeTextColor={vysota.ink}
     >
       {/* Герой сам учитывает iOS inset; Android сохраняет нативный SafeAreaView. */}
       <NativeTabs.Trigger name="(home)" disableAutomaticContentInsets={Platform.OS === "ios"}>

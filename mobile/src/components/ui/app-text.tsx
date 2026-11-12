@@ -1,6 +1,7 @@
 import { StyleSheet, Text, type StyleProp, type TextProps, type TextStyle } from "react-native";
 
 import { typography, useColors } from "@/theme";
+import { appFont } from "@/theme/fonts";
 import { typesetTextChildren } from "@/lib/russian-typesetting";
 
 export type TextVariant = keyof typeof typography;
@@ -29,6 +30,7 @@ export interface AppTextProps extends Omit<TextProps, "style"> {
 
 /** Крупные заголовки ломают вёрстку раньше мелкого текста — потолок им ниже. */
 const MAX_SCALE: Partial<Record<TextVariant, number>> = {
+  hero: 1.3,
   largeTitle: 1.35,
   title1: 1.4,
   title2: 1.5,
@@ -48,6 +50,11 @@ export function AppText({
   ...rest
 }: AppTextProps) {
   const colors = useColors();
+  const { fontWeight, ...variantStyle } = typography[variant];
+  const font = appFont(
+    StyleSheet.flatten(style)?.fontWeight ?? weight ?? fontWeight,
+    variant === "hero" || variant === "largeTitle" || variant === "title1" || variant === "title2" || variant === "title3",
+  );
 
   const tone: Record<TextTone, string> = {
     text: colors.text,
@@ -67,11 +74,12 @@ export function AppText({
       textBreakStrategy="highQuality"
       maxFontSizeMultiplier={maxScale ?? MAX_SCALE[variant] ?? DEFAULT_MAX_SCALE}
       style={[
-        styles[variant],
+        variantStyle,
         { color: tone[color] },
-        weight ? { fontWeight: weight } : null,
+        { fontWeight: weight ?? fontWeight },
         align ? { textAlign: align } : null,
         style,
+        font ? { fontFamily: font, fontWeight: "normal" } : null,
       ]}
       {...rest}
     >
@@ -79,17 +87,3 @@ export function AppText({
     </Text>
   );
 }
-
-const styles = StyleSheet.create({
-  largeTitle: typography.largeTitle,
-  title1: typography.title1,
-  title2: typography.title2,
-  title3: typography.title3,
-  headline: typography.headline,
-  body: typography.body,
-  callout: typography.callout,
-  subhead: typography.subhead,
-  footnote: typography.footnote,
-  caption: typography.caption,
-  caption2: typography.caption2,
-});

@@ -45,6 +45,7 @@ export interface ProductGalleryProps {
   /** Ширина экрана: страница пагинации равна ей ровно, иначе paging «плывёт». */
   width: number;
   height: number;
+  photoSurface?: string;
   /** Reduce Motion: параллакс выключаем, галерея остаётся обычной. */
   reducedMotion?: boolean;
   onOpenImage?: (index: number) => void;
@@ -56,6 +57,7 @@ export function ProductGallery({
   name,
   width,
   height,
+  photoSurface,
   reducedMotion = false,
   onOpenImage,
 }: ProductGalleryProps) {
@@ -91,7 +93,7 @@ export function ProductGallery({
   );
 
   return (
-    <View style={[styles.frame, { height, backgroundColor: colors.surface }]}>
+    <View style={[styles.frame, { height, backgroundColor: photoSurface ?? colors.surface }]}>
       <Animated.View style={StyleSheet.absoluteFill}>
         {images.length === 0 ? (
           placeholder
@@ -279,7 +281,7 @@ function Dot({ index, page, active, inactive, reducedMotion }: DotProps) {
 }
 
 const styles = StyleSheet.create({
-  frame: { width: "100%", borderRadius: radii.xl, overflow: "hidden" },
+  frame: { width: "100%", borderRadius: radii["3xl"], borderTopLeftRadius: 140, borderTopRightRadius: 140, overflow: "hidden" },
   page: { overflow: "hidden" },
   slide: { flex: 1 },
   image: { flex: 1, margin: spacing.lg },

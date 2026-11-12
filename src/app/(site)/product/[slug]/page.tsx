@@ -1,8 +1,11 @@
+import { productDirection } from "../../../../../shared/catalog-directions";
+import { DirectionMark } from "@/components/site/direction-mark";
+import { VysotaPhoto } from "@/components/site/vysota-photo";
 import type { Metadata } from "next";
 import { ListLink as Link } from "@/components/ui/list-link";
 import { notFound } from "next/navigation";
 import Script from "next/script";
-import { ChevronRight, ChevronDown, Truck, ShieldCheck } from "lucide-react";
+import { Truck } from "lucide-react";
 import { Container, Section } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/product/product-gallery";
@@ -61,6 +64,7 @@ export default async function ProductPage({
     getApprovedReviews(product.id),
     getMaterialsForProduct(product),
   ]);
+  const direction = productDirection(product.direction);
   const discount = discountPercent(product.priceKopecks, product.oldPriceKopecks);
   const freeDelivery = product.priceKopecks >= settings.freeDeliveryThresholdKopecks;
   // Учёт остатков: stockQty === null — выключен; 0 — товар закончился.
@@ -93,7 +97,7 @@ export default async function ProductPage({
   ].filter((t) => t.content);
 
   return (
-    <Container className="py-5 sm:py-8">
+    <div data-direction={direction.id}>
       <Script id="ld-product" type="application/ld+json">
         {JSON.stringify(productJsonLd(product, settings, reviewStats))}
       </Script>
@@ -102,44 +106,35 @@ export default async function ProductPage({
         {JSON.stringify(
           breadcrumbJsonLd([
             { name: "Главная", path: "/" },
+            { name: direction.label, path: direction.path },
             { name: product.category.name, path: `/category/${product.category.slug}` },
             { name: product.name, path: `/product/${product.slug}` },
           ]),
         )}
       </Script>
 
-      {/* хлебные крошки: одна строка, длинное название обрезается */}
-      <nav
-        aria-label="Хлебные крошки"
-        className="mb-3 flex items-center gap-1 overflow-hidden whitespace-nowrap text-xs text-ink-faint"
-      >
-        <Link href="/" className="shrink-0 hover:text-brand-700">Главная</Link>
-        <ChevronRight className="h-3 w-3 shrink-0" aria-hidden />
-        <Link
-          href={`/category/${product.category.slug}`}
-          className="shrink-0 hover:text-brand-700"
-        >
-          {product.category.name}
-        </Link>
-        <ChevronRight className="h-3 w-3 shrink-0" aria-hidden />
-        <span className="truncate text-ink-muted">{product.name}</span>
-      </nav>
+      <div className="vysota-dark vysota-hero product-masthead">
+        <VysotaPhoto scene={direction.id} primary />
+        <Container>
+          <nav className="vysota-breadcrumbs" aria-label="Хлебные крошки">
+            <Link href="/">Главная</Link><span aria-hidden="true">/</span>
+            <Link href={direction.path}>{direction.label}</Link><span aria-hidden="true">/</span>
+            <Link href={`/category/${product.category.slug}`}>{product.category.name}</Link><span aria-hidden="true">/</span>
+            <span aria-current="page">{product.name}</span>
+          </nav>
+        </Container>
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
+      <Container className="product-detail-grid">
         <ProductGallery images={product.images} name={product.name} />
 
         <div className="min-w-0">
-          {/* чип категории + бейджи */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Link
-              href={`/category/${product.category.slug}`}
-              className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-bold leading-none text-brand-700 transition hover:bg-brand-100"
-            >
-              {product.category.name}
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={direction.path} className="flex min-h-11 items-center text-sm font-medium hover:underline">
+              <DirectionMark direction={direction} />
             </Link>
-            {product.badges.map((b) => (
-              <Badge key={b} tone="accent">{b}</Badge>
-            ))}
+            {product.sku ? <span className="text-sm text-ink-muted">Артикул {product.sku}</span> : null}
+            {product.badges.map((badge) => <Badge key={badge} tone="accent">{badge}</Badge>)}
           </div>
 
           {product.brand && !product.brand.isOwn ? (
@@ -154,20 +149,11 @@ export default async function ProductPage({
             </p>
           ) : null}
 
-          {/*
-            line-height задан инлайном намеренно: глобальное правило
-            `h1,h2{line-height:1.22; text-wrap:balance}` в globals.css не лежит
-            в @layer и потому перебивает любые leading-* утилиты (каскадные
-            слои Tailwind 4). На мобайле плотные 1.22 у многострочного
-            extrabold-названия + balance со swap-шрифтом давали наложение
-            строк друг на друга. Инлайновый стиль гарантированно побеждает.
-          */}
-          <h1
-            className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl"
-            style={{ lineHeight: 1.3, textWrap: "pretty" }}
-          >
-            {product.name}
-          </h1>
+          <h1 className="product-detail-title">{product.name}</h1>
+          {product.volume ? <p className="mt-3 text-sm font-medium text-ink-muted">{product.volume}</p> : null}
+          {product.shortDescription ? (
+            <p className="mt-3 max-w-prose text-base leading-relaxed text-ink-muted sm:text-lg">{product.shortDescription}</p>
+          ) : null}
 
           {reviewStats ? (
             <a
@@ -182,43 +168,33 @@ export default async function ProductPage({
             </a>
           ) : null}
 
-          {/* цена + старая цена + чип скидки + наличие */}
-          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="tnum text-3xl font-extrabold tracking-tight">
-              {formatMoney(product.priceKopecks)}
-            </span>
-            {product.oldPriceKopecks ? (
-              <span className="tnum text-lg font-medium text-ink-faint line-through">
-                {formatMoney(product.oldPriceKopecks)}
+          <div id="buy-area" className="product-detail-buy">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="tnum font-display text-3xl font-medium tracking-tight">
+                {formatMoney(product.priceKopecks)}
               </span>
-            ) : null}
-            {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
-            <span
-              className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
-                available ? "text-brand-700" : "text-ink-faint"
-              }`}
-            >
+              {product.oldPriceKopecks ? (
+                <span className="tnum text-lg font-medium text-ink-faint line-through">
+                  {formatMoney(product.oldPriceKopecks)}
+                </span>
+              ) : null}
+              {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
               <span
-                aria-hidden
-                className={`h-2 w-2 rounded-full ${
-                  available ? "bg-brand-500" : "bg-line-strong"
+                className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
+                  available ? "text-brand-700" : "text-ink-faint"
                 }`}
-              />
-              {available ? "В наличии" : "Нет в наличии"}
-            </span>
-            {lowStock ? <Badge tone="accent">Осталось {product.stockQty} шт</Badge> : null}
-          </div>
+              >
+                <span
+                  aria-hidden
+                  className={`h-2 w-2 rounded-full ${
+                    available ? "bg-brand-500" : "bg-line-strong"
+                  }`}
+                />
+                {available ? "В наличии" : "Нет в наличии"}
+              </span>
+              {lowStock ? <Badge tone="accent">Осталось {product.stockQty} шт</Badge> : null}
+            </div>
 
-          {product.volume ? (
-            <p className="mt-2 text-sm text-ink-muted">{product.volume}</p>
-          ) : null}
-          {product.shortDescription ? (
-            <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">
-              {product.shortDescription}
-            </p>
-          ) : null}
-
-          <div id="buy-area" className="mt-5 max-w-sm">
             <AddToCartButton
               full
               size="lg"
@@ -228,130 +204,110 @@ export default async function ProductPage({
             />
           </div>
 
-          {/* компактная полоса доверия */}
-          <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-surface-soft p-3.5 text-xs leading-snug text-ink-muted">
-            <div className="flex items-start gap-2">
-              <Truck className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />
-              <span>
-                {freeDelivery
-                  ? "Бесплатная доставка этого товара по России"
-                  : `Бесплатная доставка от ${formatMoney(settings.freeDeliveryThresholdKopecks)}`}
-              </span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />
-              <span>Сертифицированная продукция, производство ООО «Восток»</span>
-            </div>
+          <div className="mt-4 flex items-center gap-2 text-sm text-ink-muted">
+            <Truck size={18} strokeWidth={1.6} aria-hidden="true" />
+            {freeDelivery ? "Бесплатная доставка этого товара по России" : `Бесплатная доставка от ${formatMoney(settings.freeDeliveryThresholdKopecks)}`}
           </div>
 
           {/* Дисклеймер БАД (реклама БАД). Не «мелкая сноска»: это ровно то
               место, где покупатель принимает решение, и предупреждение здесь
               обязано читаться — 13px и мера по ширине колонки. */}
           <p className="mt-5 max-w-[60ch] border-t border-line pt-3 text-[13px] leading-relaxed text-ink-muted">
-            {settings.badDisclaimer}
+            БАД. Не является лекарственным средством. Перед применением проконсультируйтесь со специалистом.
           </p>
         </div>
-      </div>
+      </Container>
 
-      {/* описание / состав / применение / противопоказания — аккордеоны */}
       {tabs.length > 0 ? (
-        <div className="mt-8 rounded-2xl bg-surface px-4 ring-1 ring-line sm:mt-10 sm:px-5">
-          <div className="divide-y divide-line">
-            {tabs.map((t, i) => (
-              <details key={t.title} className="group" open={i === 0}>
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-3 [&::-webkit-details-marker]:hidden">
-                  <h2 className="text-[15px] font-bold sm:text-base">{t.title}</h2>
-                  <ChevronDown
-                    aria-hidden
-                    className="h-5 w-5 shrink-0 text-ink-faint transition-transform group-open:rotate-180"
-                  />
-                </summary>
-                {/* Мера 68 символов вместо max-w-3xl: на десктопе строка
-                    описания доходила до 96 знаков, глаз терял начало
-                    следующей строки. */}
-                <div className="max-w-[68ch] whitespace-pre-line pb-4 leading-relaxed text-ink-muted">
-                  {t.content}
-                </div>
-              </details>
+        <section className="bg-mist-2 py-9 lg:py-16">
+          <Container className="grid items-start gap-4 md:grid-cols-2">
+            {tabs.map((tab) => (
+              <article key={tab.title} className="rounded-[var(--r-xl)] border border-line bg-white p-6 sm:p-8">
+                <h2 className="mb-3 font-display text-xl font-medium tracking-tight">{tab.title}</h2>
+                <p className="max-w-prose whitespace-pre-line break-words leading-relaxed text-ink-muted">{tab.content}</p>
+              </article>
             ))}
-          </div>
-        </div>
+          </Container>
+        </section>
       ) : null}
 
-      {/* отзывы */}
-      <Section id="reviews" className="scroll-mt-24">
-        <div className="mb-5">
-          <h2 className="text-xl font-extrabold tracking-tight">Отзывы</h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Публикуются после модерации — только честные впечатления
-          </p>
-        </div>
-        <ProductReviews productId={product.id} reviews={reviews} />
-      </Section>
-
-      {/* кросс-линковка: статьи по целям товара */}
-      {articles.length > 0 ? (
-        <Section className="pt-0">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <h2 className="text-xl font-extrabold tracking-tight">Полезно почитать</h2>
-            <Link
-              href="/articles"
-              className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800"
-            >
-              Все →
-            </Link>
+      <Container>
+        {/* отзывы */}
+        <Section id="reviews" className="scroll-mt-24">
+          <div className="mb-5">
+            <h2 className="font-display text-xl font-medium tracking-tight sm:text-2xl">Отзывы</h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Публикуются после модерации — только честные впечатления
+            </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-            {articles.slice(0, 3).map((m) => (
+          <ProductReviews productId={product.id} reviews={reviews} />
+        </Section>
+
+        {/* кросс-линковка: статьи по целям товара */}
+        {articles.length > 0 ? (
+          <Section className="pt-0">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 className="font-display text-xl font-medium tracking-tight sm:text-2xl">Полезно почитать</h2>
               <Link
-                key={m.id}
-                href={`/articles/${m.slug}`}
-                className="group flex items-center gap-3 overflow-hidden rounded-2xl bg-surface p-2.5 shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md sm:block sm:p-0"
+                href="/articles"
+                className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800"
               >
-                <SmartImage
-                  src={m.coverImage}
-                  alt={m.title}
-                  ratio="16/9"
-                  rounded="rounded-xl"
-                  label={m.title}
-                  spec="1200×675"
-                  sizes="(max-width: 640px) 40vw, 33vw"
-                  className="w-28 shrink-0 sm:w-auto sm:rounded-none"
-                />
-                <div className="min-w-0 sm:p-4">
-                  <h3 className="line-clamp-2 text-sm font-bold leading-snug group-hover:text-brand-700 sm:text-base">
-                    {m.title}
-                  </h3>
-                  {m.publishedAt ? (
-                    <time className="mt-1 block text-xs text-ink-faint">
-                      {new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(
-                        m.publishedAt,
-                      )}
-                    </time>
-                  ) : null}
-                </div>
+                Все →
               </Link>
-            ))}
-          </div>
-        </Section>
-      ) : null}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+              {articles.slice(0, 3).map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/articles/${m.slug}`}
+                  className="group flex items-center gap-3 overflow-hidden rounded-2xl bg-surface p-2.5 shadow-xs ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md sm:block sm:p-0"
+                >
+                  <SmartImage
+                    src={m.coverImage}
+                    alt={m.title}
+                    ratio="16/9"
+                    rounded="rounded-xl"
+                    label={m.title}
+                    spec="1200×675"
+                    sizes="(max-width: 640px) 40vw, 33vw"
+                    className="w-28 shrink-0 sm:w-auto sm:rounded-none"
+                  />
+                  <div className="min-w-0 sm:p-4">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-snug group-hover:text-brand-700 sm:text-base">
+                      {m.title}
+                    </h3>
+                    {m.publishedAt ? (
+                      <time className="mt-1 block text-xs text-ink-faint">
+                        {new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(
+                          m.publishedAt,
+                        )}
+                      </time>
+                    ) : null}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Section>
+        ) : null}
 
-      {related.length > 0 ? (
-        <Section className="pt-0">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <h2 className="text-xl font-extrabold tracking-tight">Похожие товары</h2>
-            <Link
-              href={`/category/${product.category.slug}`}
-              className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800"
-            >
-              Все →
-            </Link>
-          </div>
-          <ProductGrid products={related} />
-        </Section>
-      ) : null}
+        {related.length > 0 ? (
+          <Section className="pt-0">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 className="font-display text-xl font-medium tracking-tight sm:text-2xl">Похожие товары</h2>
+              <Link
+                href={`/category/${product.category.slug}`}
+                className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800"
+              >
+                Все →
+              </Link>
+            </div>
+            <ProductGrid products={related} />
+          </Section>
+        ) : null}
 
-      <RecentlyViewed excludeId={product.id} className="py-10 sm:py-14" />
+        <RecentlyViewed excludeId={product.id} className="py-10 sm:py-14" />
+
+      </Container>
 
       {/* мобильная панель покупки */}
       <StickyBuyBar
@@ -360,7 +316,7 @@ export default async function ProductPage({
         inStock={available}
         maxQty={product.stockQty ?? 99}
       />
-    </Container>
+    </div>
   );
 }
 

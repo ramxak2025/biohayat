@@ -17,9 +17,9 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 
-import { AppText, GlassSurface, PressableScale, useReduceTransparency } from "@/components/ui";
+import { AppText, GlassSurface, PressableScale } from "@/components/ui";
 import { useFavorites } from "@/hooks/use-favorites";
-import { MIN_TAP_SIZE, palette, radii, spacing, useColors, useTheme } from "@/theme";
+import { MIN_TAP_SIZE, palette, radii, spacing, useColors, useTheme, vysota } from "@/theme";
 
 import { withAlpha } from "./banner-color";
 import { HOME_CHROMA_MIN_HEIGHT } from "@/lib/display-layout";
@@ -32,21 +32,7 @@ import { HOME_CHROMA_MIN_HEIGHT } from "@/lib/display-layout";
  */
 const DOT_BORDER_OVER_PHOTO = withAlpha(palette.surface, 0.9);
 
-/**
- * Плавающая хрома главной: марка слева, поиск и избранное справа.
- *
- * Системной шапки на этом экране нет — она съедала пол-экрана и «прилипала»
- * плашкой при скролле. Вместо неё хрома лежит ПОВЕРХ героя на уровне safe-area
- * и ничего не двигает в контенте.
- *
- * Переключение состояний — один кроссфейд, без рывка:
- *   • герой на экране     → фона нет, марка и иконки светлые поверх фотографии;
- *   • герой ушёл вверх    → проявляется стеклянная полоса, краски темнеют.
- *
- * Всё считается из одного `scrollY` на UI-потоке: в JS уходит единственный
- * флаг — стиль строки статуса, и только в момент перехода.
- */
-
+/** Шапка меняет материал после ухода фотографии из-под неё. */
 export interface HomeChromaProps {
   /** Вертикальное смещение главной (общий с героем shared value). */
   scrollY: SharedValue<number>;
@@ -58,7 +44,7 @@ export interface HomeChromaProps {
 const CROSSFADE = 72;
 
 /**
- * 0 — хрома на фотографии, 1 — хрома на стекле.
+ * 0 — шапка на фотографии, 1 — шапка над каталогом.
  * При Reduce Motion — ступенька: смена мгновенная, без кроссфейда.
  */
 function chromaProgress(y: number, switchAt: number, reduced: boolean): number {
@@ -133,10 +119,11 @@ export function HomeChroma({ scrollY, heroHeight, barHeight, onBarHeightChange }
         </Animated.View>
 
         <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface }, glassStyle]} pointerEvents="none">
-          <GlassSurface style={StyleSheet.absoluteFill} />
-          {/* волосок нужен откату на expo-blur и режиму «уменьшить прозрачность»:
-              у настоящего Liquid Glass край рисует сама система */}
           <View style={[styles.hairline, { backgroundColor: colors.line }]} />
+        </Animated.View>
+
+        <Animated.View pointerEvents="none" style={[styles.photoGlass, { top: insets.top }, photoStyle]}>
+          <GlassSurface photo style={styles.photoGlassFill} />
         </Animated.View>
 
         {/* box-none по всей цепочке: плавающая хрома не должна перехватывать
@@ -160,7 +147,7 @@ export function HomeChroma({ scrollY, heroHeight, barHeight, onBarHeightChange }
                 contentFit="contain"
                 accessible={false}
               />
-              <AppText variant="title3" weight="700" style={[styles.word, styles.wordOnPhoto]}>
+              <AppText variant="title3" weight="600" style={[styles.word, styles.wordOnPhoto]}>
                 ХАЯТ
               </AppText>
             </Animated.View>
@@ -172,7 +159,7 @@ export function HomeChroma({ scrollY, heroHeight, barHeight, onBarHeightChange }
                 contentFit="contain"
                 accessible={false}
               />
-              <AppText variant="title3" weight="700" style={[styles.word, { color: colors.text }]}>
+              <AppText variant="title3" weight="600" style={[styles.word, { color: colors.text }]}>
                 ХАЯТ
               </AppText>
             </Animated.View>
@@ -220,16 +207,8 @@ interface ChromaButtonProps {
   reduced: boolean;
 }
 
-/**
- * Кнопка хромы. Поверх фотографии — на стеклянной пилюле, на стеклянной полосе —
- * без неё: стекло на стекле HIG запрещает прямо, поэтому пилюля и полоса
- * кроссфейдятся навстречу друг другу и в один момент видна только одна.
- *
- * Глиф тонкий (`weight="regular"`): жирные чёрные линии клиент просил убрать.
- */
 function ChromaButton({ name, label, onPress, scrollY, switchAt, reduced }: ChromaButtonProps) {
   const colors = useColors();
-  const flat = useReduceTransparency();
 
   const photoStyle = useAnimatedStyle(() => ({
     opacity: 1 - chromaProgress(scrollY.value, switchAt, reduced),
@@ -245,16 +224,6 @@ function ChromaButton({ name, label, onPress, scrollY, switchAt, reduced }: Chro
       accessibilityLabel={label}
       style={styles.hit}
     >
-      <Animated.View style={[styles.pill, photoStyle]} pointerEvents="none">
-        {flat ? (
-          // без прозрачности стеклянный откат — почти белая заливка, и белый
-          // глиф на ней пропал бы; здесь нужна именно тёмная подложка
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(palette.ink, 0.5) }]} />
-        ) : (
-          <GlassSurface style={StyleSheet.absoluteFill} tint={withAlpha(palette.ink, 0.18)} />
-        )}
-      </Animated.View>
-
       <Animated.View style={[styles.glyph, photoStyle]} pointerEvents="none">
         <SymbolView name={name} size={20} tintColor={palette.surface} weight="regular" />
       </Animated.View>
@@ -275,16 +244,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingLeft: spacing.lg,
-    paddingRight: spacing.sm,
+    paddingLeft: 22,
+    paddingRight: 18,
   },
   brand: { justifyContent: "center", flexShrink: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   brandMark: { width: 36, height: 36, flexShrink: 0 },
   brandOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "center" },
-  word: { letterSpacing: 1.4, flexShrink: 1 },
+  word: { fontSize: 16, lineHeight: 22, letterSpacing: .95, flexShrink: 1 },
   // белый, а не colors.text: марка лежит на фотографии, и в светлой теме тоже
-  wordOnPhoto: { color: palette.surface },
+  wordOnPhoto: { color: vysota.mist },
   actions: { flexDirection: "row", alignItems: "center" },
   hit: {
     minWidth: MIN_TAP_SIZE,
@@ -292,13 +261,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  pill: {
-    position: "absolute",
-    width: MIN_TAP_SIZE - 8,
-    height: MIN_TAP_SIZE - 8,
-    borderRadius: radii.pill,
-    overflow: "hidden",
-  },
+  photoGlass: { position: "absolute", left: 12, right: 12, bottom: 0 },
+  photoGlassFill: { flex: 1, borderRadius: 24, borderWidth: 1, borderColor: "rgba(238,241,234,.28)" },
   glyph: {
     position: "absolute",
     top: 0,

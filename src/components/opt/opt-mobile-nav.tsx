@@ -39,7 +39,7 @@ export function OptMobileNav({
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around glass rounded-[26px] px-1.5 py-1 shadow-[0_8px_28px_rgba(26,29,26,0.14)] ring-1 ring-black/[0.05]">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[460px] items-end justify-around bg-mist rounded-[30px] px-1.5 py-1  ring-1 ring-black/[0.05]">
         {approved ? (
           <>
             <Tab href="/opt/price" label="Прайс" icon={LayoutGrid} active={is("/price")} />
@@ -136,7 +136,7 @@ function Center({
       <span
         className={cn(
           "relative -mt-6 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-brand transition-transform",
-          active ? "bg-brand-600" : "bg-linear-to-br from-brand-500 to-brand-600",
+          active ? "bg-slope" : "bg-ink",
         )}
       >
         <Icon className="h-6 w-6" strokeWidth={2.2} />

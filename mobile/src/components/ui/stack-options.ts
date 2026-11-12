@@ -3,6 +3,7 @@ import type { NativeStackNavigationOptions } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 import { useColors } from "@/theme";
+import { appFont } from "@/theme/fonts";
 import { useReduceTransparency } from "./glass-surface";
 
 /**
@@ -159,8 +160,8 @@ export function useStackScreenOptions(
     headerLargeTitleShadowVisible: false,
 
     // Цвет заголовка обязателен — иначе он унаследует брендовый tintColor.
-    headerTitleStyle: { color: colors.text },
-    headerLargeTitleStyle: { color: colors.text },
+    headerTitleStyle: { color: colors.text, fontFamily: appFont("600") },
+    headerLargeTitleStyle: { color: colors.text, fontFamily: appFont("600", true) },
     // Брендовый акцент живёт в tintColor: шеврон «назад» и текстовые кнопки.
     headerTintColor: colors.brand,
 

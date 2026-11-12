@@ -17,7 +17,7 @@ export function FavoriteButton({
 }) {
   const { has, toggle, ready } = useFavorites();
   const active = ready && has(productId);
-  const box = size === "sm" ? "h-8 w-8" : "h-9 w-9";
+  const box = "size-11";
   const icon = size === "sm" ? "h-4 w-4" : "h-[18px] w-[18px]";
 
   const heartRef = React.useRef<SVGSVGElement>(null);
@@ -49,13 +49,13 @@ export function FavoriteButton({
       aria-label={active ? "Убрать из избранного" : "В избранное"}
       aria-pressed={active}
       className={cn(
-        "flex items-center justify-center rounded-full bg-surface/90 shadow-sm ring-1 ring-line backdrop-blur transition active:scale-90",
+        "flex items-center justify-center rounded-full bg-surface/90 ring-1 ring-line transition active:scale-90",
         box,
         active ? "text-sale" : "text-ink-faint hover:text-sale",
         className,
       )}
     >
-      <Heart ref={heartRef} className={cn(icon, active && "fill-sale")} strokeWidth={2.2} />
+      <Heart ref={heartRef} className={cn(icon, active && "fill-sale")} strokeWidth={1.6} aria-hidden="true" />
     </button>
   );
 }

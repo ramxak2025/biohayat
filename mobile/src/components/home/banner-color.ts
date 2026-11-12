@@ -13,7 +13,7 @@ interface Rgb {
   b: number;
 }
 
-const FALLBACK: Rgb = { r: 58, g: 148, b: 71 }; // palette.brand500
+const FALLBACK: Rgb = { r: 42, g: 66, b: 51 }; // Склон
 
 function parseHex(hex: string | null | undefined): Rgb {
   if (!hex) return FALLBACK;
@@ -61,7 +61,7 @@ function luminance(color: Rgb): number {
 
 /** Контрастный цвет подписи поверх заливки баннера. */
 export function inkOn(hex: string | null | undefined): string {
-  return luminance(parseHex(hex)) > 0.45 ? palette.ink : palette.surface;
+  return luminance(parseHex(hex)) > 0.19 ? palette.ink : palette.surface;
 }
 
 /**

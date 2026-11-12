@@ -1,6 +1,5 @@
 import { ListLink as Link } from "@/components/ui/list-link";
 import {
-  Phone,
   Mail,
   MapPin,
   Clock,
@@ -11,7 +10,8 @@ import {
 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Logo } from "./logo";
-import type { SiteSettings, Category } from "@prisma/client";
+import { CATALOG_DIRECTIONS } from "../../../shared/catalog-directions";
+import type { SiteSettings } from "@prisma/client";
 
 /**
  * Футер на фирменном тёмно-зелёном (brand-900) — выразительный контраст
@@ -21,10 +21,8 @@ import type { SiteSettings, Category } from "@prisma/client";
  */
 export function Footer({
   settings,
-  categories,
 }: {
   settings: SiteSettings;
-  categories: Pick<Category, "slug" | "name">[];
 }) {
   const customerLinks = [
     { href: "/about", label: "О компании" },
@@ -51,9 +49,9 @@ export function Footer({
 
   const catalogList = (
     <ul className="space-y-2.5 text-sm">
-      {categories.slice(0, 7).map((c) => (
-        <li key={c.slug}>
-          <FooterLink href={`/category/${c.slug}`}>{c.name}</FooterLink>
+      {CATALOG_DIRECTIONS.map((direction) => (
+        <li key={direction.id}>
+          <FooterLink href={direction.path}>{direction.label}</FooterLink>
         </li>
       ))}
       <li>
@@ -93,7 +91,7 @@ export function Footer({
   );
 
   return (
-    <footer className="mt-auto bg-brand-900 pb-28 pt-10 text-white lg:pb-14 lg:pt-14">
+    <footer className="vysota-dark mt-auto overflow-hidden bg-night pb-28 pt-10 text-mist lg:pb-8 lg:pt-18">
       <Container>
         {/* ── Мобильная версия: компактно, аккордеоны ── */}
         <div className="lg:hidden">
@@ -191,6 +189,8 @@ export function Footer({
           </div>
         </div>
 
+        <div aria-hidden="true" className="footer-wordmark">ХАЯТ</div>
+
         {/* ── Юр-блок: дисклеймер БАД, реквизиты, копирайт ── */}
         <div className="mt-8 border-t border-white/10 pt-5 lg:mt-12 lg:pt-6">
           {/* Предупреждение о БАД обязано быть читаемым — это требование к
@@ -207,7 +207,7 @@ export function Footer({
               {settings.inn ? ` · ИНН ${settings.inn}` : ""}
               {settings.ogrn ? ` · ОГРН ${settings.ogrn}` : ""}
             </span>
-            <span>Все права защищены</span>
+            <a href="https://stmvostok.ru" className="transition hover:text-mist">Производство под вашим брендом · «Восток»</a>
           </div>
         </div>
       </Container>
@@ -224,7 +224,7 @@ export function Footer({
  */
 function ColumnHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-4 text-xs font-bold uppercase tracking-wide text-white/55">
+    <h2 className="mb-4 text-xs font-semibold text-mist">
       {children}
     </h2>
   );
@@ -266,7 +266,7 @@ function ContactRow({
 }) {
   return (
     <span className="flex items-start gap-2.5 text-sm text-white/70">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-300" />
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
       <span>{children}</span>
     </span>
   );
