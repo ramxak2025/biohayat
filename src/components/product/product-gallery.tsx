@@ -32,27 +32,7 @@ export function ProductGallery({
   }, [active]);
 
   return (
-    <div className="flex flex-col-reverse gap-4">
-      {images.length > 1 ? (
-        <div className="no-scrollbar flex gap-3 overflow-x-auto p-1">
-          {images.map((img, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              aria-label={`Фото ${i + 1}`}
-              aria-current={i === active}
-              className={cn(
-                "size-[72px] shrink-0 overflow-hidden rounded-xl bg-[var(--direction-p)] transition sm:size-24",
-                i === active
-                  ? "ring-2 ring-brand-500"
-                  : "ring-1 ring-line hover:ring-brand-300",
-              )}
-            >
-              <SmartImage src={img.url} alt={img.alt || name} ratio="1/1" rounded="rounded-none" className="bg-[var(--direction-p)]" imgClassName="object-contain p-1" />
-            </button>
-          ))}
-        </div>
-      ) : null}
+    <div className="flex flex-col gap-3 sm:gap-4">
       <div ref={mainRef} className="min-w-0 flex-1">
         <SmartImage
           src={current?.url}
@@ -67,6 +47,26 @@ export function ProductGallery({
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
+      {images.length > 1 ? (
+        <div className="no-scrollbar flex gap-2 overflow-x-auto p-1 sm:gap-3">
+          {images.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              aria-label={`Фото ${i + 1}`}
+              aria-current={i === active}
+              className={cn(
+                "size-16 shrink-0 overflow-hidden rounded-xl bg-[var(--direction-p)] transition sm:size-24",
+                i === active
+                  ? "ring-2 ring-brand-500"
+                  : "ring-1 ring-line hover:ring-brand-300",
+              )}
+            >
+              <SmartImage src={img.url} alt={img.alt || name} ratio="1/1" rounded="rounded-none" className="bg-[var(--direction-p)]" imgClassName="object-contain p-1" />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

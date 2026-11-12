@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { formatMoney } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { onAppScroll } from "@/lib/app-scroll";
 import type { CartItem } from "@/components/cart/cart-provider";
 
 /**
  * Мобильная закреплённая панель покупки на странице товара.
- * Появляется, когда основная кнопка «В корзину» (элемент с id={targetId})
- * уходит из viewport. Располагается над нижним мобильным меню
+ * Появляется после того, как основной блок покупки проходит под шапкой. Располагается над нижним мобильным меню
  * (var(--spacing-mobnav) + safe-area).
  */
 export function StickyBuyBar({
@@ -30,13 +30,19 @@ export function StickyBuyBar({
 
   useEffect(() => {
     const target = document.getElementById(targetId);
-    if (!target || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setVisible(!entry.isIntersecting),
-      { rootMargin: "-72px 0px 0px 0px" },
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
+    if (!target) return;
+    const header = document.querySelector("#app-scroll > .site-header .site-header-row");
+    const update = () => {
+      const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+      setVisible(target.getBoundingClientRect().bottom <= headerBottom);
+    };
+    update();
+    window.addEventListener("resize", update);
+    const detachScroll = onAppScroll(update);
+    return () => {
+      window.removeEventListener("resize", update);
+      detachScroll();
+    };
   }, [targetId]);
 
   if (!inStock) return null;
@@ -47,7 +53,7 @@ export function StickyBuyBar({
       inert={!visible}
       data-visible={visible}
       className={cn(
-        "sticky-buy-bar fixed inset-x-0 z-30 px-3 transition-all duration-300 md:hidden",
+        "sticky-buy-bar fixed inset-x-0 z-30 px-3 transition-all duration-300 motion-reduce:transform-none motion-reduce:transition-none md:hidden",
         visible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-4 opacity-0",

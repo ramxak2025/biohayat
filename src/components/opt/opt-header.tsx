@@ -1,32 +1,10 @@
 import Link from "next/link";
 import { FileSpreadsheet, ClipboardList, LogOut, Phone, Mail } from "lucide-react";
-import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/site/logo";
 import { SectionSwitch } from "@/components/ui/section-switch";
 import type { SiteSettings } from "@prisma/client";
 
-/**
- * Шапка оптового раздела (opt.biohayat.ru → группа /opt, см. proxy.ts).
- *
- * Раздел опта долго жил по своим правилам и заметно отстал от розницы:
- * одна строка 73px против розничных двух и 109px, полупрозрачный материал
- * `glass` (он задуман для мобильного хрома, а не для десктопной шапки —
- * сквозь него просвечивал контент при прокрутке), телефон, приколотый
- * по центру через mx-auto, из-за чего правый блок ездил вместе с длиной
- * названия компании, и — главное — ни одной ссылки обратно в розницу.
- *
- * Теперь строение то же, что у розничной шапки: полоса доверия brand-900
- * (36px) + основная строка (72px), суммарно 109px. Первый элемент полосы —
- * переключатель «Розница | Опт»: он стоит на тех же координатах, что и в
- * рознице, поэтому дорога в обе стороны лежит в одном и том же месте.
- *
- * Десктоп и мобильный разведены на два <header>, как в рознице
- * (Header + MobileHeader): у них разные материалы и разные высоты, а одна
- * шапка на все ширины и была причиной расхождения. В DOM на каждой ширине
- * виден ровно один — второй убран display: none.
- *
- * Серверный компонент: интерактива нет, выход — нативная форма POST.
- */
+/** Оптовая навигация использует тот же плавающий материал, что и витрина. */
 export function OptHeader({
   settings,
   account,
@@ -104,78 +82,39 @@ export function OptHeader({
 
   return (
     <>
-      {/* ── Десктоп: две строки, 36 + 72 + 1 = 109px ── */}
-      <header
-        className="sticky top-0 z-40 hidden border-b border-line bg-surface lg:block"
-        style={{ ["--header-h" as string]: "109px" }}
-      >
-        <div className="bg-brand-900 text-[13px] text-brand-100/85">
-          <Container className="flex h-9 items-center justify-between gap-8">
-            <div className="flex min-w-0 items-center gap-6">
-              <SectionSwitch active="opt" retailUrl={retailUrl} />
-              <a
-                href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
-                className="flex shrink-0 items-center gap-1.5 font-semibold text-white transition hover:text-accent-200"
-              >
-                <Phone className="h-4 w-4" aria-hidden="true" />
-                {settings.phone}
-              </a>
-              {/* Часы уступают место факту о производителе: тот отвечает на
-                  первый вопрос закупщика, а часы дублируются в футере. */}
-              <span className="hidden shrink-0 2xl:inline">
-                Отдел оптовых продаж · {settings.workingHours}
-              </span>
-              {/* Юрлицо переехало сюда из чипа над заголовком лендинга: факт
-                  о том, кто продаёт, в системе живёт в полосе доверия. */}
-              <span className="hidden min-w-0 truncate lg:inline">
-                Производитель — {settings.legalName || "ООО «Восток»"}, Россия
-              </span>
-            </div>
-            <div className="flex shrink-0 items-center gap-6">
-              {/* Строки про отгрузку здесь нет: «от 10 шт — минимальная
-                  отгрузка» стоит в полосе цифр сразу под первым экраном. */}
-              <a
-                href={`mailto:${settings.email}`}
-                className="flex items-center gap-1.5 transition hover:text-white"
-              >
-                <Mail className="h-4 w-4" aria-hidden="true" />
-                {settings.email}
-              </a>
-            </div>
-          </Container>
+      <div className="site-service-frame">
+        <div className="site-service">
+          <div className="min-w-0">
+            <SectionSwitch tone="light" active="opt" retailUrl={retailUrl} />
+            <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} className="shrink-0 font-semibold">
+              <Phone size={16} aria-hidden="true" />
+              {settings.phone}
+            </a>
+            <span className="hidden shrink-0 2xl:inline">
+              Отдел оптовых продаж · {settings.workingHours}
+            </span>
+            <span className="min-w-0 truncate">
+              Производитель — {settings.legalName || "ООО «Восток»"}, Россия
+            </span>
+          </div>
+          <a href={`mailto:${settings.email}`} className="shrink-0">
+            <Mail size={16} aria-hidden="true" />
+            {settings.email}
+          </a>
         </div>
+      </div>
 
-        <Container className="flex h-[var(--spacing-header)] items-center gap-6">
-          <Link href="/opt" aria-label="ХАЯТ Опт — на главную" className="flex shrink-0 items-center gap-2.5">
+      <header className="site-header opt-header">
+        <div className="site-header-row opt-header-row">
+          <Link href="/opt" aria-label="ХАЯТ Опт — на главную" className="flex min-h-11 shrink-0 items-center gap-2">
             <Logo />
-            <span className="flex h-7 items-center rounded-full bg-brand-800 px-2.5 text-xs font-extrabold uppercase tracking-wider text-white">
+            <span className="flex h-6 items-center rounded-full bg-brand-800 px-2 text-xs font-extrabold uppercase tracking-wider text-white lg:h-7">
               Опт
             </span>
           </Link>
-          {/* Пустое место на позиции розничного поиска: блок действий встаёт
-              на тот же x, что «Корзина» в рознице. */}
-          <div className="flex-1" />
-          {actions}
-        </Container>
-      </header>
-
-      {/* ── Мобильный: тот же материал, что у мобильной шапки розницы ── */}
-      <header className="bg-mist sticky top-0 z-40 shadow-sm lg:hidden">
-        {/* Спейсер под вырез: без него контент упирается в жёсткую линию. */}
-        <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
-        <Container className="flex items-center gap-2.5 py-2.5">
-          <Link href="/opt" aria-label="ХАЯТ Опт — на главную" className="flex shrink-0 items-center gap-2">
-            <Logo />
-            <span className="flex h-6 items-center rounded-full bg-brand-800 px-2 text-xs font-extrabold uppercase tracking-wider text-white">
-              Опт
-            </span>
-          </Link>
-          <div className="flex-1" />
-          {/* «Войти» и «Получить прайс» здесь не дублируем: оба есть в нижнем
-              баре и в герое. Освободившееся место занимает переключатель —
-              иначе он на 390px не помещается. */}
-          <SectionSwitch tone="light" active="opt" retailUrl={retailUrl} />
-        </Container>
+          <div className="hidden min-w-0 lg:block">{actions}</div>
+          <SectionSwitch className="opt-header-switch h-12 lg:hidden" tone="light" active="opt" retailUrl={retailUrl} />
+        </div>
       </header>
     </>
   );

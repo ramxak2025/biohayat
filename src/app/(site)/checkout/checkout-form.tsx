@@ -499,7 +499,7 @@ export function CheckoutForm({
         </div>
 
         {/* ── Ваш заказ ── */}
-        <aside className="h-fit space-y-3 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5 lg:sticky lg:top-24">
+        <aside className="h-fit space-y-3 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5 lg:sticky lg:top-[var(--site-header-clearance)]">
           <h2 className="flex items-center gap-2 text-base font-bold">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-brand-600">
               <Package className="h-4 w-4" aria-hidden />

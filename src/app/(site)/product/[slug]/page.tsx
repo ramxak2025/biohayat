@@ -127,6 +127,10 @@ export default async function ProductPage({
       </div>
 
       <Container className="product-detail-grid">
+        <div className="product-detail-gallery">
+          <ProductGallery images={product.images} name={product.name} />
+        </div>
+
         <div className="product-detail-identity">
           <div className="flex flex-wrap items-center gap-2">
             <Link href={direction.path} className="flex min-h-11 items-center text-sm font-medium hover:underline">
@@ -203,10 +207,6 @@ export default async function ProductPage({
           </div>
         </div>
 
-        <div className="product-detail-gallery">
-          <ProductGallery images={product.images} name={product.name} />
-        </div>
-
         {product.shortDescription ? (
           <p className="product-detail-description max-w-prose text-base leading-relaxed text-ink-muted sm:text-lg">{product.shortDescription}</p>
         ) : null}
@@ -241,7 +241,7 @@ export default async function ProductPage({
 
       <Container>
         {/* отзывы */}
-        <Section id="reviews" className="scroll-mt-24">
+        <Section id="reviews">
           <div className="mb-5">
             <h2 className="font-display text-xl font-medium tracking-tight sm:text-2xl">Отзывы</h2>
             <p className="mt-1 text-sm text-ink-muted">

@@ -106,7 +106,7 @@ export function CartView() {
 
         {/* итог: на мобайле прилипает к низу экрана над нижним меню */}
         <aside
-          className="sticky bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom))+10px)] z-10 h-fit rounded-2xl bg-surface p-4 shadow-md ring-1 ring-line  sm:p-5 lg:bottom-auto lg:top-24 lg:bg-surface lg:shadow-none "
+          className="sticky bottom-[calc(var(--spacing-mobnav)+max(10px,env(safe-area-inset-bottom))+10px)] z-10 h-fit rounded-2xl bg-surface p-4 shadow-md ring-1 ring-line  sm:p-5 lg:bottom-auto lg:top-[var(--site-header-clearance)] lg:bg-surface lg:shadow-none "
         >
           <div className="flex items-center justify-between">
             <span className="text-sm text-ink-muted">

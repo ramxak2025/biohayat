@@ -18,21 +18,21 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [passedPhoto, setPassedPhoto] = useState<string | null>(null);
   const loggedIn = useAuthFlag();
   const { count } = useCart();
   const { count: favoriteCount } = useFavorites();
-  const productPage = pathname.startsWith("/product/");
-  const immersive = pathname === "/" || productPage || CATALOG_DIRECTIONS.some(({ path }) => path === pathname);
-  const fullMobileSearch = immersive && !productPage;
-  const photoBacked = immersive && !scrolled;
+  const immersive = pathname === "/" || pathname.startsWith("/product/") ||
+    CATALOG_DIRECTIONS.some(({ path }) => path === pathname);
+  const photoBacked = immersive && passedPhoto !== pathname;
 
   useEffect(() => {
     if (!immersive) return;
     const update = () => {
       const hero = document.querySelector("main .vysota-hero");
       if (!hero || !headerRef.current) return;
-      setScrolled(hero.getBoundingClientRect().bottom < headerRef.current.getBoundingClientRect().bottom);
+      const beyondPhoto = hero.getBoundingClientRect().bottom < headerRef.current.getBoundingClientRect().bottom;
+      setPassedPhoto(beyondPhoto ? pathname : null);
     };
     update();
     window.addEventListener("resize", update);
@@ -56,7 +56,7 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
 
   return (
     <>
-      <header ref={headerRef} className="site-header" data-immersive={immersive} data-compact={productPage} data-scrolled={scrolled}>
+      <div className="site-service-frame" data-immersive={immersive}>
         <nav className="site-service" aria-label="Служебное">
           {phone ? <a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>{phone}</a> : null}
           <div>
@@ -66,8 +66,9 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
             <Link href="/opt" data-to-opt>Оптовым покупателям <ArrowUpRight size={14} aria-hidden="true" /></Link>
           </div>
         </nav>
-
-        <div className={photoBacked ? "site-header-row glass" : "site-header-row"}>
+      </div>
+      <header ref={headerRef} className="site-header" data-immersive={immersive} data-material={photoBacked ? "photo" : "frosted"}>
+        <div className="site-header-row">
           <details className="site-mobile-menu lg:hidden" key={pathname}>
             <summary className="site-header-action" aria-label="Меню">
               <Menu size={22} strokeWidth={1.6} aria-hidden="true" />
@@ -96,13 +97,13 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
           </details>
 
           <Link href="/" aria-label="ХАЯТ — на главную" className="flex min-h-11 shrink-0 items-center">
-            <Logo tone="inverted" />
+            <Logo tone={photoBacked ? "inverted" : "default"} />
           </Link>
 
           <nav aria-label="Направления" className="site-direction-nav">
             {CATALOG_DIRECTIONS.map((direction) => (
               <Link key={direction.id} href={direction.path} aria-current={pathname === direction.path ? "page" : undefined}>
-                <DirectionMark direction={direction} dark />
+                <DirectionMark direction={direction} dark={photoBacked} />
               </Link>
             ))}
             <Link href="/catalog" aria-current={pathname === "/catalog" ? "page" : undefined}>Каталог</Link>
@@ -122,26 +123,13 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
             </Link>
             {cart}
           </div>
-          <div className="flex items-center lg:hidden">
-            {fullMobileSearch ? null : (
-              <button type="button" className="site-header-action" aria-label="Поиск по каталогу" onClick={() => setSearchOpen(true)}>
-                <Search size={21} strokeWidth={1.6} aria-hidden="true" />
-              </button>
-            )}
+          <div className="site-header-mobile-actions flex items-center lg:hidden">
+            <button type="button" className="site-header-action" aria-label="Поиск по каталогу" onClick={() => setSearchOpen(true)}>
+              <Search size={21} strokeWidth={1.6} aria-hidden="true" />
+            </button>
             {cart}
           </div>
         </div>
-
-        {fullMobileSearch ? (
-          <button
-            type="button"
-            className={photoBacked ? "site-mobile-search glass" : "site-mobile-search"}
-            onClick={() => setSearchOpen(true)}
-          >
-            <Search size={20} strokeWidth={1.6} aria-hidden="true" />
-            <span>Поиск по каталогу</span>
-          </button>
-        ) : null}
       </header>
       {searchOpen ? <SearchOverlay onClose={() => setSearchOpen(false)} /> : null}
     </>

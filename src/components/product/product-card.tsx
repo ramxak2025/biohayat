@@ -21,7 +21,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <div className="product-card-photo">
         <Link href={`/product/${product.slug}`} aria-label={product.name} className="absolute inset-0">
           {image ? (
-            <Image src={image} alt="" fill sizes="(max-width: 639px) 104px, (max-width: 1100px) 33vw, 300px" className="object-contain" />
+            <Image src={image} alt="" fill sizes="(max-width: 639px) 50vw, (max-width: 1100px) 33vw, 300px" className="object-contain" />
           ) : (
             <Package aria-hidden="true" strokeWidth={1.5} className="absolute inset-0 m-auto size-12 text-ink-muted" />
           )}
@@ -50,8 +50,8 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         {lowStock ? <p className="text-xs text-ink-muted">Осталось {product.stockQty} шт.</p> : null}
         <div className="product-card-buy">
           <div className="tnum flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-xl font-semibold">{formatMoney(product.priceKopecks)}</span>
-            {product.oldPriceKopecks ? <del className="text-sm text-ink-muted">{formatMoney(product.oldPriceKopecks)}</del> : null}
+            <span className="product-card-price">{formatMoney(product.priceKopecks)}</span>
+            {product.oldPriceKopecks ? <del className="product-card-old-price text-sm text-ink-muted">{formatMoney(product.oldPriceKopecks)}</del> : null}
             {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
           </div>
           <AddToCartButton

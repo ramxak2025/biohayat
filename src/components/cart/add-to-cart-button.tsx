@@ -37,6 +37,7 @@ export function AddToCartButton({
         className={cn(
           "inline-flex items-center justify-between rounded-full bg-brand-50 p-1",
           full && "w-full",
+          compact && "product-cart-stepper",
         )}
       >
         <button
@@ -70,7 +71,7 @@ export function AddToCartButton({
 
   if (!available) {
     return (
-      <Button size={size} className={cn(full && "w-full")} disabled>
+      <Button size={size} className={cn(full && "w-full", compact && "product-cart-action")} disabled>
         Нет в наличии
       </Button>
     );
