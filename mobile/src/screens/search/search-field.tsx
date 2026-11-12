@@ -4,6 +4,7 @@ import { SymbolView } from "expo-symbols";
 
 import { AppText, PressableScale } from "@/components/ui";
 import { HIT_SLOP, MIN_TAP_SIZE, radii, spacing, typography, useColors } from "@/theme";
+import { appFont } from "@/theme/fonts";
 
 export interface SearchFieldProps {
   value: string;
@@ -71,7 +72,7 @@ export function SearchField({ value, onChangeText, onSubmit, onFocus, onCancel }
           selectionColor={colors.brand}
           accessibilityLabel="Поиск товаров"
           accessibilityHint="Введите название товара, например «витамин D3»"
-          style={[styles.input, { color: colors.text }]}
+          style={[styles.input, { color: colors.text, fontFamily: appFont() }]}
         />
 
         {value.length > 0 ? (

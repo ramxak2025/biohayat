@@ -32,7 +32,7 @@ export default async function HomePage() {
         <VysotaPhoto scene="hero" primary />
         <Container className="home-hero-content">
           <h1>Природа —<br /> в точной дозе</h1>
-          <div className="home-hero-panel glass">
+          <div className="home-hero-panel glass-dark">
             <p>Мёд, масла, витамины и спортивные добавки.</p>
             <ul>
               <li><Truck size={20} strokeWidth={1.6} aria-hidden="true" /> <Link href="/delivery">Доставка и оплата</Link></li>

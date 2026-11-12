@@ -215,27 +215,40 @@ test("compatibility errors remain visible even when old rules are cached", () =>
   assert.equal(elements(tree, "CleanResult").length, 0);
 });
 
-test("home exposes required banner, offer and settings failures with retry", () => {
-  const error = new Error("Required endpoint unavailable");
-  const empty = { data: [], refetch() {} };
-  const failed = { isError: true, error, refetch() {} };
-  const data = { hero: failed, promo: failed, settings: failed, categories: empty, taxonomy: { data: { audiences: [], goals: [] } }, materials: empty, hits: empty, sale: empty };
-  const home = Object.fromEntries(["ArticlesRail", "CategoryRail", "HeroCarousel", "HomeChroma", "HomeSection", "PromoStrip", "TaxonomyRail", "TrustBlock"].map((name) => [name, name]));
-  Object.assign(home, { useBannerNavigate: () => () => {}, useHeroHeight: () => 400 });
-  const { HomeScreen } = loader({
-    react: reactHooks,
-    "react-native": { ...native, RefreshControl: "RefreshControl" },
-    "expo-router": { Stack: { Screen: "StackScreen" }, useRouter: () => router },
-    "react-native-safe-area-context": { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
-    "react-native-reanimated": { ScrollView: "ScrollView", useSharedValue: (value) => ({ value }), useAnimatedScrollHandler: (handler) => handler },
-    "@/theme": { ...theme, palette: {} }, "@/components/home": home,
-    "@/components/product-card": { ProductStrip: "ProductStrip" }, "@/components/ui": { ...ui, useTabBarInset: () => 0 },
-    "./use-home-data": { useHomeData: () => data },
-  })("src/screens/home/index.tsx");
-  const failures = elements(HomeScreen(), "ErrorState");
-  assert.equal(failures.length, 3);
-  for (const failure of failures) {
-    assert.equal(failure.props.error, error);
-    assert.equal(typeof failure.props.onRetry, "function");
-  }
-});
+for (const unavailable of [["hero"], ["promo"], ["hero", "promo"]]) {
+  test(`home exposes ${unavailable.join(" and ")} and settings failures with functional retry`, () => {
+    const errors = Object.fromEntries(["hero", "promo", "settings"].map(name => [name, new Error(`${name} unavailable`)]));
+    const retries = { hero: 0, promo: 0, settings: 0 };
+    const empty = { data: [], refetch() {} };
+    const endpoint = name => ({
+      data: [],
+      isError: name === "settings" || unavailable.includes(name),
+      error: name === "settings" || unavailable.includes(name) ? errors[name] : null,
+      refetch() { retries[name]++; },
+    });
+    const data = { hero: endpoint("hero"), promo: endpoint("promo"), settings: endpoint("settings"), categories: empty, taxonomy: { data: { audiences: [], goals: [] } }, materials: empty, selection: empty, sale: empty };
+    const home = Object.fromEntries(["ArticlesRail", "CategoryRail", "HomeChroma", "HomeSection", "PromoStrip", "TaxonomyRail", "TrustBlock"].map(name => [name, name]));
+    Object.assign(home, { useBannerNavigate: () => () => {} });
+    const { HomeScreen } = loader({
+      react: reactHooks,
+      "react-native": { ...native, RefreshControl: "RefreshControl" },
+      "expo-router": { Stack: { Screen: "StackScreen" }, useRouter: () => router },
+      "react-native-safe-area-context": { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
+      "react-native-reanimated": { ScrollView: "ScrollView", useSharedValue: value => ({ value }), useAnimatedScrollHandler: handler => handler },
+      "@/theme": { ...theme, palette: {} }, "@/components/home": home,
+      "@/components/home/vysota-home": { VysotaHomeHero: "VysotaHomeHero", VysotaDirectionRail: "VysotaDirectionRail" },
+      "@/components/product-card": { ProductStrip: "ProductStrip" }, "@/components/ui": { ...ui, useTabBarInset: () => 0 },
+      "./use-home-data": { useHomeData: () => data },
+    })("src/screens/home/index.tsx");
+    const failures = elements(HomeScreen(), "ErrorState");
+    assert.equal(failures.length, 2);
+    const offers = failures.find(failure => failure.props.error === errors[unavailable.includes("promo") ? "promo" : "hero"]);
+    const settings = failures.find(failure => failure.props.error === errors.settings);
+    assert.ok(offers, "An unavailable promotional endpoint must stay visible");
+    assert.ok(settings, "Unavailable legal/settings data must stay visible");
+    offers.props.onRetry();
+    assert.deepEqual(retries, { hero: 1, promo: 1, settings: 0 });
+    settings.props.onRetry();
+    assert.deepEqual(retries, { hero: 1, promo: 1, settings: 1 });
+  });
+}
