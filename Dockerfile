@@ -38,5 +38,8 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/tsconfig.json ./tsconfig.json
 # src нужен для сид-скрипта (импортирует src/lib/taxonomy)
 COPY --from=build /app/src ./src
+COPY --from=build /app/scripts ./scripts
+RUN mkdir -p /app/public/uploads && chown -R node:node /app
+USER node
 EXPOSE 3000
 CMD ["pnpm", "start"]

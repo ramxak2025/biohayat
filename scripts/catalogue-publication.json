@@ -1,0 +1,1192 @@
+[
+  {
+    "sourceId": 24448,
+    "name": "Методрол",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 24447,
+    "name": "MAGNESIUM + B6 — Магний + B6",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 24446,
+    "name": "Сенол",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 24443,
+    "name": "Чёрный тмин кидс — детский",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 24436,
+    "name": "Дарб Саратон — Darb Saraton",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 24254,
+    "name": "Lotus No Fat, капсулы",
+    "direction": "sport",
+    "rationale": "Explicit sports/joint or collagen product identity; not the broad legacy sport category.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 180 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "180 шт."
+  },
+  {
+    "sourceId": 23940,
+    "name": "Омега-3 детский — Omega-3 Kids",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23864,
+    "name": "Ретинолин — Retinolin",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23858,
+    "name": "Панкреатин — Pancreatin Hayat",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90шт"
+  },
+  {
+    "sourceId": 23770,
+    "name": "Витамин D3 + K2, в стекле",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 23768,
+    "name": "Витамин D3 Kids",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "siropy",
+    "categoryName": "Сиропы",
+    "description": "Сиропы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23766,
+    "name": "Витамин C",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23764,
+    "name": "Sinus Kids — Синус детский",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "siropy",
+    "categoryName": "Сиропы",
+    "description": "Сиропы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23762,
+    "name": "Sinus — Синус",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "zhidkosti",
+    "categoryName": "Жидкости",
+    "description": "Жидкости. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23758,
+    "name": "Sidra — Сидра",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23756,
+    "name": "Marine Collagen — Морской коллаген",
+    "direction": "osnova",
+    "rationale": "Beauty/collagen belongs to the health-foundation direction; no verified sports-specific label claim.",
+    "categorySlug": "tabletki",
+    "categoryName": "Таблетки",
+    "description": "Таблетки. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23754,
+    "name": "Lotus No Fat",
+    "direction": "sport",
+    "rationale": "Explicit sports/joint or collagen product identity; not the broad legacy sport category.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23752,
+    "name": "Kust Al Hindi Kids",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "siropy",
+    "categoryName": "Сиропы",
+    "description": "Сиропы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23750,
+    "name": "Кыст аль-хинди, масло",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 23748,
+    "name": "Гинкго билоба Kids, капли",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "zhidkosti",
+    "categoryName": "Капли и жидкости",
+    "description": "Капли и жидкости. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23746,
+    "name": "Enurel Forte",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23561,
+    "name": "Кардиофоре",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23559,
+    "name": "Нефролгин",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23557,
+    "name": "Азитронил",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23556,
+    "name": "Туберкулин",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23555,
+    "name": "Диафорте",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23554,
+    "name": "Алкоген",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23553,
+    "name": "Уретрофром",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23552,
+    "name": "Тахсис",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 23501,
+    "name": "Мёд липовый",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "myod",
+    "categoryName": "Мёд",
+    "description": "Мёд. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 23500,
+    "name": "Мёд разнотравье",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "myod",
+    "categoryName": "Мёд",
+    "description": "Мёд. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22900,
+    "name": "Омега-3, 250 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120 шт."
+  },
+  {
+    "sourceId": 22899,
+    "name": "Кыст аль-хинди и бахри, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22898,
+    "name": "Чёрный тмин, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22897,
+    "name": "Хаббур рашад, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. 600 гр. Полный состав уточняйте по этикетке производителя.",
+    "volume": "600 гр"
+  },
+  {
+    "sourceId": 22896,
+    "name": "Хильба — семена пажитника, 1 кг",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22891,
+    "name": "Vitamix Energy, 300",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22888,
+    "name": "Масло чёрного тмина, 100",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "masla",
+    "categoryName": "Масла",
+    "description": "Масла. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22861,
+    "name": "Хаббур рашад, 500 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22860,
+    "name": "Чёрный тмин, 500 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22859,
+    "name": "Санна-ва-Сунут, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22857,
+    "name": "Кыст аль-хинди и бахри, 500 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22856,
+    "name": "Омега-3, 250 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120 шт."
+  },
+  {
+    "sourceId": 22855,
+    "name": "Омега-3 и кыст аль-хинди",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 22854,
+    "name": "Миксамел",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22853,
+    "name": "Mics-Camel",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22852,
+    "name": "Масло чёрного тмина",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "other-products",
+    "categoryName": "Другие формы",
+    "description": "100шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100шт"
+  },
+  {
+    "sourceId": 22851,
+    "name": "Аль-кыст аль-хинди",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 100шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100шт"
+  },
+  {
+    "sourceId": 22850,
+    "name": "Аль-куст аль-хинди кидс",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100шт"
+  },
+  {
+    "sourceId": 22849,
+    "name": "Кунжутное масло",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100шт"
+  },
+  {
+    "sourceId": 22848,
+    "name": "Костус",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22847,
+    "name": "Camel Milk — Верблюжье молоко",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90шт"
+  },
+  {
+    "sourceId": 22845,
+    "name": "Зифлакс",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22844,
+    "name": "Диклоалам",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90"
+  },
+  {
+    "sourceId": 22842,
+    "name": "Дарб Сихр, смесь",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22841,
+    "name": "Дарб Аль-Хаят",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22840,
+    "name": "Дарб Аль-амин",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22839,
+    "name": "Витаминный комплекс",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22838,
+    "name": "Витамин D3, 600 МЕ",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 60шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60шт"
+  },
+  {
+    "sourceId": 22837,
+    "name": "Витамин D3 детский",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22836,
+    "name": "Бальзам №6",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 мл. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 мл"
+  },
+  {
+    "sourceId": 22835,
+    "name": "Амиксифил",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22832,
+    "name": "Амиксифил детский",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22829,
+    "name": "Women Health",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90шт"
+  },
+  {
+    "sourceId": 22828,
+    "name": "Цетрифлин",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22827,
+    "name": "Кордексин",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "siropy",
+    "categoryName": "Сиропы",
+    "description": "Сиропы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22826,
+    "name": "Дарб Сихр",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "other-products",
+    "categoryName": "Другие формы",
+    "description": "100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 22825,
+    "name": "Гинкго билоба",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120шт"
+  },
+  {
+    "sourceId": 22824,
+    "name": "Акорин",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22823,
+    "name": "Тминное масло — Витамин D3, 1000 МЕ",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 22822,
+    "name": "Яблочный уксус",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22821,
+    "name": "Масло чёрного тмина, 250",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "masla",
+    "categoryName": "Масла",
+    "description": "Масла. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22818,
+    "name": "Tireo-Forte",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22817,
+    "name": "Doxilin — Доксилин",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22816,
+    "name": "Darb Varam",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90шт"
+  },
+  {
+    "sourceId": 22815,
+    "name": "Glistin — Глистин",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22814,
+    "name": "Andro-Hayat",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22813,
+    "name": "Omega-3 и витамин D3 Kids",
+    "direction": "semya",
+    "rationale": "Source product identifies a children’s product, syrup or drops.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120шт. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120шт"
+  },
+  {
+    "sourceId": 22707,
+    "name": "Testo-Hayat",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22705,
+    "name": "Витамикс — Vitamix Energy, 800",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "pasta",
+    "categoryName": "Пасты",
+    "description": "Пасты. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22698,
+    "name": "Vitamin E — Витамин E",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 22695,
+    "name": "Coenzyme Q10 — Коэнзим Q10",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22673,
+    "name": "Цинк + Магний + B6",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 120 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120 шт."
+  },
+  {
+    "sourceId": 22672,
+    "name": "Zinc Picolinate — Пиколинат цинка, 25 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22671,
+    "name": "Vitamin D3, 10000 МЕ",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120 шт."
+  },
+  {
+    "sourceId": 22670,
+    "name": "Vitamin D3, 5000 МЕ",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120 шт."
+  },
+  {
+    "sourceId": 22669,
+    "name": "Vitamin D3, 2000 МЕ",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 120 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "120 шт."
+  },
+  {
+    "sourceId": 22668,
+    "name": "Vitamin A, 10000 IU",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 22667,
+    "name": "Vitamin A, 5000 IU",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "myagkie-zhelatinovye-kapsuly",
+    "categoryName": "Мягкие капсулы",
+    "description": "Мягкие капсулы. 100 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "100 шт."
+  },
+  {
+    "sourceId": 22666,
+    "name": "Hyaluronic Acid, 150 mg",
+    "direction": "sport",
+    "rationale": "Explicit sports/joint or collagen product identity; not the broad legacy sport category.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22664,
+    "name": "Iron — Железо, 20 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22663,
+    "name": "Glucosamine Chondroitine MSM",
+    "direction": "sport",
+    "rationale": "Explicit sports/joint or collagen product identity; not the broad legacy sport category.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22662,
+    "name": "Ginkgo Biloba, 130 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22661,
+    "name": "GABA (ГАМК), 800 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22660,
+    "name": "DMAE, 250 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22659,
+    "name": "Collagen — Коллаген говяжий",
+    "direction": "osnova",
+    "rationale": "Beauty/collagen belongs to the health-foundation direction; no verified sports-specific label claim.",
+    "categorySlug": "tabletki",
+    "categoryName": "Таблетки",
+    "description": "Таблетки. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22658,
+    "name": "Chromium Picolinate, 200 mcg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 90 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "90 шт."
+  },
+  {
+    "sourceId": 22656,
+    "name": "Biotin, 5000 mcg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22655,
+    "name": "Biotin, 10000 mcg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22654,
+    "name": "5-HTP, 100 mg",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "tverdye-zhelatinovye-kapsuly",
+    "categoryName": "Твёрдые желатиновые капсулы",
+    "description": "Твёрдые желатиновые капсулы. 60 шт.. Полный состав уточняйте по этикетке производителя.",
+    "volume": "60 шт."
+  },
+  {
+    "sourceId": 22593,
+    "name": "Хильба — семена пажитника, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22591,
+    "name": "Имбирь, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22589,
+    "name": "Корень зарира, 100 г",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "semena-i-travy",
+    "categoryName": "Семена и травы",
+    "description": "Семена и травы. 600 гр. Полный состав уточняйте по этикетке производителя.",
+    "volume": "600 гр"
+  },
+  {
+    "sourceId": 22577,
+    "name": "Свечи Проктофан, ректальные",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "suppozitorii",
+    "categoryName": "Суппозитории",
+    "description": "Суппозитории. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22576,
+    "name": "Свечи Мио, вагинальные",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "suppozitorii",
+    "categoryName": "Суппозитории",
+    "description": "Суппозитории. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22575,
+    "name": "Свечи Дарб Сихр, вагинальные",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "suppozitorii",
+    "categoryName": "Суппозитории",
+    "description": "Суппозитории. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22574,
+    "name": "Мыло Шунгит",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "mylo",
+    "categoryName": "Мыло",
+    "description": "Мыло. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22573,
+    "name": "Мыло Спирулина",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "mylo",
+    "categoryName": "Мыло",
+    "description": "Мыло. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22572,
+    "name": "Мыло Костус",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "mylo",
+    "categoryName": "Мыло",
+    "description": "Мыло. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22571,
+    "name": "Мыло Верблюжье",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "mylo",
+    "categoryName": "Мыло",
+    "description": "Мыло. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22570,
+    "name": "Мёд Сидра",
+    "direction": "sunna",
+    "rationale": "Source form is honey, oil, herb, seed or traditional paste.",
+    "categorySlug": "myod",
+    "categoryName": "Мёд",
+    "description": "Мёд. Полный состав уточняйте по этикетке производителя.",
+    "volume": null
+  },
+  {
+    "sourceId": 22569,
+    "name": "Бальзам №9",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22568,
+    "name": "Бальзам №8",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22566,
+    "name": "Бальзам №7",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22565,
+    "name": "Бальзам №5",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22564,
+    "name": "Бальзам №4",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22563,
+    "name": "Бальзам №3",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22562,
+    "name": "Бальзам №2",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  },
+  {
+    "sourceId": 22561,
+    "name": "Бальзам №1",
+    "direction": "osnova",
+    "rationale": "Default health-foundation line; no verified narrower direction.",
+    "categorySlug": "balzam",
+    "categoryName": "Бальзамы",
+    "description": "Бальзамы. 250 ml. Полный состав уточняйте по этикетке производителя.",
+    "volume": "250 ml"
+  }
+]

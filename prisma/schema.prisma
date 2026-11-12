@@ -292,6 +292,7 @@ model CrmOutbox {
 }
 
 model Order {
+  statusRevision Int @default(0)
   crmProvider CrmProvider @default(LEGACY)
   // 0: legacy stock history is unknown; 1: exact item reservations recorded.
   inventoryVersion Int @default(0)
@@ -736,6 +737,7 @@ enum WholesaleOrderStatus {
 }
 
 model WholesaleOrder {
+  statusRevision Int @default(0)
   crmProvider CrmProvider @default(LEGACY)
   id           String               @id @default(cuid())
   number       Int                  @unique @default(autoincrement())
@@ -792,4 +794,12 @@ model IntakeMutation {
   createdAt DateTime @default(now())
   @@id([customerId, operationId])
   @@index([customerId, planId, action])
+}
+
+// Append-only reverse command results, independent of order deletion.
+model CrmStatusReceipt {
+  eventId String @id
+  requestHash String
+  response Json
+  createdAt DateTime @default(now())
 }
