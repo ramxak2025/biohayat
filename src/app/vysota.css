@@ -66,8 +66,8 @@
 
   /* ---------- Сетка ---------- */
   --container: 1376px; /* max-width контента */
-  --gutter: 40px;      /* боковые поля на десктопе */
-  --gutter-m: 16px;    /* боковые поля на телефоне */
+  --gutter: var(--space-8);      /* боковые поля на десктопе */
+  --gutter-m: var(--space-4);    /* боковые поля на телефоне */
   --section-y: 120px;  /* вертикальные отступы разделов (112–120) */
 
   /* 4px base, with 8px steps between related groups */
@@ -77,8 +77,8 @@
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
-  --site-gutter: var(--gutter);
-  --site-edge-inline: var(--space-8);
+  --site-gutter: var(--site-edge-inline);
+  --site-edge-inline: var(--gutter);
   --site-edge-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
   --site-header-row-height: 64px;
   --site-utility-height: 40px;
@@ -113,6 +113,16 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass      { background: rgba(20,37,28,.82); }
   .glass-dark { background: rgba(11,22,16,.86); }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass, .glass-dark {
+    border-color: var(--sage);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .glass { background: var(--pine); }
+  .glass-dark { background: var(--night); }
 }
 
 ::selection { background: var(--sage); color: var(--ink); }
@@ -304,7 +314,6 @@ button, input, textarea, select { caret-color: currentColor; }
 }
 @media (max-width: 1023px) {
   :root {
-    --site-gutter: var(--space-6);
     --site-edge-inline: var(--space-6);
     --site-header-row-height: 56px;
     --site-utility-height: 0px;
@@ -353,12 +362,9 @@ button, input, textarea, select { caret-color: currentColor; }
 }
 @media (max-width: 767px) {
   :root {
-    --site-edge-inline: var(--space-4);
+    --site-edge-inline: var(--gutter-m);
     --site-edge-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
   }
-}
-@media (max-width: 639px) {
-  :root { --site-gutter: var(--gutter-m); }
 }
 
 .vysota-hero, .marketplace-section {

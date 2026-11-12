@@ -53,10 +53,8 @@ export function StickyBuyBar({
       inert={!visible}
       data-visible={visible}
       className={cn(
-        "sticky-buy-bar fixed inset-x-0 z-30 px-3 transition-all duration-300 motion-reduce:transform-none motion-reduce:transition-none md:hidden",
-        visible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none translate-y-4 opacity-0",
+        "sticky-buy-bar fixed inset-x-0 z-30 px-3 transition-opacity duration-300 motion-reduce:transition-none md:hidden",
+        visible ? "opacity-100" : "pointer-events-none opacity-0",
       )}
       style={{
         bottom: "calc(var(--spacing-mobnav) + max(10px, env(safe-area-inset-bottom)) + 10px)",
