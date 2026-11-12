@@ -96,16 +96,16 @@
 .glass {
   background: rgba(238,241,234,.13);
   border: 1px solid rgba(238,241,234,.28);
-  backdrop-filter: blur(22px) saturate(140%);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
   box-shadow: var(--shadow-glass);
   color: var(--on-dark);
 }
 .glass-dark {
   background: rgba(11,22,16,.42);
   border: 1px solid rgba(238,241,234,.2);
-  backdrop-filter: blur(22px) saturate(130%);
   -webkit-backdrop-filter: blur(22px) saturate(130%);
+  backdrop-filter: blur(22px) saturate(130%);
   box-shadow: var(--shadow-glass-dark);
   color: var(--on-dark);
 }
@@ -524,8 +524,8 @@ button, input, textarea, select { caret-color: currentColor; }
     border-radius: 0;
     background: none;
     box-shadow: none;
-    backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   .home-hero-panel ul, .home-hero-panel .vysota-button-outline { display: none; }
   .home-hero-panel p { max-width: 33ch; font-size: 16px; color: var(--on-dark); }
