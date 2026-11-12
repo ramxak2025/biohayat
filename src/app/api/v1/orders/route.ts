@@ -7,6 +7,10 @@ import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { syncOrderToBitrix } from "@/lib/bitrix";
+import { selectedCrmProvider } from "@/lib/crm-transport";
+import { retailEvent } from "@/lib/crm-events";
+import { enqueueCrmEvent, tryDeliverCrmEvent } from "@/lib/crm-outbox";
+import { afterAcceptance } from "@/lib/after-acceptance";
 import { rateLimit, rateLimitRetryAfter } from "@/lib/rate-limit";
 import { apiOk, apiError, zodMessage, withErrorHandling } from "../_lib/response";
 import { requireActiveCustomer, getClientIp } from "../_lib/auth";
@@ -86,8 +90,12 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   // Привязка к аккаунту, если передан валидный Bearer (заказ доступен и гостю).
   const customer = await requireActiveCustomer(req);
 
-  const order = await prisma.order.create({
+  const crmProvider = selectedCrmProvider();
+  const order = await prisma.$transaction(async tx => {
+    const created = await tx.order.create({
     data: {
+      crmProvider,
+      ...(crmProvider === "HAYAT" ? { bitrixSyncStatus: "DISABLED" as const } : {}),
       customerName: data.customerName.trim(),
       phone: data.phone.trim(),
       email: data.email || null,
@@ -101,10 +109,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       items: { create: items },
     },
     include: { items: true },
+    });
+    if (crmProvider === "HAYAT") await enqueueCrmEvent(tx, retailEvent(created, "api_v1"));
+    return created;
   });
 
   // Отправка лида в Битрикс24 (ошибка не блокирует ответ — статус сохраняется в БД).
-  await syncOrderToBitrix(order.id);
+  if (order.crmProvider === "HAYAT") await tryDeliverCrmEvent("retail_order", order.id);
+  else await afterAcceptance("order.bitrix", () => syncOrderToBitrix(order.id));
 
   return apiOk(
     {

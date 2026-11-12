@@ -23,6 +23,7 @@ const nav = [
   { href: "/admin/reviews", label: "Отзывы", icon: Star },
   { href: "/admin/promocodes", label: "Промокоды", icon: TicketPercent },
   { href: "/admin/orders", label: "Заявки", icon: ClipboardList },
+  { href: "/admin/crm-deliveries", label: "Доставка в CRM", icon: ClipboardList },
   { href: "/admin/wholesale", label: "Опт", icon: Building2 },
   { href: "/admin/customers", label: "Клиенты", icon: Users },
   { href: "/admin/compatibility", label: "Совместимость", icon: FlaskConical, adminOnly: true },

@@ -7,6 +7,10 @@ import { getApiCustomer } from "@/lib/api/token";
 import { prisma } from "@/lib/prisma";
 import { serializeOrder } from "@/lib/api/serializers";
 import { syncOrderToBitrix } from "@/lib/bitrix";
+import { selectedCrmProvider } from "@/lib/crm-transport";
+import { retailEvent } from "@/lib/crm-events";
+import { enqueueCrmEvent, tryDeliverCrmEvent } from "@/lib/crm-outbox";
+import { afterAcceptance } from "@/lib/after-acceptance";
 import { hit, clientIp, key } from "@/lib/api/rate-limit";
 import { formatAddressLine } from "../addresses/_address";
 
@@ -57,6 +61,7 @@ export async function POST(req: Request) {
       return apiError("Проверьте данные", 400, "VALIDATION");
     }
     const data = parsed.data;
+    const crmProvider = selectedCrmProvider();
 
     // Адрес из книги имеет приоритет над плоской строкой: id проверяем по владельцу,
     // строку собираем на сервере — клиент не может подменить чужой адрес.
@@ -105,19 +110,25 @@ export async function POST(req: Request) {
         await tx.product.updateMany({ where: { id: item.productId, stockQty: 0 }, data: { inStock: false } });
       }
       const created = await tx.order.create({ data: {
+        crmProvider,
+        ...(crmProvider === "HAYAT" ? { bitrixSyncStatus: "DISABLED" as const } : {}),
         customerName: data.customerName.trim(), phone: data.phone.trim(), email: data.email || null,
         address, comment: data.comment || null, totalKopecks, consentGiven: true, consentAt: new Date(),
         inventoryVersion: 1,
         source: "Мобильное приложение", customerId: session?.sub ?? null,
         clientRequestKey: data.requestKey, requestHash, items: { create: items },
       }, include: { items: true } });
+      if (crmProvider === "HAYAT") await enqueueCrmEvent(tx, retailEvent(created, "api_v2"));
       return { order: created, created: true };
     });
     const order = result.order;
-    if (result.created) revalidateTag("catalog", { expire: 0 });
+    if (result.created) await afterAcceptance("order.catalog", () => revalidateTag("catalog", { expire: 0 }));
 
     // Лид в Битрикс24 (не блокирует — статус пишется в БД).
-    if (result.created) await syncOrderToBitrix(order.id);
+    if (result.created) {
+      if (order.crmProvider === "HAYAT") await tryDeliverCrmEvent("retail_order", order.id);
+      else await afterAcceptance("order.bitrix", () => syncOrderToBitrix(order.id));
+    }
 
     return apiOk(serializeOrder(order), { status: 201 });
   } catch (e) {

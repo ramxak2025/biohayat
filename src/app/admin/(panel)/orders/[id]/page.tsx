@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/utils";
 import { OrderStatusSelect, ResyncButton, TrackingControl } from "../order-controls";
 import { deleteOrder } from "../actions";
 import { redirect } from "next/navigation";
+import { CRM_STATUS } from "@/lib/crm-status";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,9 @@ export default async function OrderDetailPage({
   const { id } = await params;
   const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) notFound();
+  const delivery = order.crmProvider === "HAYAT" ? await prisma.crmOutbox.findUnique({
+    where: { kind_externalId: { kind: "retail_order", externalId: order.id } },
+  }) : null;
 
   async function remove() {
     "use server";
@@ -93,6 +97,17 @@ export default async function OrderDetailPage({
           ) : null}
 
           <Card>
+            {order.crmProvider === "HAYAT" ? <>
+              <h2 className="mb-3 font-bold">CRM Хаят</h2>
+              {delivery ? <>
+                <Pill tone={CRM_STATUS[delivery.status].tone}>{CRM_STATUS[delivery.status].label}</Pill>
+                <p className="mt-2 text-sm text-ink-muted">Попыток: {delivery.attempts}</p>
+                {delivery.crmDealId ? <p className="mt-2 break-all text-sm">Сделка: {delivery.crmDealId}</p> : null}
+                {delivery.lastError ? <p className="my-3 rounded-lg bg-danger/10 p-2 text-xs text-danger">{delivery.lastError}</p> : null}
+                {delivery.status !== "DELIVERED" ? <ResyncButton id={order.id} hayat /> : null}
+              </> : <p className="text-sm text-danger">Запись доставки не найдена. Требуется проверка.</p>}
+              <Link href="/admin/crm-deliveries" className="mt-3 block text-sm text-brand-700 hover:underline">Все доставки в CRM</Link>
+            </> : <>
             <h2 className="mb-3 font-bold">Битрикс24</h2>
             <div className="mb-3 flex items-center gap-2 text-sm">
               Статус:{" "}
@@ -103,6 +118,7 @@ export default async function OrderDetailPage({
             {order.bitrixLeadId ? <p className="mb-2 text-sm text-ink-muted">ID лида: {order.bitrixLeadId}</p> : null}
             {order.bitrixError ? <p className="mb-3 rounded-lg bg-danger/10 p-2 text-xs text-danger">{order.bitrixError}</p> : null}
             <ResyncButton id={order.id} />
+            </>}
           </Card>
 
           <Card>

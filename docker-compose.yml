@@ -30,6 +30,10 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@biohayat.ru}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123!}
       ADMIN_NAME: ${ADMIN_NAME:-Администратор}
+      CRM_PROVIDER: ${CRM_PROVIDER:-}
+      HAYAT_CRM_URL: ${HAYAT_CRM_URL:-}
+      HAYAT_CRM_TOKEN: ${HAYAT_CRM_TOKEN:-}
+      CRM_DRAIN_TOKEN: ${CRM_DRAIN_TOKEN:-}
     ports:
       # Прямой доступ по http://IP:3000 (без домена). С Caddy можно убрать.
       - "3000:3000"

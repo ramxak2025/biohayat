@@ -140,7 +140,7 @@ export async function syncOrderToBitrix(orderId: string): Promise<void> {
     where: { id: orderId },
     include: { items: true },
   });
-  if (!order) return;
+  if (!order || order.crmProvider === "HAYAT") return;
 
   if (!settings.bitrixEnabled || !settings.bitrixWebhookUrl) {
     await prisma.order.update({
@@ -204,7 +204,7 @@ export async function syncConsultationToBitrix(consultationId: string): Promise<
   const consultation = await prisma.consultationRequest.findUnique({
     where: { id: consultationId },
   });
-  if (!consultation) return;
+  if (!consultation || consultation.crmProvider === "HAYAT") return;
 
   if (!settings.bitrixEnabled || !settings.bitrixWebhookUrl) {
     await prisma.consultationRequest.update({

@@ -94,7 +94,7 @@ export default async function OrdersPage({
                 <th className="p-4 font-semibold">Клиент</th>
                 <th className="p-4 font-semibold">Сумма</th>
                 <th className="p-4 font-semibold">Статус</th>
-                <th className="p-4 font-semibold">Битрикс24</th>
+                <th className="p-4 font-semibold">CRM</th>
                 <th className="p-4 font-semibold">Дата</th>
               </tr>
             </thead>
@@ -120,7 +120,7 @@ export default async function OrdersPage({
                         {STATUS_LABELS[o.status]}
                       </Pill>
                     </td>
-                    <td className="p-4"><Pill tone={b.tone}>{b.label}</Pill></td>
+                    <td className="p-4">{o.crmProvider === "HAYAT" ? <Link href={`/admin/orders/${o.id}`} className="text-brand-700 hover:underline">CRM Хаят · статус</Link> : <Pill tone={b.tone}>{b.label}</Pill>}</td>
                     <td className="p-4 text-ink-muted">
                       {new Intl.DateTimeFormat("ru-RU", { dateStyle: "short", timeStyle: "short" }).format(o.createdAt)}
                     </td>

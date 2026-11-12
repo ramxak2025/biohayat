@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { requireApprovedB2B } from "@/lib/b2b-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { unitPriceForQty } from "@/lib/wholesale";
+import { selectedCrmProvider } from "@/lib/crm-transport";
+import { wholesaleEvent } from "@/lib/crm-events";
+import { enqueueCrmEvent, tryDeliverCrmEvent } from "@/lib/crm-outbox";
 
 export type SubmitWholesaleResult =
   | { ok: true; number: number }
@@ -86,17 +89,22 @@ export async function submitWholesaleRequest(input: {
   });
   const totalKopecks = orderItems.reduce((s, i) => s + i.priceKopecks * i.qty, 0);
 
+  const crmProvider = selectedCrmProvider();
   const order = await prisma.$transaction(async (tx) => {
-    return tx.wholesaleOrder.create({
+    const created = await tx.wholesaleOrder.create({
       data: {
+        crmProvider,
         accountId: account.id,
         totalKopecks,
         comment,
         items: { create: orderItems },
       },
-      select: { number: true },
+      include: { items: true },
     });
+    if (crmProvider === "HAYAT") await enqueueCrmEvent(tx, wholesaleEvent(created, account));
+    return created;
   });
+  if (order.crmProvider === "HAYAT") await tryDeliverCrmEvent("wholesale_order", order.id);
 
   return { ok: true, number: order.number };
 }

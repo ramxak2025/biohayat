@@ -4,6 +4,10 @@ import { getApiCustomer } from "@/lib/api/token";
 import { prisma } from "@/lib/prisma";
 import { serializeConsultation } from "@/lib/api/serializers";
 import { syncConsultationToBitrix } from "@/lib/bitrix";
+import { selectedCrmProvider } from "@/lib/crm-transport";
+import { consultationEvent } from "@/lib/crm-events";
+import { enqueueCrmEvent, tryDeliverCrmEvent } from "@/lib/crm-outbox";
+import { afterAcceptance } from "@/lib/after-acceptance";
 import { hit, clientIp, key } from "@/lib/api/rate-limit";
 
 export const runtime = "nodejs";
@@ -47,21 +51,28 @@ export async function POST(req: Request) {
     }
     const data = parsed.data;
 
-    const consultation = await prisma.consultationRequest.create({
+    const crmProvider = selectedCrmProvider();
+    const consultation = await prisma.$transaction(async tx => {
+      const created = await tx.consultationRequest.create({
       data: {
+        crmProvider,
+        ...(crmProvider === "HAYAT" ? { bitrixSyncStatus: "DISABLED" as const } : {}),
         customerId: session.sub,
         name: data.name?.trim() || session.name,
         phone: data.phone?.trim() || session.phone,
         topic: data.topic?.trim() || null,
         message: data.message.trim(),
       },
+      });
+      if (crmProvider === "HAYAT") await enqueueCrmEvent(tx, consultationEvent(created, "api_v2"));
+      return created;
     });
 
     // Лид в Битрикс24 (не блокирует — статус пишется в БД).
-    await syncConsultationToBitrix(consultation.id);
+    if (consultation.crmProvider === "HAYAT") await tryDeliverCrmEvent("consultation", consultation.id);
+    else await afterAcceptance("consultation.bitrix", () => syncConsultationToBitrix(consultation.id));
 
-    const fresh = await prisma.consultationRequest.findUnique({ where: { id: consultation.id } });
-    return apiOk(serializeConsultation(fresh ?? consultation), { status: 201 });
+    return apiOk(serializeConsultation(consultation), { status: 201 });
   } catch (e) {
     return apiInternal("api/v2/consultations POST", e);
   }

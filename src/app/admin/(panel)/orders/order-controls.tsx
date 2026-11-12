@@ -66,7 +66,7 @@ export function OrderStatusSelect({ id, status }: { id: string; status: OrderSta
   );
 }
 
-export function ResyncButton({ id }: { id: string }) {
+export function ResyncButton({ id, hayat = false }: { id: string; hayat?: boolean }) {
   const [pending, start] = useTransition();
   return (
     <Button
@@ -76,12 +76,12 @@ export function ResyncButton({ id }: { id: string }) {
       onClick={() =>
         start(async () => {
           await resyncOrder(id);
-          toast.success("Отправлено в Битрикс24 (см. статус)");
+          toast.success(hayat ? "Доставка проверена (см. статус)" : "Отправлено в Битрикс24 (см. статус)");
         })
       }
     >
       {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-      Отправить в Битрикс24
+      {hayat ? "Повторить доставку в CRM" : "Отправить в Битрикс24"}
     </Button>
   );
 }

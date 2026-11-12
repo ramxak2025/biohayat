@@ -5,6 +5,7 @@ import { restoreReservedStock } from "@/lib/order-inventory";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
 import { syncOrderToBitrix } from "@/lib/bitrix";
+import { retryCrmDelivery } from "@/lib/crm-outbox";
 import { getSettings } from "@/lib/settings";
 import { accrueOrderBonus, revertOrderBonusOnCancel, PAID_STATUSES } from "@/lib/bonus";
 import type { OrderStatus } from "@prisma/client";
@@ -54,8 +55,15 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
 /** Повторная отправка заявки в Битрикс24. */
 export async function resyncOrder(id: string): Promise<void> {
   await requireSession();
-  await prisma.order.update({ where: { id }, data: { bitrixSyncStatus: "PENDING", bitrixError: null } });
-  await syncOrderToBitrix(id);
+  const order = await prisma.order.findUniqueOrThrow({ where: { id }, select: { crmProvider: true } });
+  if (order.crmProvider === "HAYAT") {
+    const job = await prisma.crmOutbox.findUniqueOrThrow({ where: { kind_externalId: { kind: "retail_order", externalId: id } } });
+    await retryCrmDelivery(job.id);
+    revalidatePath("/admin/crm-deliveries");
+  } else {
+    await prisma.order.update({ where: { id }, data: { bitrixSyncStatus: "PENDING", bitrixError: null } });
+    await syncOrderToBitrix(id);
+  }
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
 }

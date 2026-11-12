@@ -235,7 +235,45 @@ enum BitrixSyncStatus {
   DISABLED
 }
 
+enum CrmProvider {
+  LEGACY
+  HAYAT
+}
+
+enum CrmDeliveryStatus {
+  PENDING
+  PROCESSING
+  RETRY
+  DELIVERED
+  FAILED
+}
+
+// Immutable acceptance snapshots. Source records and delivery receipts have
+// independent lifetimes; changing CRM_PROVIDER never reroutes an existing job.
+model CrmOutbox {
+  id             String            @id @default(cuid())
+  provider       CrmProvider       @default(HAYAT)
+  kind           String
+  externalId     String
+  payload        String            @db.Text
+  status         CrmDeliveryStatus @default(PENDING)
+  attempts       Int               @default(0)
+  nextAttemptAt  DateTime          @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  leaseToken     String?
+  leaseExpiresAt DateTime?
+  lastError      String?
+  crmDealId      String?
+  deliveredAt    DateTime?
+  createdAt      DateTime          @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([kind, externalId])
+  @@index([status, nextAttemptAt])
+  @@index([status, leaseExpiresAt])
+}
+
 model Order {
+  crmProvider CrmProvider @default(LEGACY)
   // 0: legacy stock history is unknown; 1: exact item reservations recorded.
   inventoryVersion Int @default(0)
   clientRequestKey String? @unique
@@ -534,6 +572,7 @@ enum ConsultationStatus {
 }
 
 model ConsultationRequest {
+  crmProvider CrmProvider @default(LEGACY)
   id         String             @id @default(cuid())
   customerId String?
   customer   Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
@@ -678,6 +717,7 @@ enum WholesaleOrderStatus {
 }
 
 model WholesaleOrder {
+  crmProvider CrmProvider @default(LEGACY)
   id           String               @id @default(cuid())
   number       Int                  @unique @default(autoincrement())
   accountId    String

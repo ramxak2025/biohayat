@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireCustomer } from "@/lib/customer-auth";
 import { syncConsultationToBitrix } from "@/lib/bitrix";
+import { selectedCrmProvider } from "@/lib/crm-transport";
+import { consultationEvent } from "@/lib/crm-events";
+import { enqueueCrmEvent, tryDeliverCrmEvent } from "@/lib/crm-outbox";
+import { afterAcceptance } from "@/lib/after-acceptance";
 import { normalizePhone } from "@/lib/utils";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -31,19 +35,27 @@ export async function submitConsultation(
   if (phone.replace(/\D/g, "").length < 11) return { error: "Укажите корректный телефон" };
   if (!message) return { error: "Опишите ваш вопрос" };
 
-  const consultation = await prisma.consultationRequest.create({
+  const crmProvider = selectedCrmProvider();
+  const consultation = await prisma.$transaction(async tx => {
+    const created = await tx.consultationRequest.create({
     data: {
+      crmProvider,
+      ...(crmProvider === "HAYAT" ? { bitrixSyncStatus: "DISABLED" as const } : {}),
       customerId: session.sub,
       name,
       phone,
       topic,
       message,
     },
+    });
+    if (crmProvider === "HAYAT") await enqueueCrmEvent(tx, consultationEvent(created, "web"));
+    return created;
   });
 
   // Отправка лида в Битрикс24 (безопасна при выключенной интеграции).
-  await syncConsultationToBitrix(consultation.id);
+  if (consultation.crmProvider === "HAYAT") await tryDeliverCrmEvent("consultation", consultation.id);
+  else await afterAcceptance("consultation.bitrix", () => syncConsultationToBitrix(consultation.id));
 
-  revalidatePath("/account/consultation");
+  await afterAcceptance("consultation.cache", () => revalidatePath("/account/consultation"));
   return { ok: true };
 }

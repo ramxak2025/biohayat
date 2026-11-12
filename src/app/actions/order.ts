@@ -7,6 +7,10 @@ import type { PromoCode } from "@prisma/client";
 import { writeAddress, AddressError } from "@/lib/customer-addresses";
 import { prisma } from "@/lib/prisma";
 import { syncOrderToBitrix } from "@/lib/bitrix";
+import { selectedCrmProvider } from "@/lib/crm-transport";
+import { retailEvent } from "@/lib/crm-events";
+import { enqueueCrmEvent, tryDeliverCrmEvent } from "@/lib/crm-outbox";
+import { afterAcceptance } from "@/lib/after-acceptance";
 import { getCustomerSession } from "@/lib/customer-auth";
 
 const itemSchema = z.object({
@@ -120,6 +124,7 @@ export async function submitOrder(
   }
 
   const data = parsed.data;
+  const crmProvider = selectedCrmProvider();
   // Перепроверяем цены по БД (защита от подмены на клиенте).
   const products = await prisma.product.findMany({
     where: { id: { in: data.items.map((i) => i.id) } },
@@ -238,6 +243,8 @@ export async function submitOrder(
 
       const created = await tx.order.create({
         data: {
+          crmProvider,
+          ...(crmProvider === "HAYAT" ? { bitrixSyncStatus: "DISABLED" as const } : {}),
           inventoryVersion: 1,
           customerName: data.customerName.trim(),
           phone: data.phone.trim(),
@@ -254,7 +261,9 @@ export async function submitOrder(
           customerId: session?.sub ?? null,
           items: { create: items.map(item => ({ ...item, stockReserved: item.productId && priceById.get(item.productId)?.stockQty != null ? item.qty : 0 })) },
         },
+        include: { items: true },
       });
+      if (crmProvider === "HAYAT") await enqueueCrmEvent(tx, retailEvent(created, "web"));
 
       // Запись в историю бонусов — после создания заказа (нужен orderId).
       if (session && bonusSpentKopecks > 0) {
@@ -295,9 +304,10 @@ export async function submitOrder(
 
   // Остатки изменились — сбрасываем кэш каталога, чтобы бейджи и «нет в наличии»
   // на витрине не отставали (тот же тег, что в админских actions товаров).
-  if (trackedItems.length > 0) revalidateTag("catalog", { expire: 0 });
+  if (trackedItems.length > 0) await afterAcceptance("order.catalog", () => revalidateTag("catalog", { expire: 0 }));
 
   // Сохранение адреса в ЛК (по галочке «Сохранить адрес»).
+  await afterAcceptance("order.address", async () => {
   if (session && formData.get("saveAddress") === "on" && data.address) {
     const [cityPart, ...restParts] = data.address.split(",");
     const city = cityPart.trim();
@@ -314,9 +324,11 @@ export async function submitOrder(
       }
     }
   }
+  });
 
   // Отправка лида в Битрикс24 (не блокирует ответ при ошибке — статус сохраняется в БД).
-  await syncOrderToBitrix(order.id);
+  if (order.crmProvider === "HAYAT") await tryDeliverCrmEvent("retail_order", order.id);
+  else await afterAcceptance("order.bitrix", () => syncOrderToBitrix(order.id));
 
   return { ok: true, orderNumber: order.number };
 }

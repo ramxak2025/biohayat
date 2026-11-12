@@ -35,7 +35,7 @@ async function applyBonusForStatus(
 ): Promise<void> {
   if (!PAID_STATUSES.includes(status) && status !== "CANCELLED") return;
   const orders = await prisma.order.findMany({
-    where: { ...where, status },
+    where: { ...where, status, crmProvider: "LEGACY" },
     select: { id: true },
   });
   for (const { id } of orders) {
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
         if (!where) return NextResponse.json({ error: "no identifier" }, { status: 400 });
         // идемпотентность: не трогаем заказы, у которых статус уже совпадает
         const updated = await prisma.order.updateMany({
-          where: { ...where, status: { notIn: [status as OrderStatus, "CANCELLED"] } },
+        where: { ...where, crmProvider: "LEGACY", status: { notIn: [status as OrderStatus, "CANCELLED"] } },
           data: { status: status as OrderStatus },
         });
         await applyBonusForStatus(where, status as OrderStatus, settings.bonusPercent);
@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
       // идемпотентность: если статус (и привязка к сделке) не меняются — без записи
       const updated = await prisma.order.updateMany({
         where: {
+          crmProvider: "LEGACY",
           OR: [{ bitrixDealId: entityId }, ...(leadId ? [{ bitrixLeadId: leadId }] : [])],
           NOT: { status, bitrixDealId: entityId },
           status: { not: "CANCELLED" },
@@ -165,7 +166,7 @@ export async function POST(req: NextRequest) {
       if (!status) return NextResponse.json({ ok: true, skipped: "stage not mapped", stage });
       // идемпотентность: статус уже такой — отвечаем ok без записи
       const updated = await prisma.order.updateMany({
-        where: { bitrixLeadId: entityId, status: { notIn: [status, "CANCELLED"] } },
+        where: { bitrixLeadId: entityId, crmProvider: "LEGACY", status: { notIn: [status, "CANCELLED"] } },
         data: { status },
       });
       await applyBonusForStatus({ bitrixLeadId: entityId }, status, settings.bonusPercent);
