@@ -35,6 +35,22 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
+function canonicalJson(value: unknown): string {
+  return JSON.stringify(value, (_key: string, nested: unknown): unknown =>
+    nested && typeof nested === "object" && !Array.isArray(nested)
+      ? Object.fromEntries(Object.entries(nested).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) : nested);
+}
+
+/** Editorial map updates apply only to new rows. An old receipt remains immutable;
+ * rebuild its original input with its original publication and require every raw value
+ * plus its original full hash to match. Changed prices/source/images still fail closed. */
+function assertReplaySource(receipt: { source: Prisma.JsonValue; sourceHash: string }, source: Prisma.InputJsonValue) {
+  assert(source && typeof source === "object" && !Array.isArray(source), "Invalid recovery source");
+  assert(receipt.source && typeof receipt.source === "object" && !Array.isArray(receipt.source), "Invalid recovery receipt");
+  const historical = { ...source, publication: publicationSchema.element.parse(receipt.source.publication) };
+  assert(sha256(JSON.stringify(historical)) === receipt.sourceHash && canonicalJson(historical) === canonicalJson(receipt.source), "Recovery source changed; explicit reconciliation required");
+}
+
 /** All untrusted recovery files are checked before copying assets or opening a DB transaction. */
 export async function loadRecovery(directory: string, publicationFile: string) {
   const read = async (file: string): Promise<unknown> => JSON.parse(await readFile(path.join(directory, file), "utf8"));
@@ -136,7 +152,7 @@ export async function importRecovery(prisma: PrismaClient, recovery: Recovery) {
     for (const { product, published, mappedImages, source, sourceHash } of recovery.products) {
       const receipt = await tx.catalogueRecovery.findUnique({ where: { sourceId: product.sourceId } });
       if (receipt) {
-        assert(receipt.sourceHash === sourceHash, `Recovery source changed: ${product.sourceId}`);
+        if (receipt.sourceHash !== sourceHash) assertReplaySource(receipt, source);
         preserved++; continue;
       }
       const id = idFor(product.sourceId);
