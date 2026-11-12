@@ -141,6 +141,17 @@ interface ProductsOpts {
   search?: string;
 }
 
+/** Categories actually represented by the active products in this direction. */
+export const getDirectionCategories = unstable_cache(
+  (direction: ProductDirection) => prisma.category.findMany({
+    where: { isActive: true, products: { some: { isActive: true, direction } } },
+    select: { slug: true, name: true },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+  }),
+  ["direction-categories"],
+  { tags: ["catalog"], revalidate: 120 },
+);
+
 
 /** Условия по осям «кому»/«зачем»: тег ИЛИ принадлежность категории-дублю
  *  (в БД часть категорий повторяет оси — «Иммунитет», «Для женщин» и т.п.). */
