@@ -11,9 +11,17 @@ const commons = "https://commons.wikimedia.org/wiki/File:";
 const licenses = {
   by: { label: "CC BY 4.0", href: "https://creativecommons.org/licenses/by/4.0/" },
   bySa: { label: "CC BY-SA 4.0", href: "https://creativecommons.org/licenses/by-sa/4.0/" },
+  unsplash: { label: "Unsplash License", href: "https://unsplash.com/license" },
 } as const;
 
 const photos = [
+  {
+    scene: "Главная панорама",
+    title: "Зелёные склоны Дагестана",
+    author: "Vladislav Bychkov",
+    source: "https://unsplash.com/photos/a-lush-green-hillside-with-trees-and-mountains-in-the-background-DUJcmxe8kDA",
+    license: licenses.unsplash,
+  },
   {
     scene: "Сунна",
     title: "Заброшенный аул Гамсутль",
