@@ -133,7 +133,7 @@ test("cards are quiet by default but preserve explicit elevation and interaction
   const pressed = [];
   const { Card } = loader({ "react-native": native(), "@/theme": theme(), "./press-scale": { PressableScale: "Pressable" } })("src/components/ui/card.tsx");
   const quiet = flatten(Card({ children: "Content" }).props.style);
-  assert.equal(quiet.borderRadius, 20);
+  assert.equal(quiet.borderRadius, 22, "Vysota r-md is pinned to 22px");
   assert.ok(quiet.borderWidth > 0);
   assert.equal(quiet.boxShadow, undefined);
   const raised = Card({ elevated: true, radius: 12, onPress: () => pressed.push(true) });

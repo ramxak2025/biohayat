@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loader } from "./load-ts.mjs";
+import { contrast } from "./color-contrast.mjs";
 
 const tokens = loader()("src/theme/tokens.ts");
 const flat = (style) => Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
@@ -10,40 +11,52 @@ const native = { Platform: { OS: "ios" }, StyleSheet: { create: (value) => value
 const theme = (colors = tokens.darkColors) => ({ ...tokens, useColors: () => colors });
 const ui = Object.fromEntries(["AppText", "Screen", "ErrorState", "Card", "ListSkeleton", "BadDisclaimer"].map((name) => [name, name]));
 
-function contrast(a, b) {
-  const luminance = (hex) => hex.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255).map((value) => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, i) => sum + value * [.2126, .7152, .0722][i], 0);
-  const values = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (values[0] + .05) / (values[1] + .05);
-}
+test("contrast composites translucent foreground and background before measuring", () => {
+  assert.equal(contrast("#FFFFFF", "#000000"), 21);
+  assert.equal(contrast("rgba(255,255,255,0)", "#14251C"), 1);
+  const halfBlackOnWhite = contrast("rgba(0,0,0,.5)", "#FFFFFF");
+  assert.ok(halfBlackOnWhite > 3.9 && halfBlackOnWhite < 4.1);
+  assert.equal(contrast("#000000", "rgba(255,255,255,.5)", "#000000"), contrast("#000000", "rgb(127.5,127.5,127.5)"));
+});
 
 test("dark semantic text, placeholders and status badges remain readable across all elevated surfaces", () => {
   const colors = tokens.darkColors;
   const surfaces = [colors.background, colors.surface, colors.surfaceSoft, colors.surfaceSunken];
-  for (const surface of surfaces) for (const color of [colors.text, colors.textMuted, colors.textFaint, colors.brandText, colors.danger, colors.warning, colors.success, colors.info]) {
+  for (const surface of surfaces) for (const color of [colors.text, colors.textMuted, colors.textFaint, colors.brandText, colors.danger, colors.warning, colors.success]) {
     assert.ok(contrast(color, surface) >= 4.5, `${color} on ${surface}`);
   }
-  assert.ok(new Set(surfaces).size === 4, "Grouped/elevated content must remain distinguishable");
+  // Vysota pins Night/Pine/Slope. Standard and soft cards deliberately share Pine.
+  assert.deepEqual(surfaces, ["#0B1610", "#14251C", "#14251C", "#2A4233"]);
+  // The info token is the pinned Sport accent, used by decorative confetti;
+  // it is not an AppText tone. Keep its graphical contrast separate from text.
+  for (const surface of surfaces) assert.ok(contrast(colors.info, surface) >= 3);
   const { Badge } = loader({ "react-native": native, "expo-symbols": {}, "@/theme": theme(), "./app-text": { AppText: "AppText" } })("src/components/ui/badge.tsx");
   for (const tone of ["brand", "sale", "accent", "neutral", "success", "danger"]) for (const solid of [false, true]) {
     const badge = Badge({ label: "Подтверждён", tone, solid });
     const label = nodes(badge).find((node) => node.type === "AppText");
-    assert.ok(contrast(flat(label.props.style).color, flat(badge.props.style).backgroundColor) >= 4.5, `${tone}/${solid}`);
+    assert.ok(contrast(flat(label.props.style).color, flat(badge.props.style).backgroundColor, colors.surface) >= 4.5, `${tone}/${solid}`);
   }
 });
 
-test("Reduce Transparency uses a solid themed surface, and older iOS keeps the matching native blur material", () => {
-  for (const [dark, colors] of [[true, tokens.darkColors], [false, tokens.lightColors]]) for (const reduced of [false, true]) {
+test("glass belongs only over photography and preserves solid native accessibility/platform fallbacks", () => {
+  for (const colors of [tokens.darkColors, tokens.lightColors]) for (const reduced of [false, true]) for (const photo of [false, true]) for (const os of ["ios", "android"]) {
     const { GlassSurface } = loader({
-      react: { ...hooks, useState: () => [reduced, () => {}] }, "react-native": native, "expo-blur": { BlurView: "Blur" },
-      "expo-glass-effect": { GlassView: "Glass", isGlassEffectAPIAvailable: () => false, isLiquidGlassAvailable: () => false },
-      "@/theme": { ...theme(colors), useTheme: () => ({ dark }) },
+      react: { ...hooks, useState: () => [reduced, () => {}] }, "react-native": { ...native, Platform: { OS: os } }, "expo-blur": { BlurView: "Blur" },
+      "@/theme": theme(colors),
     })("src/components/ui/glass-surface.tsx");
-    const surface = GlassSurface({ children: "Actions" });
-    if (reduced) {
+    const surface = GlassSurface({ children: "Actions", photo, dark: true });
+    if (!photo || reduced || os !== "ios") {
       assert.equal(surface.type, "View");
-      assert.equal(flat(surface.props.style).backgroundColor, colors.surface);
+      assert.equal(flat(surface.props.style).backgroundColor, photo ? "#14251C" : colors.surface);
       assert.match(flat(surface.props.style).backgroundColor, /^#[0-9a-f]{6}$/i);
-    } else assert.equal(surface.props.tint, dark ? "systemThickMaterialDark" : "systemThickMaterialLight");
+      assert.equal(surface.props.children, "Actions");
+    } else {
+      assert.equal(surface.type, "Blur");
+      assert.equal(surface.props.tint, "dark");
+      const backing = nodes(surface).find(node => node.props.pointerEvents === "none");
+      assert.equal(flat(backing.props.style).backgroundColor, "rgba(11,22,16,.42)");
+      assert.ok(surface.props.children.includes("Actions"));
+    }
   }
 });
 
@@ -140,7 +153,7 @@ test("contacts/documents are public native-stack routes with error recovery and 
   const { DocumentsScreen } = loader({ ...shared, "@/components/account/links": { LEGAL_URL, useOpenBrowser: () => (url) => opened.push(url) }, "@/components/account/menu-group": { MenuGroup: "Group" }, "@/components/account/menu-row": { MenuRow: "Row" } })("src/screens/account/documents.tsx");
   const documents = DocumentsScreen();
   for (const row of nodes(documents).filter((node) => node.type === "Row")) row.props.onPress();
-  assert.deepEqual(opened, [LEGAL_URL.offer, LEGAL_URL.privacy, LEGAL_URL.consent, LEGAL_URL.delivery]);
+  assert.deepEqual(opened, [LEGAL_URL.offer, LEGAL_URL.privacy, LEGAL_URL.consent, LEGAL_URL.delivery, "https://biohayat.ru/photo-credits"]);
   assert.ok(nodes(documents).find((node) => node.type === "Group").props.footer.includes(settings.legal.inn));
   const layout = loader({ "expo-router": { Stack: "Stack" }, "@/components/ui/stack-options": {} })("src/app/(tabs)/account/_layout.tsx");
   assert.equal(layout.unstable_settings.initialRouteName, "index");

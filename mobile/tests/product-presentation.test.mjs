@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { loader } from "./load-ts.mjs";
 
 const tokens = loader()("src/theme/tokens.ts");
-const theme = { ...tokens, useColors: () => tokens.lightColors };
+const theme = { ...tokens, useColors: () => tokens.lightColors, useTheme: () => ({ dark: false, colors: tokens.lightColors }) };
 const flat = (style) => Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
 function nodes(value) { return !value || typeof value !== "object" ? [] : Array.isArray(value) ? value.flatMap(nodes) : [value, ...nodes(value.props?.children)]; }
 const hooks = { memo: (fn) => fn, useRef: (value) => ({ current: value }), useCallback: (fn) => fn, useState: (value) => [value, () => {}] };

@@ -20,6 +20,14 @@ export function loader(mocks = {}, globals = {}) {
     });
     function importModule(name) {
       if (Object.hasOwn(mocks, name)) return mocks[name];
+      // Native boundaries: ordinary component tests run after font loading.
+      // Tests of loading/failure can override expo-font explicitly above.
+      if (name === "expo-font") return { isLoaded: () => true, useFonts: () => [true, null] };
+      if (/\.(ttf|woff2?|webp|png|jpe?g)$/.test(name)) {
+        const asset = resolve(dirname(full), name);
+        assert.ok(existsSync(asset), `Missing native asset: ${name}`);
+        return asset; // Metro's opaque asset handle; never evaluate binary bytes as JS.
+      }
       if (name.startsWith(".") || name.startsWith("@/")) {
         const base = name.startsWith("@/") ? resolve(mobileRoot, "src", name.slice(2)) : resolve(dirname(full), name);
         const file = [base, `${base}.ts`, `${base}.tsx`, `${base}/index.ts`, `${base}/index.tsx`].find((candidate) => existsSync(candidate) && /\.tsx?$/.test(candidate));

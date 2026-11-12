@@ -51,9 +51,9 @@ test("typesetting is idempotent and joins adjacent textual children without modi
 
 const spacing = { xs: 4, sm: 8, md: 12, base: 16, lg: 20, xl: 24, "2xl": 32 };
 const colors = { text: "#111", brand: "#166534", textOnBrand: "#fff", brandSoft: "#def", textMuted: "#666" };
-const theme = { spacing, radii: {}, shadows: {}, MIN_TAP_SIZE: 44, typography: {}, Spring: {}, Duration: {}, useColors: () => colors };
+const theme = { spacing, radii: {}, shadows: {}, MIN_TAP_SIZE: 44, typography: loader()("src/theme/tokens.ts").typography, Spring: {}, Duration: {}, useColors: () => colors };
 const native = (os = "ios", width = 402, fontScale = 1) => ({
-  Platform: { OS: os }, StyleSheet: { create: (value) => value, hairlineWidth: 0.5 },
+  Platform: { OS: os }, StyleSheet: { create: (value) => value, flatten: (style) => flatten(style), hairlineWidth: 0.5 },
   View: "View", ScrollView: "ScrollView", Text: "Text", RefreshControl: "RefreshControl", ActivityIndicator: "Spinner",
   useWindowDimensions: () => ({ width, height: 874, fontScale }),
 });
