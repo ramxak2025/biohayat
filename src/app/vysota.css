@@ -329,7 +329,7 @@ button, input, textarea, select { caret-color: currentColor; }
     border-radius: 24px;
   }
   .site-header-row .font-display { font-size: 1rem; }
-  .opt-header-row { display: flex; gap: var(--space-2); }
+  .opt-header-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .opt-header-switch a { min-height: 44px; padding-inline: var(--space-2); }
   .site-header-action { width: 44px; height: 44px; }
   .site-mobile-menu { justify-self: start; }
@@ -407,7 +407,8 @@ button, input, textarea, select { caret-color: currentColor; }
   font-weight: 600;
   text-wrap: balance;
   text-shadow: 0 2px 24px rgb(8 18 12 / .65);
-  overflow-wrap: normal;
+  hyphens: auto;
+  overflow-wrap: anywhere;
 }
 .home-hero-panel {
   display: grid;
@@ -461,6 +462,7 @@ button, input, textarea, select { caret-color: currentColor; }
   line-height: 1.04;
   letter-spacing: -.04em;
   font-weight: 500;
+  hyphens: auto;
   overflow-wrap: anywhere;
 }
 .direction-section { color: var(--on-dark); background: var(--pine); }
@@ -618,8 +620,18 @@ button, input, textarea, select { caret-color: currentColor; }
 }
 @media (max-width: 639px) {
   .vysota-product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
+  }
+  .vysota-product-grid > .product-card {
+    flex: 1 0 calc((100% - var(--space-2)) / 2);
+    min-width: min-content;
+    max-width: 100%;
+    height: auto;
+  }
+  .vysota-product-grid > .product-card:last-child:nth-child(odd) {
+    flex-grow: 0;
   }
   .vysota-product-grid .product-card-photo {
     aspect-ratio: 1;
@@ -690,7 +702,8 @@ button, input, textarea, select { caret-color: currentColor; }
   line-height: .9;
   font-weight: 600;
   letter-spacing: -.05em;
-  overflow-wrap: normal;
+  hyphens: auto;
+  overflow-wrap: anywhere;
 }
 .direction-hero[data-direction="osnova"] h1 { font-size: clamp(38px, 6vw, 86px); }
 .direction-hero h1 .direction-dot { width: clamp(13px, 2.36vw, 34px); height: clamp(13px, 2.36vw, 34px); }
