@@ -54,14 +54,6 @@ export function AccountScreen() {
     [isAuthenticated, goRelative, goSignIn],
   );
 
-  const goTracker = useCallback(() => {
-    if (!isAuthenticated) {
-      goSignIn();
-      return;
-    }
-    router.navigate("/tracker" as Href);
-  }, [isAuthenticated, goSignIn, router]);
-
   const refresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.allSettled([
@@ -149,8 +141,8 @@ export function AccountScreen() {
           <MenuRow
             icon="pills.fill"
             title="Курсы приёма"
-            subtitle={authHint}
-            onPress={goTracker}
+            subtitle={isAuthenticated ? undefined : "Курсы сохраняются на этом устройстве"}
+            onPress={() => router.navigate("/tracker")}
           />
           <MenuRow
             icon="testtube.2"

@@ -232,6 +232,9 @@ button, input, textarea, select { caret-color: currentColor; }
     top: 0;
     padding: max(10px, env(safe-area-inset-top)) 12px 8px;
   }
+  .site-header[data-compact="true"] {
+    --header-h: calc(64px + max(10px, env(safe-area-inset-top, 0px)));
+  }
   .site-service, .site-direction-nav { display: none; }
   .site-header-row {
     min-height: 56px;
@@ -605,15 +608,23 @@ button, input, textarea, select { caret-color: currentColor; }
 }
 
 .product-masthead { padding-block: 127px 18px; background: var(--pine); }
-.product-masthead::after { background: rgba(8,18,12,.38); }
+.product-masthead::after { background: rgb(11 22 16 / .76); }
+.product-masthead .vysota-breadcrumbs { color: var(--on-dark-88); }
 .product-masthead .vysota-photo { filter: blur(2px) saturate(.9); }
 .product-detail-grid {
   display: grid;
   align-items: start;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: clamp(22px, 4.2vw, 64px);
+  grid-template-areas: "gallery identity" "gallery description" "gallery purchase" "gallery notes";
+  grid-template-rows: min-content min-content min-content 1fr;
+  column-gap: clamp(22px, 4.2vw, 64px);
   padding-block: clamp(24px, 4vw, 56px) clamp(36px, 6vw, 90px);
 }
+.product-detail-identity { grid-area: identity; min-width: 0; }
+.product-detail-description { grid-area: description; margin-top: 12px; }
+.product-detail-purchase { grid-area: purchase; min-width: 0; }
+.product-detail-gallery { grid-area: gallery; min-width: 0; }
+.product-detail-notes { grid-area: notes; }
 .product-main-image { border-radius: min(45%, 300px) min(45%, 300px) var(--r-xl) var(--r-xl); }
 .product-detail-title {
   font-family: var(--font-display);
@@ -634,11 +645,21 @@ button, input, textarea, select { caret-color: currentColor; }
   background: var(--white);
 }
 @media (max-width: 1023px) {
-  .product-masthead { padding-top: 137px; }
+  .product-masthead { padding-top: calc(72px + max(10px, env(safe-area-inset-top, 0px))); }
 }
 @media (max-width: 767px) {
-  .product-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .product-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "identity" "purchase" "gallery" "description" "notes";
+    grid-template-rows: none;
+    row-gap: 16px;
+    padding-top: 16px;
+  }
   .product-detail-title { font-size: clamp(25px, 7.3vw, 40px); }
+  .product-detail-buy { margin-top: 0; gap: 12px; }
+  .product-detail-purchase > a { margin-top: 0; margin-bottom: 8px; }
+  .product-detail-description { margin-top: 0; }
+  .product-main-image { max-height: min(72vw, 350px); }
 }
 
 .vysota-account-auth {

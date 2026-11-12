@@ -33,7 +33,7 @@ export default async function HomePage() {
         <Container className="home-hero-content">
           <h1>Природа —<br /> в точной дозе</h1>
           <div className="home-hero-panel glass">
-            <p>Традиционные рецепты и точные дозировки в одном каталоге.</p>
+            <p>Мёд, масла, витамины и спортивные добавки.</p>
             <ul>
               <li><Truck size={20} strokeWidth={1.6} aria-hidden="true" /> <Link href="/delivery">Доставка и оплата</Link></li>
               <li><ListChecks size={20} strokeWidth={1.6} aria-hidden="true" /> <Link href="/quiz">Подбор по вашим целям</Link></li>

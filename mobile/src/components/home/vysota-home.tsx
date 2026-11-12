@@ -48,7 +48,7 @@ export function VysotaHomeHero({ topClearance, onLayout, onOpenCatalog }: {
         <AppText variant="hero" accessibilityRole="header" style={[styles.heroTitle, { fontSize, lineHeight: fontSize * 1.05 }]}>
           Природа — в точной дозе
         </AppText>
-        <AppText variant="callout" style={styles.onPhoto}>Традиционные рецепты и точные дозировки в одном каталоге.</AppText>
+        <AppText variant="callout" style={styles.onPhoto}>Мёд, масла, витамины и спортивные добавки.</AppText>
         <PressableScale onPress={onOpenCatalog} accessibilityRole="button" style={styles.heroAction}>
           <AppText variant="callout" weight="500" style={styles.actionLabel}>Перейти в каталог</AppText>
           <SymbolView name="arrow.right" size={18} tintColor={vysota.ink} />

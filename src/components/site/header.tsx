@@ -22,7 +22,9 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
   const loggedIn = useAuthFlag();
   const { count } = useCart();
   const { count: favoriteCount } = useFavorites();
-  const immersive = pathname === "/" || pathname.startsWith("/product/") || CATALOG_DIRECTIONS.some(({ path }) => path === pathname);
+  const productPage = pathname.startsWith("/product/");
+  const immersive = pathname === "/" || productPage || CATALOG_DIRECTIONS.some(({ path }) => path === pathname);
+  const fullMobileSearch = immersive && !productPage;
   const photoBacked = immersive && !scrolled;
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
 
   return (
     <>
-      <header ref={headerRef} className="site-header" data-immersive={immersive} data-scrolled={scrolled}>
+      <header ref={headerRef} className="site-header" data-immersive={immersive} data-compact={productPage} data-scrolled={scrolled}>
         <nav className="site-service" aria-label="Служебное">
           {phone ? <a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>{phone}</a> : null}
           <div>
@@ -121,7 +123,7 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
             {cart}
           </div>
           <div className="flex items-center lg:hidden">
-            {immersive ? null : (
+            {fullMobileSearch ? null : (
               <button type="button" className="site-header-action" aria-label="Поиск по каталогу" onClick={() => setSearchOpen(true)}>
                 <Search size={21} strokeWidth={1.6} aria-hidden="true" />
               </button>
@@ -130,7 +132,7 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
           </div>
         </div>
 
-        {immersive ? (
+        {fullMobileSearch ? (
           <button
             type="button"
             className={photoBacked ? "site-mobile-search glass" : "site-mobile-search"}

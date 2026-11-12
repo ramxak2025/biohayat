@@ -119,16 +119,15 @@ export default async function ProductPage({
           <nav className="vysota-breadcrumbs" aria-label="Хлебные крошки">
             <Link href="/">Главная</Link><span aria-hidden="true">/</span>
             <Link href={direction.path}>{direction.label}</Link><span aria-hidden="true">/</span>
-            <Link href={`/category/${product.category.slug}`}>{product.category.name}</Link><span aria-hidden="true">/</span>
-            <span aria-current="page">{product.name}</span>
+            <Link href={`/category/${product.category.slug}`}>{product.category.name}</Link>
+            <span className="hidden lg:inline" aria-hidden="true">/</span>
+            <span className="sr-only lg:not-sr-only" aria-current="page">{product.name}</span>
           </nav>
         </Container>
       </div>
 
       <Container className="product-detail-grid">
-        <ProductGallery images={product.images} name={product.name} />
-
-        <div className="min-w-0">
+        <div className="product-detail-identity">
           <div className="flex flex-wrap items-center gap-2">
             <Link href={direction.path} className="flex min-h-11 items-center text-sm font-medium hover:underline">
               <DirectionMark direction={direction} />
@@ -151,10 +150,9 @@ export default async function ProductPage({
 
           <h1 className="product-detail-title">{product.name}</h1>
           {product.volume ? <p className="mt-3 text-sm font-medium text-ink-muted">{product.volume}</p> : null}
-          {product.shortDescription ? (
-            <p className="mt-3 max-w-prose text-base leading-relaxed text-ink-muted sm:text-lg">{product.shortDescription}</p>
-          ) : null}
+        </div>
 
+        <div className="product-detail-purchase">
           {reviewStats ? (
             <a
               href="#reviews"
@@ -203,7 +201,17 @@ export default async function ProductPage({
               maxQty={product.stockQty ?? 99}
             />
           </div>
+        </div>
 
+        <div className="product-detail-gallery">
+          <ProductGallery images={product.images} name={product.name} />
+        </div>
+
+        {product.shortDescription ? (
+          <p className="product-detail-description max-w-prose text-base leading-relaxed text-ink-muted sm:text-lg">{product.shortDescription}</p>
+        ) : null}
+
+        <div className="product-detail-notes">
           <div className="mt-4 flex items-center gap-2 text-sm text-ink-muted">
             <Truck size={18} strokeWidth={1.6} aria-hidden="true" />
             {freeDelivery ? "Бесплатная доставка этого товара по России" : `Бесплатная доставка от ${formatMoney(settings.freeDeliveryThresholdKopecks)}`}
