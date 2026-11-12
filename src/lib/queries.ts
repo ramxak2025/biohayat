@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import type { ProductDirection } from "@/lib/product-direction";
 import {
   GOAL_CATEGORY_ALIASES,
   AUDIENCE_CATEGORY_ALIASES,
@@ -123,6 +124,7 @@ export function isProductSort(value: unknown): value is ApiProductSort {
 }
 
 interface ProductsOpts {
+  direction?: ProductDirection;
   ids?: string[];
   sort?: ApiProductSort;
   priceFrom?: number;
@@ -168,6 +170,7 @@ function axisConditions(opts: { audience?: string; goal?: string }) {
 async function loadProducts(opts: ProductsOpts) {
   const where = {
     isActive: true,
+    ...(opts.direction ? { direction: opts.direction } : {}),
     ...(opts.ids ? { id: { in: opts.ids } } : {}),
     ...(opts.inStock ? { inStock: true } : {}),
     ...((opts.priceFrom !== undefined || opts.priceTo !== undefined) ? { priceKopecks: { gte: opts.priceFrom, lte: opts.priceTo } } : {}),
@@ -367,6 +370,7 @@ const getCachedSortedProducts = unstable_cache(
     // чтобы не менять сигнатуру и ключи кэша существующего getProducts.
     const where = {
       isActive: true,
+      ...(opts.direction ? { direction: opts.direction } : {}),
       ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
       AND: axisConditions(opts),
       ...(opts.featured ? { isFeatured: true } : {}),

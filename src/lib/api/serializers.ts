@@ -18,6 +18,7 @@ export function serializeProduct(p: ProductFull) {
     id: p.id,
     slug: p.slug,
     name: p.name,
+    direction: p.direction,
     shortDescription: p.shortDescription,
     description: p.description,
     composition: p.composition,

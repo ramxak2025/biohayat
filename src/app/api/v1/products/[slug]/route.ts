@@ -38,6 +38,7 @@ export const GET = withErrorHandling(
       id: product.id,
       slug: product.slug,
       name: product.name,
+      direction: product.direction,
       shortDescription: product.shortDescription,
       description: product.description,
       composition: product.composition,

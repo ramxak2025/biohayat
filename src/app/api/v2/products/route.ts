@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { apiOk, apiPreflight, parsePaging, apiInternal, apiError } from "@/lib/api/response";
 import { getProducts, isProductSort } from "@/lib/queries";
 import { serializeProduct } from "@/lib/api/serializers";
+import { productDirectionSchema } from "@/lib/product-direction";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +40,8 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const { take, skip } = parsePaging(url, 24, 100);
     const sp = url.searchParams;
+    const direction = productDirectionSchema.optional().safeParse(sp.get("direction") ?? undefined);
+    if (!direction.success) return apiError("Неизвестное направление", 400, "VALIDATION");
 
     const ids = sp.has("ids") ? [...new Set((sp.get("ids") || "").split(",").filter(Boolean))] : undefined;
     if (ids && (ids.length === 0 || ids.length > 100 || ids.some(id => id.length > 64))) {
@@ -60,6 +63,7 @@ export async function GET(req: NextRequest) {
 
     const { items, total } = await getProducts({
       ids,
+      direction: direction.data,
       categorySlug: sp.get("category") || undefined,
       audience: sp.get("audience") || undefined,
       goal: sp.get("goal") || undefined,

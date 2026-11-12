@@ -11,6 +11,7 @@ export function serializeProductCard(p: ProductWithFirstImage) {
     id: p.id,
     slug: p.slug,
     name: p.name,
+    direction: p.direction,
     shortDescription: p.shortDescription,
     priceKopecks: p.priceKopecks,
     oldPriceKopecks: p.oldPriceKopecks,

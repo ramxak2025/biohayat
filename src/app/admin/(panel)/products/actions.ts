@@ -6,10 +6,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin } from "@/lib/auth";
 import { slugify, rubToKopecks } from "@/lib/utils";
+import { productDirectionSchema } from "@/lib/product-direction";
 
 export type FormState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
 
 const schema = z.object({
+  direction: productDirectionSchema.optional(),
   name: z.string().min(2, "Укажите название"),
   slug: z.string().optional(),
   categoryId: z.string().min(1, "Выберите категорию"),
@@ -93,6 +95,7 @@ function buildData(d: z.infer<typeof schema>, flags: { inStock: boolean; isActiv
     .filter(Boolean);
   return {
     name: d.name.trim(),
+    ...(d.direction ? { direction: d.direction } : {}),
     slug: (d.slug?.trim() ? slugify(d.slug) : slugify(d.name)) || slugify(d.name),
     categoryId: d.categoryId,
     brandId: d.brandId?.trim() || null,

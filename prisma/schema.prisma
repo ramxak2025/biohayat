@@ -60,10 +60,18 @@ model Category {
   @@index([isActive, sortOrder])
 }
 
+enum ProductDirection {
+  sunna
+  semya
+  osnova
+  sport
+}
+
 model Product {
   id               String  @id @default(cuid())
   slug             String  @unique
   name             String
+  direction        ProductDirection @default(osnova)
   shortDescription String? @db.Text
   description      String? @db.Text
 
@@ -119,6 +127,17 @@ model Product {
   @@index([brandId])
   @@index([isActive, sortOrder])
   @@index([isFeatured])
+  @@index([direction, isActive, sortOrder])
+}
+
+// Immutable recovery receipt. No Product FK: deletion must not make a later
+// import resurrect a product. Raw source preserves unverified label/content facts.
+model CatalogueRecovery {
+  sourceId    Int      @id
+  productId   String   @unique
+  sourceHash  String
+  source      Json
+  importedAt  DateTime @default(now())
 }
 
 // ─────────────────────────────────────────────

@@ -7,11 +7,13 @@ import { prisma } from "@/lib/prisma";
 import { smartSearchProducts } from "@/lib/search";
 import { apiOk, apiError, zodMessage, withErrorHandling } from "../_lib/response";
 import { serializeProductCard } from "../_lib/serializers";
+import { productDirectionSchema } from "@/lib/product-direction";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
+  direction: productDirectionSchema.optional(),
   category: z.string().max(200).optional(),
   audience: z.string().max(100).optional(),
   goal: z.string().max(100).optional(),
@@ -31,6 +33,7 @@ const SORT_ORDER: Record<string, Prisma.ProductOrderByWithRelationInput[]> = {
 export const GET = withErrorHandling(async (req: NextRequest) => {
   const sp = req.nextUrl.searchParams;
   const parsed = querySchema.safeParse({
+    direction: sp.get("direction") ?? undefined,
     category: sp.get("category") ?? undefined,
     audience: sp.get("audience") ?? undefined,
     goal: sp.get("goal") ?? undefined,
@@ -41,7 +44,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
   });
   if (!parsed.success) return apiError(400, "VALIDATION_ERROR", zodMessage(parsed.error));
 
-  const { category, audience, goal, q, sort, page, perPage } = parsed.data;
+  const { direction, category, audience, goal, q, sort, page, perPage } = parsed.data;
   const skip = (page - 1) * perPage;
 
   // Полнотекстовый поиск (pg_trgm) с последующей фильтрацией по осям каталога:
@@ -50,6 +53,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     const { items: found } = await smartSearchProducts(q, 300);
     let items = found.filter(
       (p) =>
+        (!direction || p.direction === direction) &&
         (!category || p.category.slug === category) &&
         (!audience || p.audiences.includes(audience)) &&
         (!goal || p.goals.includes(goal)),
@@ -65,6 +69,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
 
   const where: Prisma.ProductWhereInput = {
     isActive: true,
+    ...(direction ? { direction } : {}),
     ...(category ? { category: { slug: category } } : {}),
     ...(audience ? { audiences: { has: audience } } : {}),
     ...(goal ? { goals: { has: goal } } : {}),
