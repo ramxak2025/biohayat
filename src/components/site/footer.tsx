@@ -207,7 +207,10 @@ export function Footer({
               {settings.inn ? ` · ИНН ${settings.inn}` : ""}
               {settings.ogrn ? ` · ОГРН ${settings.ogrn}` : ""}
             </span>
-            <a href="https://stmvostok.ru" className="transition hover:text-mist">Производство под вашим брендом · «Восток»</a>
+            <div className="flex flex-wrap items-center gap-x-4">
+              <Link href="/photo-credits" className="inline-flex min-h-11 items-center transition hover:text-mist">Авторы фотографий</Link>
+              <a href="https://stmvostok.ru" className="inline-flex min-h-11 items-center transition hover:text-mist">Производство под вашим брендом · «Восток»</a>
+            </div>
           </div>
         </div>
       </Container>

@@ -14,6 +14,7 @@ export const LEGAL_URL = {
   privacy: "https://new.biohayat.ru/privacy-policy",
   consent: "https://new.biohayat.ru/personal-data-consent",
   delivery: "https://new.biohayat.ru/delivery",
+  photoCredits: "https://biohayat.ru/photo-credits",
 } as const;
 
 export const telHref = (phone: string): string => `tel:${normalizePhone(phone) || phone}`;
