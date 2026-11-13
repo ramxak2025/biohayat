@@ -46,12 +46,14 @@ export function FavoriteButton({
         e.stopPropagation();
         toggle(productId);
       }}
-      aria-label={active ? "Убрать из избранного" : "В избранное"}
+      disabled={!ready}
+      aria-busy={!ready}
+      aria-label={ready ? (active ? "Убрать из избранного" : "В избранное") : "Избранное загружается"}
       aria-pressed={active}
       className={cn(
-        "flex items-center justify-center rounded-full bg-surface/90 ring-1 ring-line transition active:scale-90",
+        "flex items-center justify-center rounded-full bg-surface/90 ring-1 ring-line transition enabled:active:scale-90 disabled:cursor-wait disabled:opacity-60",
         box,
-        active ? "text-sale" : "text-ink-faint hover:text-sale",
+        active ? "text-sale" : "text-ink-faint enabled:hover:text-sale",
         className,
       )}
     >
