@@ -250,15 +250,19 @@ button, input, textarea, select { caret-color: currentColor; }
   }
 }
 .site-direction-nav {
-  display: flex;
+  position: relative;
+  min-width: 0;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   flex: 1;
   gap: var(--space-1);
+  padding: var(--space-1);
+  scroll-padding-inline: var(--space-1);
 }
 .site-direction-nav > a {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   min-height: 44px;
   padding-inline: var(--space-3);
   border-radius: var(--r-pill);
@@ -266,6 +270,10 @@ button, input, textarea, select { caret-color: currentColor; }
   font-size: .9375rem;
   font-weight: 500;
 }
+@media (max-width: 1279px) {
+  .site-direction-nav > a { padding-inline: var(--space-2); }
+}
+.site-direction-nav > a:focus-visible { outline-offset: 2px; }
 .site-direction-nav > a:hover,
 .site-direction-nav > a[aria-current],
 .site-header-action:hover { background: var(--toolbar-hover); }

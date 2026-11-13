@@ -8,6 +8,7 @@ import { ListLink as Link } from "@/components/ui/list-link";
 import { useCart } from "@/components/cart/cart-provider";
 import { useFavorites } from "@/components/favorites/favorites-provider";
 import { Bump } from "@/components/motion/bump";
+import { ChipsRow } from "@/components/product/chips-row";
 import { useAuthFlag } from "@/lib/use-auth-flag";
 import { onAppScroll } from "@/lib/app-scroll";
 import { DirectionMark } from "./direction-mark";
@@ -100,15 +101,26 @@ export function Header({ phone, wildberries }: { phone: string; wildberries: str
             <Logo tone={photoBacked ? "inverted" : "default"} />
           </Link>
 
-          <nav aria-label="Направления" className="site-direction-nav">
+          <ChipsRow label="Направления" activeKey={pathname} className="site-direction-nav snap-none">
             {CATALOG_DIRECTIONS.map((direction) => (
-              <Link key={direction.id} href={direction.path} aria-current={pathname === direction.path ? "page" : undefined}>
+              <Link
+                key={direction.id}
+                href={direction.path}
+                aria-current={pathname === direction.path ? "page" : undefined}
+                data-active={pathname === direction.path ? "true" : undefined}
+              >
                 <DirectionMark direction={direction} dark={photoBacked} />
               </Link>
             ))}
-            <Link href="/catalog" aria-current={pathname === "/catalog" ? "page" : undefined}>Каталог</Link>
-            <Link href="/articles" className="max-xl:hidden">Статьи</Link>
-          </nav>
+            <Link
+              href="/catalog"
+              aria-current={pathname === "/catalog" ? "page" : undefined}
+              data-active={pathname === "/catalog" ? "true" : undefined}
+            >
+              Каталог
+            </Link>
+            <Link href="/articles">Статьи</Link>
+          </ChipsRow>
 
           <div className="hidden shrink-0 items-center gap-1 lg:flex">
             <Link href="/search" className="site-header-action" aria-label="Поиск по каталогу">
