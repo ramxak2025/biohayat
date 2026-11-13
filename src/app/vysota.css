@@ -596,10 +596,13 @@ button, input, textarea, select { caret-color: currentColor; }
   right: var(--space-2);
   top: var(--space-2);
 }
-.product-card-featured {
+.product-card-badges {
   position: absolute;
   inset-block-end: var(--space-2);
-  inset-inline-start: var(--space-2);
+  inset-inline: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
   pointer-events: none;
 }
 .product-card-content {
@@ -615,6 +618,7 @@ button, input, textarea, select { caret-color: currentColor; }
 .product-card-buy { display: grid; gap: var(--site-control-gap); margin-top: auto; padding-top: var(--site-control-gap); }
 .product-card-price { font-size: 1.25rem; font-weight: 600; white-space: nowrap; }
 .product-card-old-price { white-space: nowrap; }
+.product-card-price-placeholder { display: none; }
 @media (max-width: 1150px) {
   .vysota-product-grid { gap: var(--space-3); }
 }
@@ -654,7 +658,13 @@ button, input, textarea, select { caret-color: currentColor; }
   .vysota-product-grid .product-card-title > a:focus-visible {
     outline-offset: -2px;
   }
-  .vysota-product-grid .product-card-price { font-size: 1.125rem; }
+  .vysota-product-grid .product-card-prices {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .vysota-product-grid .product-card-price { font-size: 1.125rem; line-height: 1.25; }
+  .vysota-product-grid .product-card-old-price { display: block; min-height: 1.4em; line-height: 1.4; }
   .vysota-product-grid .product-cart-action {
     padding-inline: var(--space-1);
     line-height: 1.2;
@@ -673,6 +683,23 @@ button, input, textarea, select { caret-color: currentColor; }
   color: var(--ink);
   font-size: 14px;
   transition: background-color 160ms ease, color 160ms ease;
+}
+@media (max-width: 639px) {
+  .catalog-filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--site-gutter));
+    margin-bottom: var(--space-1);
+    padding: 6px var(--site-gutter);
+    scroll-padding-inline: var(--site-gutter);
+    scrollbar-width: none;
+  }
+  .catalog-filter-row::-webkit-scrollbar { display: none; }
+  .catalog-filter-row > .catalog-chip {
+    flex-shrink: 0;
+    white-space: nowrap;
+    scroll-margin-inline: var(--space-2);
+  }
 }
 .catalog-chip:hover { background: var(--white); }
 .catalog-chip[aria-current] { color: var(--mist); background: var(--ink); border-color: var(--ink); }

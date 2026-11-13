@@ -26,7 +26,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             <Package aria-hidden="true" strokeWidth={1.5} className="absolute inset-0 m-auto size-12 text-ink-muted" />
           )}
         </Link>
-        {product.isFeatured ? <Badge className="product-card-featured bg-ink text-mist">Хит</Badge> : null}
+        {product.isFeatured || discount ? (
+          <div className="product-card-badges">
+            {product.isFeatured ? <Badge className="bg-ink text-mist">Хит</Badge> : null}
+            {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
+          </div>
+        ) : null}
         <FavoriteButton productId={product.id} className="product-card-favorite" />
       </div>
       <div className="product-card-content">
@@ -49,10 +54,13 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         ) : null}
         {lowStock ? <p className="text-xs text-ink-muted">Осталось {product.stockQty} шт.</p> : null}
         <div className="product-card-buy">
-          <div className="tnum flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <div className="product-card-prices tnum flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
             <span className="product-card-price">{formatMoney(product.priceKopecks)}</span>
-            {product.oldPriceKopecks ? <del className="product-card-old-price text-sm text-ink-muted">{formatMoney(product.oldPriceKopecks)}</del> : null}
-            {discount ? <Badge tone="sale-soft">−{discount}%</Badge> : null}
+            {product.oldPriceKopecks ? (
+              <del className="product-card-old-price text-sm text-ink-muted">{formatMoney(product.oldPriceKopecks)}</del>
+            ) : (
+              <span aria-hidden="true" className="product-card-old-price product-card-price-placeholder text-sm" />
+            )}
           </div>
           <AddToCartButton
             full

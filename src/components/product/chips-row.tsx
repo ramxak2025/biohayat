@@ -11,11 +11,13 @@ import { cn } from "@/lib/utils";
  */
 export function ChipsRow({
   activeKey,
+  label,
   className,
   children,
 }: {
   /** Ключ активного элемента — при его смене лента перецентровывается. */
   activeKey?: string;
+  label?: string;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -23,7 +25,7 @@ export function ChipsRow({
 
   useEffect(() => {
     const row = ref.current;
-    if (!row) return;
+    if (!row || row.scrollWidth <= row.clientWidth) return;
     const active = row.querySelector<HTMLElement>('[data-active="true"]');
     if (!active) return;
     // Считаем смещение вручную (не scrollIntoView), чтобы не дёргать
@@ -35,6 +37,17 @@ export function ChipsRow({
   return (
     <div
       ref={ref}
+      role={label ? "navigation" : undefined}
+      aria-label={label}
+      onFocus={(event) => {
+        const row = event.currentTarget;
+        if (row.scrollWidth <= row.clientWidth) return;
+        const chip = event.target.getBoundingClientRect();
+        const viewport = row.getBoundingClientRect();
+        const padding = parseFloat(getComputedStyle(row).scrollPaddingInlineStart) || 0;
+        if (chip.left < viewport.left + padding) row.scrollLeft += chip.left - viewport.left - padding;
+        else if (chip.right > viewport.right - padding) row.scrollLeft += chip.right - viewport.right + padding;
+      }}
       className={cn("no-scrollbar flex snap-x gap-2 overflow-x-auto", className)}
     >
       {children}

@@ -2,6 +2,7 @@ import { CATALOG_DIRECTIONS, findCatalogDirection } from "../../../../../shared/
 import { ListLink as Link } from "@/components/ui/list-link";
 import { DirectionMark } from "@/components/site/direction-mark";
 import type { Metadata } from "next";
+import { ChipsRow } from "@/components/product/chips-row";
 import { CatalogView, CATALOG_PAGE_SIZE, pageNumber, SORT_OPTIONS } from "@/components/product/catalog-view";
 import { CatalogHub } from "@/components/site/catalog-hub";
 import { getCategoriesWithCounts, getProducts, getPurchasedProducts, parseProductSort } from "@/lib/queries";
@@ -108,19 +109,19 @@ export default async function CatalogPage({
         categoryHref={(slug) => href(1, direction?.id, sort, slug ?? null)}
         filters={(
           <>
-            <div className="mb-5 flex flex-wrap items-center gap-2" role="navigation" aria-label="Фильтр по направлению">
-              <Link href={href(1, null)} aria-current={!direction ? "true" : undefined} className="catalog-chip">Все направления</Link>
+            <ChipsRow label="Фильтр по направлению" activeKey={direction?.id} className="catalog-filter-row mb-5 snap-none flex-wrap items-center overflow-visible">
+              <Link href={href(1, null)} aria-current={!direction ? "true" : undefined} data-active={!direction ? "true" : undefined} className="catalog-chip">Все направления</Link>
               {CATALOG_DIRECTIONS.map((item) => (
-                <Link key={item.id} href={href(1, item.id)} aria-current={direction?.id === item.id ? "true" : undefined} className="catalog-chip">
+                <Link key={item.id} href={href(1, item.id)} aria-current={direction?.id === item.id ? "true" : undefined} data-active={direction?.id === item.id ? "true" : undefined} className="catalog-chip">
                   <DirectionMark direction={item} dark={direction?.id === item.id} />
                 </Link>
               ))}
-            </div>
-            <div className="mb-5 flex flex-wrap gap-2" role="navigation" aria-label="Сортировка">
+            </ChipsRow>
+            <ChipsRow label="Сортировка" activeKey={sort} className="catalog-filter-row mb-5 snap-none flex-wrap overflow-visible">
               {SORT_OPTIONS.map((item) => (
-                <Link key={item.value} href={href(1, direction?.id, item.value)} aria-current={sort === item.value ? "true" : undefined} className="catalog-chip">{item.label}</Link>
+                <Link key={item.value} href={href(1, direction?.id, item.value)} aria-current={sort === item.value ? "true" : undefined} data-active={sort === item.value ? "true" : undefined} className="catalog-chip">{item.label}</Link>
               ))}
-            </div>
+            </ChipsRow>
           </>
         )}
         categories={categories}
